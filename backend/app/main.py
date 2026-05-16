@@ -7,6 +7,7 @@ from app.api.brand import router as brand_router
 from app.api.product import router as product_router
 from app.api.cart import router as cart_router
 from app.api.order import router as order_router
+from app.api.ai import router as ai_router
 from app.core.database import create_db_and_tables
 
 # Import models để SQLModel nhận diện bảng
@@ -30,6 +31,7 @@ app.include_router(brand_router)
 app.include_router(product_router)
 app.include_router(cart_router)
 app.include_router(order_router)
+app.include_router(ai_router)
 
 @app.on_event("startup")
 def on_startup():
