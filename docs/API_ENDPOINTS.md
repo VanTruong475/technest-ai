@@ -58,6 +58,83 @@ Base URL: `http://localhost:8000`
 | GET | `/api/orders/{id}` | User | - | Chi tiết đơn hàng |
 | PUT | `/api/orders/{id}/status` | Admin | - | Cập nhật trạng thái đơn hàng |
 
+## AI
+
+| Method | Endpoint | Auth | Query Params | Mô tả |
+|--------|----------|------|--------------|-------|
+| POST | `/api/ai/search` | Public | - | Tìm kiếm sản phẩm thông minh (rule-based) |
+| GET | `/api/ai/recommend` | Public/User | strategy, limit | Gợi ý sản phẩm |
+
+### POST /api/ai/search
+
+Tìm kiếm sản phẩm theo relevance score. Score cao hơn = kết quả phù hợp hơn.
+
+**Request:**
+```json
+{
+  "query": "iphone pro",
+  "limit": 10
+}
+```
+
+| Field | Type | Default | Mô tả |
+|-------|------|---------|-------|
+| query | string | - | Từ khóa tìm kiếm (bắt buộc) |
+| limit | int | 10 | Số kết quả (1-50) |
+
+**Response:**
+```json
+{
+  "query": "iphone pro",
+  "results": [
+    {
+      "product": { ... },
+      "score": 1.0,
+      "reason": "Tên khớp 2/2 từ khóa"
+    }
+  ],
+  "total": 3
+}
+```
+
+### GET /api/ai/recommend
+
+Gợi ý sản phẩm dựa trên strategy.
+
+**Query Params:**
+
+| Param | Type | Default | Mô tả |
+|-------|------|---------|-------|
+| strategy | string | "cart" | `cart`, `history`, hoặc `popular` |
+| limit | int | 10 | Số kết quả (1-20) |
+
+**Strategy details:**
+
+| Strategy | Auth | Logic |
+|----------|------|-------|
+| `cart` | JWT bắt buộc | Sản phẩm cùng category/brand với sản phẩm trong giỏ. Fallback → popular → latest |
+| `history` | JWT bắt buộc | Sản phẩm cùng category/brand với sản phẩm đã mua. Fallback → popular → latest |
+| `popular` | Public | Sản phẩm được đặt nhiều nhất (dựa trên order_items). Fallback → latest products |
+
+**Response:**
+```json
+{
+  "strategy": "cart",
+  "results": [
+    {
+      "product": { ... },
+      "score": 1.0,
+      "reason": "cùng danh mục với sản phẩm trong giỏ + đang giảm giá"
+    }
+  ],
+  "total": 5
+}
+```
+
+**Fallback reasons:**
+- `"Fallback popular vì không có đủ dữ liệu gợi ý (Được đặt X lần)"`
+- `"Fallback sản phẩm mới vì chưa có dữ liệu popular"`
+
 ## Health
 
 | Method | Endpoint | Auth | Mô tả |

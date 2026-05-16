@@ -1,6 +1,6 @@
 # TechSphere AI E-commerce
 
-E-commerce thiết bị công nghệ tích hợp AI
+E-commerce thiết bị công nghệ tích hợp AI (tìm kiếm thông minh, gợi ý sản phẩm).
 
 ## Tech Stack
 
@@ -11,21 +11,21 @@ E-commerce thiết bị công nghệ tích hợp AI
 
 ```
 techsphere-ai/
-├── backend/          # FastAPI backend
+├── backend/
 │   ├── app/
-│   │   ├── api/      # API endpoints
-│   │   ├── core/     # Config, database
-│   │   ├── models/   # SQLModel models
-│   │   ├── repositories/  # Data access layer
-│   │   ├── schemas/  # Pydantic schemas
-│   │   ├── services/ # Business logic
-│   │   ├── main.py   # FastAPI app entry
-│   │   └── seed.py   # Seed data script
+│   │   ├── api/            # API endpoints
+│   │   ├── core/           # Config, database
+│   │   ├── models/         # SQLModel models
+│   │   ├── repositories/   # Data access layer
+│   │   ├── schemas/        # Pydantic schemas
+│   │   ├── services/       # Business logic
+│   │   ├── main.py         # FastAPI app entry
+│   │   └── seed.py         # Seed data script
 │   └── requirements.txt
-├── frontend/         # React frontend
-├── docs/             # Documentation
-├── CLAUDE.md         # Working rules for Claude Code
-├── ROADMAP.md        # Project roadmap
+├── frontend/
+├── docs/
+├── CLAUDE.md
+├── ROADMAP.md
 └── README.md
 ```
 
@@ -74,9 +74,9 @@ python -m app.seed
 
 Script seed sẽ tạo:
 - 1 tài khoản admin demo
-- 5 danh mục (Categories)
-- 5 thương hiệu (Brands)
-- 12 sản phẩm (Products)
+- 5 danh mục (Laptop, Điện thoại, Tablet, Tai nghe, Phụ kiện)
+- 5 thương hiệu (Apple, Samsung, Sony, Dell, Logitech)
+- 12 sản phẩm (iPhone, MacBook, Galaxy, AirPods, ...)
 
 **Lưu ý:** Script idempotent - chạy nhiều lần không tạo trùng dữ liệu.
 
@@ -98,13 +98,106 @@ Script seed sẽ tạo:
 
 ## Các module đã hoàn thành
 
-- Auth (register, login, JWT)
-- Category (CRUD, phân quyền admin)
-- Brand (CRUD, phân quyền admin)
-- Product (CRUD, filter, search, soft delete)
-- Cart (add, update, delete items)
-- Order (create order, checkout, update status)
-- Pagination cho tất cả list endpoints
+| Module | Mô tả |
+|--------|-------|
+| **Auth** | Đăng ký, đăng nhập, JWT, lấy user hiện tại (GET /api/auth/me) |
+| **Category** | CRUD danh mục, phân quyền admin |
+| **Brand** | CRUD thương hiệu, phân quyền admin |
+| **Product** | CRUD sản phẩm, filter, search, soft delete |
+| **Cart** | Thêm/sửa/xóa sản phẩm trong giỏ, kiểm tra tồn kho |
+| **Order** | Tạo đơn hàng từ cart, cập nhật trạng thái, phân quyền admin |
+| **Pagination** | Tất cả list endpoints đều hỗ trợ pagination |
+| **Seed data** | Script idempotent tạo dữ liệu mẫu |
+| **AI Search** | Tìm kiếm sản phẩm thông minh (rule-based) |
+| **AI Recommendation** | Gợi ý sản phẩm dựa trên cart, lịch sử, popularity |
+
+## AI Features
+
+### AI Search - Tìm kiếm thông minh
+
+```
+POST /api/ai/search
+```
+
+Tìm kiếm sản phẩm theo relevance score (name match, description match).
+
+```json
+{
+  "query": "iphone pro",
+  "limit": 5
+}
+```
+
+### AI Recommendation - Gợi ý sản phẩm
+
+```
+GET /api/ai/recommend?strategy={cart|history|popular}&limit={1-20}
+```
+
+| Strategy | Auth | Mô tả |
+|----------|------|-------|
+| `cart` | JWT | Gợiý dựa trên sản phẩm trong giỏ hàng |
+| `history` | JWT | Gợi ý dựa trên lịch sử mua hàng |
+| `popular` | Public | Sản phẩm phổ biến nhất |
+
+Fallback: Nếu cart/history rỗng hoặc không đủ dữ liệu, trả về popular hoặc sản phẩm mới nhất.
+
+## Demo Flow
+
+Sau khi seed data, test theo thứ tự:
+
+### 1. Xem sản phẩm (public)
+
+```
+GET /api/products?limit=5
+GET /api/products?category_id=1&limit=3
+```
+
+### 2. Đăng nhập
+
+```
+POST /api/auth/login
+Body: { "email": "admin@techsphere.com", "password": "admin123" }
+→ Lấy access_token
+```
+
+### 3. Thêm sản phẩm vào giỏ
+
+```
+POST /api/cart/items
+Header: Authorization: Bearer <token>
+Body: { "product_id": 1, "quantity": 2 }
+```
+
+### 4. Xem giỏ hàng
+
+```
+GET /api/cart
+Header: Authorization: Bearer <token>
+```
+
+### 5. Tạo đơn hàng
+
+```
+POST /api/orders
+Header: Authorization: Bearer <token>
+Body: { "shipping_address": "123 ABC", "phone": "0901234567" }
+```
+
+### 6. AI Search
+
+```
+POST /api/ai/search
+Body: { "query": "laptop dell", "limit": 5 }
+```
+
+### 7. AI Recommendation
+
+```
+GET /api/ai/recommend?strategy=popular&limit=5
+GET /api/ai/recommend?strategy=cart&limit=5   (cần JWT)
+GET /api/ai/recommend?strategy=history&limit=5 (cần JWT)
+```
 
 ## Lệnh chạy/test
 
