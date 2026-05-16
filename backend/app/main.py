@@ -6,10 +6,11 @@ from app.api.category import router as category_router
 from app.api.brand import router as brand_router
 from app.api.product import router as product_router
 from app.api.cart import router as cart_router
+from app.api.order import router as order_router
 from app.core.database import create_db_and_tables
 
 # Import models để SQLModel nhận diện bảng
-from app.models import User, Category, Brand, Product, Cart, CartItem  # noqa: F401
+from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem  # noqa: F401
 
 app = FastAPI(title="TechSphere AI - Backend")
 
@@ -28,6 +29,7 @@ app.include_router(category_router)
 app.include_router(brand_router)
 app.include_router(product_router)
 app.include_router(cart_router)
+app.include_router(order_router)
 
 @app.on_event("startup")
 def on_startup():
