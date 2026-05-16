@@ -4,6 +4,7 @@ from app.api.health import router as health_router
 from app.api.auth import router as auth_router
 from app.api.category import router as category_router
 from app.api.brand import router as brand_router
+from app.api.product import router as product_router
 from app.core.database import create_db_and_tables
 
 # Import models để SQLModel nhận diện bảng
@@ -24,6 +25,7 @@ app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(category_router)
 app.include_router(brand_router)
+app.include_router(product_router)
 
 @app.on_event("startup")
 def on_startup():
