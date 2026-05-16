@@ -1,3 +1,4 @@
+import math
 from typing import Optional
 
 from fastapi import HTTPException, status
@@ -8,6 +9,7 @@ from app.models.user import User
 from app.repositories.brand_repository import BrandRepository
 from app.repositories.category_repository import CategoryRepository
 from app.repositories.product_repository import ProductRepository
+from app.schemas.common import PaginatedResponse
 from app.schemas.product import ProductCreate, ProductUpdate
 
 
@@ -22,21 +24,34 @@ def require_admin(current_user: User) -> User:
 
 def get_all_products(
     session: Session,
+    page: int = 1,
+    limit: int = 10,
     category_id: Optional[int] = None,
     brand_id: Optional[int] = None,
     status_filter: Optional[str] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
     search: Optional[str] = None,
-) -> list[Product]:
+) -> PaginatedResponse[Product]:
     repo = ProductRepository(session)
-    return repo.find_all(
+    items, total = repo.find_all(
+        page=page,
+        limit=limit,
         category_id=category_id,
         brand_id=brand_id,
         status=status_filter,
         min_price=min_price,
         max_price=max_price,
         search=search,
+    )
+    total_pages = math.ceil(total / limit) if total > 0 else 0
+
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=total_pages,
     )
 
 

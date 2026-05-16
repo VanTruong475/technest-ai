@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 from fastapi import HTTPException, status
@@ -8,6 +9,7 @@ from app.models.user import User
 from app.repositories.cart_repository import CartItemRepository, CartRepository
 from app.repositories.order_repository import OrderItemRepository, OrderRepository
 from app.repositories.product_repository import ProductRepository
+from app.schemas.common import PaginatedResponse
 from app.schemas.order import OrderCreate, OrderResponse, OrderItemResponse, OrderStatusUpdate
 
 VALID_STATUSES = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED"]
@@ -129,16 +131,36 @@ def create_order(
     return _build_order_response(order, session)
 
 
-def get_user_orders(current_user: User, session: Session) -> list[OrderResponse]:
+def get_user_orders(current_user: User, session: Session, page: int = 1, limit: int = 10) -> PaginatedResponse[OrderResponse]:
     order_repo = OrderRepository(session)
-    orders = order_repo.find_all_by_user_id(current_user.id)
-    return [_build_order_response(order, session) for order in orders]
+    orders, total = order_repo.find_all_by_user_id(current_user.id, page=page, limit=limit)
+    total_pages = math.ceil(total / limit) if total > 0 else 0
+
+    items = [_build_order_response(order, session) for order in orders]
+
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=total_pages,
+    )
 
 
-def get_all_orders(session: Session) -> list[OrderResponse]:
+def get_all_orders(session: Session, page: int = 1, limit: int = 10) -> PaginatedResponse[OrderResponse]:
     order_repo = OrderRepository(session)
-    orders = order_repo.find_all()
-    return [_build_order_response(order, session) for order in orders]
+    orders, total = order_repo.find_all(page=page, limit=limit)
+    total_pages = math.ceil(total / limit) if total > 0 else 0
+
+    items = [_build_order_response(order, session) for order in orders]
+
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=total_pages,
+    )
 
 
 def get_order_by_id(

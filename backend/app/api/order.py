@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
 from app.core.database import get_session
 from app.models.user import User
+from app.schemas.common import PaginatedResponse
 from app.schemas.order import OrderCreate, OrderResponse, OrderStatusUpdate
 from app.services.auth_service import get_current_user
 from app.services.order_service import (
@@ -34,14 +35,16 @@ def create(
     return create_order(current_user, data, session)
 
 
-@router.get("", response_model=list[OrderResponse])
+@router.get("", response_model=PaginatedResponse[OrderResponse])
 def list_orders(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
     if current_user.role == "ADMIN":
-        return get_all_orders(session)
-    return get_user_orders(current_user, session)
+        return get_all_orders(session, page=page, limit=limit)
+    return get_user_orders(current_user, session, page=page, limit=limit)
 
 
 @router.get("/{order_id}", response_model=OrderResponse)

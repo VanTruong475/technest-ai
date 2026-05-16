@@ -1,3 +1,5 @@
+import math
+
 from fastapi import HTTPException, status
 from sqlmodel import Session
 
@@ -5,6 +7,7 @@ from app.models.brand import Brand
 from app.models.user import User
 from app.repositories.brand_repository import BrandRepository
 from app.schemas.brand import BrandCreate, BrandUpdate
+from app.schemas.common import PaginatedResponse
 
 
 def require_admin(current_user: User) -> User:
@@ -16,9 +19,18 @@ def require_admin(current_user: User) -> User:
     return current_user
 
 
-def get_all_brands(session: Session) -> list[Brand]:
+def get_all_brands(session: Session, page: int = 1, limit: int = 10) -> PaginatedResponse[Brand]:
     repo = BrandRepository(session)
-    return repo.find_all()
+    items, total = repo.find_all(page=page, limit=limit)
+    total_pages = math.ceil(total / limit) if total > 0 else 0
+
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=total_pages,
+    )
 
 
 def get_brand_by_id(brand_id: int, session: Session) -> Brand:

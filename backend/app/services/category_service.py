@@ -1,3 +1,5 @@
+import math
+
 from fastapi import HTTPException, status
 from sqlmodel import Session
 
@@ -5,6 +7,7 @@ from app.models.category import Category
 from app.models.user import User
 from app.repositories.category_repository import CategoryRepository
 from app.schemas.category import CategoryCreate, CategoryUpdate
+from app.schemas.common import PaginatedResponse
 
 
 def require_admin(current_user: User) -> User:
@@ -16,9 +19,18 @@ def require_admin(current_user: User) -> User:
     return current_user
 
 
-def get_all_categories(session: Session) -> list[Category]:
+def get_all_categories(session: Session, page: int = 1, limit: int = 10) -> PaginatedResponse[Category]:
     repo = CategoryRepository(session)
-    return repo.find_all()
+    items, total = repo.find_all(page=page, limit=limit)
+    total_pages = math.ceil(total / limit) if total > 0 else 0
+
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=total_pages,
+    )
 
 
 def get_category_by_id(category_id: int, session: Session) -> Category:

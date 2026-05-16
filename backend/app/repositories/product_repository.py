@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlmodel import Session, select, and_
+from sqlmodel import Session, select, func, and_
 
 from app.models.product import Product
 
@@ -11,14 +11,16 @@ class ProductRepository:
 
     def find_all(
         self,
+        page: int = 1,
+        limit: int = 10,
         category_id: Optional[int] = None,
         brand_id: Optional[int] = None,
         status: Optional[str] = None,
         min_price: Optional[float] = None,
         max_price: Optional[float] = None,
         search: Optional[str] = None,
-    ) -> list[Product]:
-        statement = select(Product)
+    ) -> tuple[list[Product], int]:
+        offset = (page - 1) * limit
         conditions = []
 
         if category_id is not None:
@@ -35,9 +37,16 @@ class ProductRepository:
             conditions.append(Product.name.ilike(f"%{search}%"))
 
         if conditions:
-            statement = statement.where(and_(*conditions))
+            count_statement = select(func.count()).select_from(Product).where(and_(*conditions))
+            total = self.session.exec(count_statement).one()
+            statement = select(Product).where(and_(*conditions)).offset(offset).limit(limit)
+        else:
+            count_statement = select(func.count()).select_from(Product)
+            total = self.session.exec(count_statement).one()
+            statement = select(Product).offset(offset).limit(limit)
 
-        return list(self.session.exec(statement).all())
+        items = list(self.session.exec(statement).all())
+        return items, total
 
     def find_by_id(self, product_id: int) -> Optional[Product]:
         statement = select(Product).where(Product.id == product_id)

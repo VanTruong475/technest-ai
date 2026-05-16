@@ -5,6 +5,7 @@ from sqlmodel import Session
 
 from app.core.database import get_session
 from app.models.user import User
+from app.schemas.common import PaginatedResponse
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.services.auth_service import get_current_user
 from app.services.product_service import (
@@ -23,8 +24,10 @@ def check_admin(current_user: User = Depends(get_current_user)) -> User:
     return require_admin(current_user)
 
 
-@router.get("", response_model=list[ProductResponse])
+@router.get("", response_model=PaginatedResponse[ProductResponse])
 def list_products(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     category_id: Optional[int] = Query(None),
     brand_id: Optional[int] = Query(None),
     status: Optional[str] = Query(None),
@@ -35,6 +38,8 @@ def list_products(
 ):
     return get_all_products(
         session,
+        page=page,
+        limit=limit,
         category_id=category_id,
         brand_id=brand_id,
         status_filter=status,

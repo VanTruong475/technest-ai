@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlmodel import Session
 
 from app.core.database import get_session
 from app.models.user import User
 from app.schemas.category import CategoryCreate, CategoryResponse, CategoryUpdate
+from app.schemas.common import PaginatedResponse
 from app.services.category_service import (
     create_category,
     delete_category,
@@ -21,9 +22,13 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     return _require_admin(current_user)
 
 
-@router.get("", response_model=list[CategoryResponse])
-def list_categories(session: Session = Depends(get_session)):
-    return get_all_categories(session)
+@router.get("", response_model=PaginatedResponse[CategoryResponse])
+def list_categories(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    session: Session = Depends(get_session),
+):
+    return get_all_categories(session, page=page, limit=limit)
 
 
 @router.get("/{category_id}", response_model=CategoryResponse)
