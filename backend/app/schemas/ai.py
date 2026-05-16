@@ -34,3 +34,35 @@ class AISearchResponse(BaseModel):
     query: str
     results: list[AISearchResult]
     total: int
+
+
+class AIRecommendRequest(BaseModel):
+    strategy: str = "cart"
+    limit: int = 10
+
+    @field_validator("strategy")
+    @classmethod
+    def validate_strategy(cls, v: str) -> str:
+        allowed = {"cart", "history", "popular"}
+        if v not in allowed:
+            raise ValueError(f"Strategy must be one of: {', '.join(allowed)}")
+        return v
+
+    @field_validator("limit")
+    @classmethod
+    def validate_limit(cls, v: int) -> int:
+        if v < 1 or v > 20:
+            raise ValueError("Limit must be between 1 and 20")
+        return v
+
+
+class AIRecommendResult(BaseModel):
+    product: ProductResponse
+    score: float
+    reason: str
+
+
+class AIRecommendResponse(BaseModel):
+    strategy: str
+    results: list[AIRecommendResult]
+    total: int
