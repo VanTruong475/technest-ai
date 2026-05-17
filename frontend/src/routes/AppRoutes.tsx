@@ -15,6 +15,7 @@ import OrderDetailPage from "@/pages/OrderDetailPage";
 import ChatPage from "@/pages/ChatPage";
 import AdminProductPage from "@/pages/AdminProductPage";
 import AdminOrderPage from "@/pages/AdminOrderPage";
+import AdminUserPage from "@/pages/AdminUserPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 // Protected Route - requires auth
@@ -55,6 +56,7 @@ export default function AppRoutes() {
           {/* Admin */}
           <Route path="/admin/products" element={<AdminRoute><AdminProductPage /></AdminRoute>} />
           <Route path="/admin/orders" element={<AdminRoute><AdminOrderPage /></AdminRoute>} />
+          <Route path="/admin/users" element={<AdminRoute><AdminUserPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFoundPage />} />

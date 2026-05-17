@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, X } from "lucide-react";
+import AdminNav from "@/components/common/AdminNav";
 
 interface Product {
   id: number;
@@ -239,6 +240,7 @@ export default function AdminProductPage() {
 
   return (
     <div className="space-y-6">
+      <AdminNav />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Quản lý sản phẩm</h1>
         <Button onClick={openCreateForm}>

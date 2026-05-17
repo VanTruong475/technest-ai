@@ -6,6 +6,7 @@ import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Eye } from "lucide-react";
+import AdminNav from "@/components/common/AdminNav";
 
 interface OrderItem {
   id: number;
@@ -104,6 +105,7 @@ export default function AdminOrderPage() {
 
   return (
     <div className="space-y-6">
+      <AdminNav />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Quản lý đơn hàng</h1>
         <p className="text-sm text-muted-foreground">{orders.length} đơn hàng</p>

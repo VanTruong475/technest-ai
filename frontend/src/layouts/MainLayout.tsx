@@ -120,6 +120,11 @@ export default function MainLayout() {
                     Quản lý đơn hàng
                   </Link>
                 )}
+                {isAdmin && (
+                  <Link to="/admin/users" className="block text-sm py-2" onClick={closeMobile}>
+                    Quản lý người dùng
+                  </Link>
+                )}
                 <div className="border-t pt-3 flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{user?.full_name}</span>
                   <Button variant="ghost" size="sm" onClick={handleLogout}>
