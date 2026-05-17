@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session
 
 from app.core.database import get_session
+from app.core.rate_limit import limiter
 from app.models.user import User
 from app.schemas.auth import Token, UserCreate, UserLogin, UserResponse
 from app.services.auth_service import (
@@ -15,13 +16,15 @@ router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)
-def register(user_data: UserCreate, session: Session = Depends(get_session)):
+@limiter.limit("3/minute")
+def register(request: Request, user_data: UserCreate, session: Session = Depends(get_session)):
     user = register_user(user_data, session)
     return user
 
 
 @router.post("/login", response_model=Token)
-def login(login_data: UserLogin, session: Session = Depends(get_session)):
+@limiter.limit("5/minute")
+def login(request: Request, login_data: UserLogin, session: Session = Depends(get_session)):
     user = authenticate_user(login_data.email, login_data.password, session)
     access_token = create_access_token(data={"sub": str(user.id)})
     return Token(access_token=access_token)

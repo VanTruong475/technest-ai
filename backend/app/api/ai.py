@@ -1,12 +1,13 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.database import get_session
+from app.core.rate_limit import limiter
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.ai import (
@@ -54,16 +55,20 @@ def _get_optional_user(
 
 
 @router.post("/search", response_model=AISearchResponse)
+@limiter.limit("20/minute")
 def search(
-    request: AISearchRequest,
+    request: Request,
+    body: AISearchRequest,
     session: Session = Depends(get_session),
 ):
     """Tìm kiếm sản phẩm thông minh (rule-based)."""
-    return smart_search(request, session)
+    return smart_search(body, session)
 
 
 @router.get("/recommend", response_model=AIRecommendResponse)
+@limiter.limit("20/minute")
 def recommend(
+    request: Request,
     strategy: str = Query(default="cart", description="Strategy: cart, history, popular"),
     limit: int = Query(default=10, ge=1, le=20, description="Số lượng kết quả (1-20)"),
     user: Optional[User] = Depends(_get_optional_user),
