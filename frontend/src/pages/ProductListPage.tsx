@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { formatPrice } from "@/utils/format";
 
 interface Product {
   id: number;
@@ -39,10 +40,6 @@ interface Brand {
   id: number;
   name: string;
   slug: string;
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN").format(price) + "đ";
 }
 
 export default function ProductListPage() {

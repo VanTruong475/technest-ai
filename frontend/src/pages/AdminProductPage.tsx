@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
+import { formatPrice } from "@/utils/format";
+import { PRODUCT_STATUS_LABELS } from "@/constants/orderStatus";
 
 interface Product {
   id: number;
@@ -68,15 +70,6 @@ const EMPTY_FORM: ProductFormData = {
   stock: 0,
   status: "ACTIVE",
 };
-
-const STATUS_LABELS: Record<string, string> = {
-  ACTIVE: "Đang bán",
-  INACTIVE: "Ngừng bán",
-};
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN").format(price) + "đ";
-}
 
 function generateSlug(name: string): string {
   return name
@@ -447,7 +440,7 @@ export default function AdminProductPage() {
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           product.status === "ACTIVE" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-600"
                         }`}>
-                          {STATUS_LABELS[product.status] || product.status}
+                          {PRODUCT_STATUS_LABELS[product.status] || product.status}
                         </span>
                       </td>
                       <td className="p-3 text-center">

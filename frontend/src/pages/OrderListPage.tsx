@@ -4,6 +4,8 @@ import axiosClient from "@/api/axiosClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Package } from "lucide-react";
+import { formatPrice, formatDate } from "@/utils/format";
+import { ORDER_STATUS_MAP } from "@/constants/orderStatus";
 
 interface OrderItem {
   id: number;
@@ -35,28 +37,6 @@ interface OrdersResponse {
   limit: number;
   total_pages: number;
 }
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN").format(price) + "đ";
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  PENDING: { label: "Chờ xác nhận", color: "text-yellow-600 bg-yellow-50" },
-  CONFIRMED: { label: "Đã xác nhận", color: "text-blue-600 bg-blue-50" },
-  SHIPPING: { label: "Đang giao", color: "text-purple-600 bg-purple-50" },
-  COMPLETED: { label: "Hoàn thành", color: "text-green-600 bg-green-50" },
-  CANCELLED: { label: "Đã hủy", color: "text-red-600 bg-red-50" },
-};
 
 export default function OrderListPage() {
   const { data, isLoading, error } = useQuery<OrdersResponse>({
@@ -92,7 +72,7 @@ export default function OrderListPage() {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
-            const statusInfo = STATUS_MAP[order.status] || { label: order.status, color: "text-gray-600 bg-gray-50" };
+            const statusInfo = ORDER_STATUS_MAP[order.status] || { label: order.status, color: "text-gray-600 bg-gray-50" };
             return (
               <Link key={order.id} to={`/orders/${order.id}`}>
                 <Card className="hover:shadow-md transition-shadow cursor-pointer">

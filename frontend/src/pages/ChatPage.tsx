@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Send, Sparkles, MessageSquare } from "lucide-react";
+import { formatPrice } from "@/utils/format";
 
 interface Product {
   id: number;
@@ -39,10 +40,6 @@ interface ChatMessage {
   content: string;
   products?: ChatProductResult[];
   suggestions?: string[];
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN").format(price) + "đ";
 }
 
 const QUICK_PROMPTS = [

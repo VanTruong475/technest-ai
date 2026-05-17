@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Sparkles, MessageSquare, TrendingUp, Zap, ShieldCheck } from "lucide-react";
+import { formatPrice } from "@/utils/format";
 
 interface Product {
   id: number;
@@ -23,10 +24,6 @@ interface RecommendResult {
   product: Product;
   score: number;
   reason: string;
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN").format(price) + "đ";
 }
 
 function ProductCard({ product }: { product: Product }) {

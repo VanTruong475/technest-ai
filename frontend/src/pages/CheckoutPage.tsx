@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import { formatPrice } from "@/utils/format";
 
 interface CartItem {
   id: number;
@@ -24,10 +25,6 @@ interface CartData {
   items: CartItem[];
   total_items: number;
   total_amount: number;
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN").format(price) + "đ";
 }
 
 export default function CheckoutPage() {

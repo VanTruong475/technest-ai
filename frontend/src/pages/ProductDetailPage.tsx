@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, ShoppingCart, LogIn } from "lucide-react";
+import { formatPrice } from "@/utils/format";
 
 interface Product {
   id: number;
@@ -21,10 +22,6 @@ interface Product {
   status: string;
   category_id: number;
   brand_id: number;
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN").format(price) + "đ";
 }
 
 export default function ProductDetailPage() {

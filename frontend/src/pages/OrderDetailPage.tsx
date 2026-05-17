@@ -6,6 +6,8 @@ import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import { formatPrice, formatDate } from "@/utils/format";
+import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS } from "@/constants/orderStatus";
 
 interface OrderItem {
   id: number;
@@ -30,30 +32,6 @@ interface Order {
   created_at: string;
   updated_at: string;
 }
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN").format(price) + "đ";
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  PENDING: { label: "Chờ xác nhận", color: "text-yellow-600 bg-yellow-50" },
-  CONFIRMED: { label: "Đã xác nhận", color: "text-blue-600 bg-blue-50" },
-  SHIPPING: { label: "Đang giao", color: "text-purple-600 bg-purple-50" },
-  COMPLETED: { label: "Hoàn thành", color: "text-green-600 bg-green-50" },
-  CANCELLED: { label: "Đã hủy", color: "text-red-600 bg-red-50" },
-};
-
-const STATUS_OPTIONS = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED"];
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -103,7 +81,7 @@ export default function OrderDetailPage() {
     );
   }
 
-  const statusInfo = STATUS_MAP[order.status] || { label: order.status, color: "text-gray-600 bg-gray-50" };
+  const statusInfo = ORDER_STATUS_MAP[order.status] || { label: order.status, color: "text-gray-600 bg-gray-50" };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -200,8 +178,8 @@ export default function OrderDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {STATUS_OPTIONS.map((status) => {
-                const info = STATUS_MAP[status];
+              {ORDER_STATUS_OPTIONS.map((status) => {
+                const info = ORDER_STATUS_MAP[status];
                 const isCurrent = order.status === status;
                 return (
                   <Button

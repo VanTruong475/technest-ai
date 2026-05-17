@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, User, LogOut, LayoutDashboard, MessageSquare, Menu, X, ChevronDown } from "lucide-react";
@@ -7,9 +7,15 @@ import { ShoppingCart, User, LogOut, LayoutDashboard, MessageSquare, Menu, X, Ch
 export default function MainLayout() {
   const { isAuthenticated, isAdmin, user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
