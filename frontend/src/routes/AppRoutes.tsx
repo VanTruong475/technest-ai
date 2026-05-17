@@ -9,6 +9,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import ProductListPage from "@/pages/ProductListPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import CartPage from "@/pages/CartPage";
+import CheckoutPage from "@/pages/CheckoutPage";
 import OrderListPage from "@/pages/OrderListPage";
 import OrderDetailPage from "@/pages/OrderDetailPage";
 import ChatPage from "@/pages/ChatPage";
@@ -47,7 +48,7 @@ export default function AppRoutes() {
 
           {/* Protected */}
           <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-          <Route path="/checkout" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><OrderListPage /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
 
