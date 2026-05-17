@@ -13,15 +13,6 @@ from app.schemas.common import PaginatedResponse
 from app.schemas.product import ProductCreate, ProductUpdate
 
 
-def require_admin(current_user: User) -> User:
-    if current_user.role != "ADMIN":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
-    return current_user
-
-
 def get_all_products(
     session: Session,
     page: int = 1,

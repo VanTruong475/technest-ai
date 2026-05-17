@@ -4,24 +4,19 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlmodel import Session
 
 from app.core.database import get_session
+from app.core.dependencies import require_admin
 from app.models.user import User
 from app.schemas.common import PaginatedResponse
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
-from app.services.auth_service import get_current_user
 from app.services.product_service import (
     create_product,
     delete_product,
     get_all_products,
     get_product_by_id,
-    require_admin,
     update_product,
 )
 
 router = APIRouter(prefix="/api/products", tags=["Products"])
-
-
-def check_admin(current_user: User = Depends(get_current_user)) -> User:
-    return require_admin(current_user)
 
 
 @router.get("", response_model=PaginatedResponse[ProductResponse])
@@ -57,7 +52,7 @@ def get_product(product_id: int, session: Session = Depends(get_session)):
 @router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 def create(
     data: ProductCreate,
-    admin: User = Depends(check_admin),
+    admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
     return create_product(data, admin, session)
@@ -67,7 +62,7 @@ def create(
 def update(
     product_id: int,
     data: ProductUpdate,
-    admin: User = Depends(check_admin),
+    admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
     return update_product(product_id, data, admin, session)
@@ -76,7 +71,7 @@ def update(
 @router.delete("/{product_id}", response_model=ProductResponse)
 def delete(
     product_id: int,
-    admin: User = Depends(check_admin),
+    admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
     delete_product(product_id, admin, session)

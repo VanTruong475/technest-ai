@@ -10,15 +10,6 @@ from app.schemas.brand import BrandCreate, BrandUpdate
 from app.schemas.common import PaginatedResponse
 
 
-def require_admin(current_user: User) -> User:
-    if current_user.role != "ADMIN":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
-    return current_user
-
-
 def get_all_brands(session: Session, page: int = 1, limit: int = 10) -> PaginatedResponse[Brand]:
     repo = BrandRepository(session)
     items, total = repo.find_all(page=page, limit=limit)

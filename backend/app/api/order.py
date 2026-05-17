@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlmodel import Session
 
 from app.core.database import get_session
+from app.core.dependencies import require_admin
 from app.models.user import User
 from app.schemas.common import PaginatedResponse
 from app.schemas.order import OrderCreate, OrderResponse, OrderStatusUpdate
@@ -15,15 +16,6 @@ from app.services.order_service import (
 )
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
-
-
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != "ADMIN":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
-    return current_user
 
 
 @router.post("", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)

@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
 from app.core.database import get_session
+from app.core.dependencies import require_admin
 from app.models.user import User
 from app.schemas.auth import UserResponse
 from app.schemas.common import PaginatedResponse
@@ -10,15 +11,6 @@ from app.services.auth_service import get_current_user
 from app.services.user_service import get_user_by_id, get_users, update_user
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
-
-
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != "ADMIN":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
-        )
-    return current_user
 
 
 @router.get("", response_model=PaginatedResponse[UserResponse])

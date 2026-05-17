@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlmodel import Session
 
 from app.core.database import get_session
+from app.core.dependencies import require_admin
 from app.models.user import User
 from app.schemas.brand import BrandCreate, BrandResponse, BrandUpdate
 from app.schemas.common import PaginatedResponse
@@ -12,14 +13,8 @@ from app.services.brand_service import (
     get_brand_by_id,
     update_brand,
 )
-from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/api/brands", tags=["Brands"])
-
-
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    from app.services.brand_service import require_admin as _require_admin
-    return _require_admin(current_user)
 
 
 @router.get("", response_model=PaginatedResponse[BrandResponse])
