@@ -10,6 +10,66 @@ Base URL: `http://localhost:8000`
 | POST | `/api/auth/login` | Public | Đăng nhập, trả access_token |
 | GET | `/api/auth/me` | User | Lấy thông tin user hiện tại |
 
+## Users
+
+| Method | Endpoint | Auth | Mô tả |
+|--------|----------|------|-------|
+| GET | `/api/users` | Admin | Danh sách users (pagination) |
+| GET | `/api/users/{id}` | User | Chi tiết user (admin: tất cả, user: chính mình) |
+| PUT | `/api/users/{id}` | User | Cập nhật user |
+
+### GET /api/users
+
+Danh sách tất cả users (admin only).
+
+**Query Params:**
+
+| Param | Type | Default | Min | Max | Mô tả |
+|-------|------|---------|-----|-----|-------|
+| `page` | int | 1 | 1 | - | Trang hiện tại |
+| `limit` | int | 10 | 1 | 100 | Số items mỗi trang |
+
+**Phân quyền:**
+- Admin: 200 + danh sách users
+- User thường: 403 `"Admin access required"`
+
+### GET /api/users/{id}
+
+Chi tiết một user.
+
+**Phân quyền:**
+- Admin: Xem được tất cả users
+- User thường: Chỉ xem chính mình, xem user khác trả 403 `"You can only view your own profile"`
+
+### PUT /api/users/{id}
+
+Cập nhật thông tin user.
+
+**Request body:**
+
+```json
+{
+  "full_name": "Nguyen Van Truong",
+  "phone": "0901234567",
+  "role": "USER",
+  "is_active": true
+}
+```
+
+| Field | Type | Mô tả |
+|-------|------|-------|
+| `full_name` | string? | Họ tên (1-100 ký tự) |
+| `phone` | string? | Số điện thoại |
+| `role` | string? | `"USER"` hoặc `"ADMIN"` |
+| `is_active` | bool? | Trạng thái kích hoạt |
+
+**Phân quyền:**
+- Admin: Sửa được tất cả fields (full_name, phone, role, is_active)
+- User thường: Chỉ sửa được `full_name` và `phone` của chính mình
+  - Gửi `role` -> 403 `"You cannot change role"`
+  - Gửi `is_active` -> 403 `"You cannot change active status"`
+  - Sửa user khác -> 403 `"You can only update your own profile"`
+
 ## Categories
 
 | Method | Endpoint | Auth | Mô tả |
