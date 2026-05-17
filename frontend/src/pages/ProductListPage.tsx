@@ -12,6 +12,7 @@ interface Product {
   name: string;
   slug: string;
   description: string | null;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   stock: number;
@@ -185,9 +186,12 @@ export default function ProductListPage() {
               {products.map((product) => (
                 <Link key={product.id} to={`/products/${product.id}`}>
                   <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-                    {/* Placeholder image */}
-                    <div className="aspect-square bg-muted flex items-center justify-center rounded-t-xl">
-                      <span className="text-4xl">📦</span>
+                    <div className="aspect-square bg-muted flex items-center justify-center rounded-t-xl overflow-hidden">
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-4xl">📦</span>
+                      )}
                     </div>
                     <CardContent className="space-y-2">
                       <h3 className="font-medium line-clamp-2">{product.name}</h3>

@@ -10,6 +10,7 @@ class ProductCreate(BaseModel):
     name: str
     slug: str
     description: Optional[str] = None
+    image_url: Optional[str] = None
     price: float
     sale_price: Optional[float] = None
     stock: int = 0
@@ -43,6 +44,7 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     slug: Optional[str] = None
     description: Optional[str] = None
+    image_url: Optional[str] = None
     price: Optional[float] = None
     sale_price: Optional[float] = None
     stock: Optional[int] = None
@@ -70,6 +72,7 @@ class ProductResponse(BaseModel):
     name: str
     slug: str
     description: Optional[str] = None
+    image_url: Optional[str] = None
     price: float
     sale_price: Optional[float] = None
     stock: int

@@ -14,6 +14,7 @@ interface Product {
   name: string;
   slug: string;
   description: string | null;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   stock: number;
@@ -87,9 +88,13 @@ export default function ProductDetailPage() {
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Image placeholder */}
-        <div className="aspect-square bg-muted flex items-center justify-center rounded-xl">
-          <span className="text-8xl">📦</span>
+        {/* Image */}
+        <div className="aspect-square bg-muted flex items-center justify-center rounded-xl overflow-hidden">
+          {product.image_url ? (
+            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-8xl">📦</span>
+          )}
         </div>
 
         {/* Product info */}

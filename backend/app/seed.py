@@ -98,6 +98,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "iPhone 15 Pro Max",
             "slug": "iphone-15-pro-max",
             "description": "Điện thoại cao cấp nhất của Apple với chip A17 Pro",
+            "image_url": "https://picsum.photos/seed/iphone15/400/400",
             "price": 1199.0,
             "sale_price": 1099.0,
             "stock": 50,
@@ -108,6 +109,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "Samsung Galaxy S24 Ultra",
             "slug": "samsung-galaxy-s24-ultra",
             "description": "Flagship Samsung với S Pen và AI",
+            "image_url": "https://picsum.photos/seed/galaxys24/400/400",
             "price": 1299.0,
             "sale_price": 1199.0,
             "stock": 40,
@@ -118,6 +120,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "Xiaomi 14",
             "slug": "xiaomi-14",
             "description": "Điện thoại flagship giá tốt từ Xiaomi",
+            "image_url": "https://picsum.photos/seed/xiaomi14/400/400",
             "price": 699.0,
             "sale_price": 649.0,
             "stock": 100,
@@ -128,6 +131,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "MacBook Pro 14 inch M3",
             "slug": "macbook-pro-14-m3",
             "description": "Laptop chuyên nghiệp với chip M3",
+            "image_url": "https://picsum.photos/seed/macbookprom3/400/400",
             "price": 1999.0,
             "sale_price": None,
             "stock": 30,
@@ -138,6 +142,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "Dell XPS 15",
             "slug": "dell-xps-15",
             "description": "Laptop cao cấp màn hình InfinityEdge",
+            "image_url": "https://picsum.photos/seed/dellxps15/400/400",
             "price": 1799.0,
             "sale_price": 1699.0,
             "stock": 25,
@@ -148,6 +153,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "iPad Pro M2 11 inch",
             "slug": "ipad-pro-m2-11",
             "description": "Máy tính bảng mạnh mẽ với chip M2",
+            "image_url": "https://picsum.photos/seed/ipadprom2/400/400",
             "price": 799.0,
             "sale_price": 749.0,
             "stock": 60,
@@ -158,6 +164,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "Samsung Galaxy Tab S9",
             "slug": "samsung-galaxy-tab-s9",
             "description": "Tablet Android cao cấp với S Pen",
+            "image_url": "https://picsum.photos/seed/galaxytabs9/400/400",
             "price": 849.0,
             "sale_price": None,
             "stock": 45,
@@ -168,6 +175,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "AirPods Pro 2",
             "slug": "airpods-pro-2",
             "description": "Tai nghe không dây với chống ồn chủ động",
+            "image_url": "https://picsum.photos/seed/airpodspro2/400/400",
             "price": 249.0,
             "sale_price": 229.0,
             "stock": 200,
@@ -178,6 +186,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "Sony WH-1000XM5",
             "slug": "sony-wh-1000xm5",
             "description": "Tai nghe chống ồn tốt nhất",
+            "image_url": "https://picsum.photos/seed/sonyxm5/400/400",
             "price": 399.0,
             "sale_price": 349.0,
             "stock": 80,
@@ -188,6 +197,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "Samsung 65W Charger",
             "slug": "samsung-65w-charger",
             "description": "Sạc nhanh 65W cho Samsung",
+            "image_url": "https://picsum.photos/seed/samsung65w/400/400",
             "price": 49.0,
             "sale_price": 39.0,
             "stock": 500,
@@ -198,6 +208,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "Apple MagSafe Charger",
             "slug": "apple-magsafe-charger",
             "description": "Sạc không dây MagSafe cho iPhone",
+            "image_url": "https://picsum.photos/seed/magsafe/400/400",
             "price": 39.0,
             "sale_price": None,
             "stock": 300,
@@ -208,6 +219,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             "name": "Dell Inspiron 15",
             "slug": "dell-inspiron-15",
             "description": "Laptop phổ thông giá tốt",
+            "image_url": "https://picsum.photos/seed/dellinspiron15/400/400",
             "price": 699.0,
             "sale_price": 649.0,
             "stock": 150,
@@ -217,7 +229,14 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
     for data in products_data:
         existing = session.exec(select(Product).where(Product.slug == data["slug"])).first()
         if existing:
-            print(f"  [SKIP] Product đã tồn tại: {data['name']}")
+            # Cập nhật image_url nếu đang null
+            if not existing.image_url and data.get("image_url"):
+                existing.image_url = data["image_url"]
+                session.add(existing)
+                session.commit()
+                print(f"  [UPDATE] Product image_url: {data['name']}")
+            else:
+                print(f"  [SKIP] Product đã tồn tại: {data['name']}")
             continue
 
         category = categories.get(data["category_slug"])
@@ -233,6 +252,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             name=data["name"],
             slug=data["slug"],
             description=data["description"],
+            image_url=data.get("image_url"),
             price=data["price"],
             sale_price=data["sale_price"],
             stock=data["stock"],

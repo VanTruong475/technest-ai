@@ -18,6 +18,7 @@ class OrderItemResponse(BaseModel):
     id: int
     product_id: int
     product_name: str
+    image_url: Optional[str] = None
     price: float
     sale_price: Optional[float] = None
     quantity: int

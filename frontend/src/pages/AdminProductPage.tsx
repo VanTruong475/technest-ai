@@ -16,6 +16,7 @@ interface Product {
   name: string;
   slug: string;
   description: string | null;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   stock: number;
@@ -48,6 +49,7 @@ interface ProductFormData {
   name: string;
   slug: string;
   description: string;
+  image_url: string;
   price: number;
   sale_price: number | null;
   stock: number;
@@ -60,6 +62,7 @@ const EMPTY_FORM: ProductFormData = {
   name: "",
   slug: "",
   description: "",
+  image_url: "",
   price: 0,
   sale_price: null,
   stock: 0,
@@ -181,6 +184,7 @@ export default function AdminProductPage() {
       name: product.name,
       slug: product.slug,
       description: product.description || "",
+      image_url: product.image_url || "",
       price: product.price,
       sale_price: product.sale_price,
       stock: product.stock,
@@ -357,6 +361,15 @@ export default function AdminProductPage() {
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="INACTIVE">INACTIVE</option>
                 </select>
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <Label htmlFor="image_url">URL hình ảnh</Label>
+                <Input
+                  id="image_url"
+                  value={form.image_url}
+                  onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))}
+                  placeholder="https://example.com/image.jpg"
+                />
               </div>
               <div className="md:col-span-2 space-y-2">
                 <Label htmlFor="description">Mô tả</Label>

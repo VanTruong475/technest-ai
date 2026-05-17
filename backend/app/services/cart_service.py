@@ -28,6 +28,7 @@ def _build_cart_response(cart: Cart, session: Session) -> CartResponse:
                 id=item.id,
                 product_id=product.id,
                 product_name=product.name,
+                image_url=product.image_url,
                 price=product.price,
                 sale_price=product.sale_price,
                 quantity=item.quantity,

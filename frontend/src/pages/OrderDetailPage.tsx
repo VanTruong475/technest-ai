@@ -11,6 +11,7 @@ interface OrderItem {
   id: number;
   product_id: number;
   product_name: string;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   quantity: number;
@@ -157,7 +158,14 @@ export default function OrderDetailPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {order.items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between py-2 border-b last:border-0">
+            <div key={item.id} className="flex items-center gap-3 py-2 border-b last:border-0">
+              <div className="w-12 h-12 bg-muted flex items-center justify-center rounded shrink-0 overflow-hidden">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm">📦</span>
+                )}
+              </div>
               <div className="flex-1">
                 <Link to={`/products/${item.product_id}`} className="font-medium hover:underline">
                   {item.product_name}

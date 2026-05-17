@@ -16,6 +16,8 @@ class Product(SQLModel, table=True):
     slug: str = Field(index=True, unique=True, max_length=255)
     description: Optional[str] = None
 
+    image_url: Optional[str] = None
+
     price: float
     sale_price: Optional[float] = None
     stock: int = Field(default=0)

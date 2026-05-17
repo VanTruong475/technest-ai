@@ -25,6 +25,7 @@ class OrderItem(SQLModel, table=True):
     order_id: int = Field(foreign_key="orders.id")
     product_id: int
     product_name: str
+    image_url: Optional[str] = None
     price: float
     sale_price: Optional[float] = None
     quantity: int

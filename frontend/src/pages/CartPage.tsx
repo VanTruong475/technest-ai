@@ -11,6 +11,7 @@ interface CartItem {
   id: number;
   product_id: number;
   product_name: string;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   quantity: number;
@@ -104,9 +105,13 @@ export default function CartPage() {
               return (
                 <Card key={item.id}>
                   <CardContent className="flex items-center gap-4">
-                    {/* Product image placeholder */}
-                    <div className="w-20 h-20 bg-muted flex items-center justify-center rounded-lg shrink-0">
-                      <span className="text-2xl">📦</span>
+                    {/* Product image */}
+                    <div className="w-20 h-20 bg-muted flex items-center justify-center rounded-lg shrink-0 overflow-hidden">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-2xl">📦</span>
+                      )}
                     </div>
 
                     {/* Product info */}

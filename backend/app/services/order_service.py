@@ -24,6 +24,7 @@ def _build_order_response(order: Order, session: Session) -> OrderResponse:
             id=item.id,
             product_id=item.product_id,
             product_name=item.product_name,
+            image_url=item.image_url,
             price=item.price,
             sale_price=item.sale_price,
             quantity=item.quantity,
@@ -101,6 +102,7 @@ def create_order(
         order_items_data.append({
             "product_id": product.id,
             "product_name": product.name,
+            "image_url": product.image_url,
             "price": product.price,
             "sale_price": product.sale_price,
             "quantity": cart_item.quantity,
