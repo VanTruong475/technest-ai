@@ -16,6 +16,7 @@ import ChatPage from "@/pages/ChatPage";
 import AdminProductPage from "@/pages/AdminProductPage";
 import AdminOrderPage from "@/pages/AdminOrderPage";
 import AdminUserPage from "@/pages/AdminUserPage";
+import ProfilePage from "@/pages/ProfilePage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 // Protected Route - requires auth
@@ -52,6 +53,7 @@ export default function AppRoutes() {
           <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><OrderListPage /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
           {/* Admin */}
           <Route path="/admin/products" element={<AdminRoute><AdminProductPage /></AdminRoute>} />

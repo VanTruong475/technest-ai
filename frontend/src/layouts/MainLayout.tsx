@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, LogOut, LayoutDashboard, MessageSquare, Menu, X } from "lucide-react";
+import { ShoppingCart, User, LogOut, LayoutDashboard, MessageSquare, Menu, X, ChevronDown } from "lucide-react";
 
 export default function MainLayout() {
   const { isAuthenticated, isAdmin, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     logout();
@@ -16,6 +18,19 @@ export default function MainLayout() {
   };
 
   const closeMobile = () => setMobileOpen(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setAdminDropdownOpen(false);
+      }
+    }
+    if (adminDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [adminDropdownOpen]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,17 +68,47 @@ export default function MainLayout() {
                   </Button>
                 </Link>
                 {isAdmin && (
-                  <Link to="/admin/products">
-                    <Button variant="ghost" size="sm">
+                  <div className="relative" ref={dropdownRef}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
+                    >
                       <LayoutDashboard className="h-4 w-4 mr-1" />
                       Admin
+                      <ChevronDown className="h-3 w-3 ml-1" />
                     </Button>
-                  </Link>
+                    {adminDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-1 w-48 rounded-md border bg-popover shadow-md z-50">
+                        <Link
+                          to="/admin/products"
+                          className="block px-3 py-2 text-sm hover:bg-accent rounded-t-md"
+                          onClick={() => setAdminDropdownOpen(false)}
+                        >
+                          Quản lý sản phẩm
+                        </Link>
+                        <Link
+                          to="/admin/orders"
+                          className="block px-3 py-2 text-sm hover:bg-accent"
+                          onClick={() => setAdminDropdownOpen(false)}
+                        >
+                          Quản lý đơn hàng
+                        </Link>
+                        <Link
+                          to="/admin/users"
+                          className="block px-3 py-2 text-sm hover:bg-accent rounded-b-md"
+                          onClick={() => setAdminDropdownOpen(false)}
+                        >
+                          Quản lý người dùng
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 )}
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{user?.full_name}</span>
-                </div>
+                <Link to="/profile" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                  <User className="h-4 w-4" />
+                  <span>{user?.full_name}</span>
+                </Link>
                 <Button variant="ghost" size="icon" onClick={handleLogout}>
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -125,6 +170,9 @@ export default function MainLayout() {
                     Quản lý người dùng
                   </Link>
                 )}
+                <Link to="/profile" className="block text-sm py-2" onClick={closeMobile}>
+                  Hồ sơ cá nhân
+                </Link>
                 <div className="border-t pt-3 flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{user?.full_name}</span>
                   <Button variant="ghost" size="sm" onClick={handleLogout}>
