@@ -6,6 +6,9 @@ from sqlmodel.pool import StaticPool
 from app.main import app
 from app.core.database import get_session
 from app.models.user import User
+from app.models.category import Category
+from app.models.brand import Brand
+from app.models.product import Product
 from app.services.auth_service import hash_password, create_access_token
 
 
@@ -72,3 +75,62 @@ def user_token_fixture(test_user: User):
 @pytest.fixture(name="admin_token")
 def admin_token_fixture(admin_user: User):
     return create_access_token(data={"sub": str(admin_user.id)})
+
+
+@pytest.fixture(name="category")
+def category_fixture(session: Session):
+    category = Category(
+        name="Phones",
+        slug="phones",
+        description="Smartphones",
+    )
+    session.add(category)
+    session.commit()
+    session.refresh(category)
+    return category
+
+
+@pytest.fixture(name="brand")
+def brand_fixture(session: Session):
+    brand = Brand(name="Apple", slug="apple")
+    session.add(brand)
+    session.commit()
+    session.refresh(brand)
+    return brand
+
+
+@pytest.fixture(name="product")
+def product_fixture(session: Session, category: Category, brand: Brand):
+    product = Product(
+        name="iPhone 15 Pro",
+        slug="iphone-15-pro",
+        description="Latest iPhone",
+        price=1199.0,
+        sale_price=1099.0,
+        stock=50,
+        status="ACTIVE",
+        category_id=category.id,
+        brand_id=brand.id,
+    )
+    session.add(product)
+    session.commit()
+    session.refresh(product)
+    return product
+
+
+@pytest.fixture(name="product2")
+def product2_fixture(session: Session, category: Category, brand: Brand):
+    product = Product(
+        name="AirPods Pro",
+        slug="airpods-pro",
+        description="Wireless earbuds",
+        price=249.0,
+        stock=30,
+        status="ACTIVE",
+        category_id=category.id,
+        brand_id=brand.id,
+    )
+    session.add(product)
+    session.commit()
+    session.refresh(product)
+    return product
