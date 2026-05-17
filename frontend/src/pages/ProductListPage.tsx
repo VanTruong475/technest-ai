@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { ProductGridSkeleton } from "@/components/common/Skeleton";
+import { SaleBadge } from "@/components/common/SaleBadge";
 
 interface Product {
   id: number;
@@ -160,9 +162,7 @@ export default function ProductListPage() {
       </div>
 
       {/* Loading */}
-      {isLoading && (
-        <div className="text-center py-12 text-muted-foreground">Đang tải sản phẩm...</div>
-      )}
+      {isLoading && <ProductGridSkeleton count={12} />}
 
       {/* Error */}
       {error && (
@@ -182,7 +182,10 @@ export default function ProductListPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {products.map((product) => (
                 <Link key={product.id} to={`/products/${product.id}`}>
-                  <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+                  <Card className="h-full hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden">
+                    {product.sale_price && product.sale_price < product.price && (
+                      <SaleBadge price={product.price} salePrice={product.sale_price} />
+                    )}
                     <div className="aspect-square bg-muted flex items-center justify-center rounded-t-xl overflow-hidden">
                       {product.image_url ? (
                         <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />

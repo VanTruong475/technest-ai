@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, User, LogOut, LayoutDashboard, MessageSquare, Menu, X, ChevronDown } from "lucide-react";
+import ScrollToTop from "@/components/common/ScrollToTop";
 
 export default function MainLayout() {
   const { isAuthenticated, isAdmin, user, logout } = useAuthStore();
@@ -205,6 +206,39 @@ export default function MainLayout() {
       <main className="container mx-auto px-4 py-6">
         <Outlet />
       </main>
+
+      {/* Footer */}
+      <footer className="border-t bg-muted/30 mt-12">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="font-bold text-lg mb-2">TechSphere AI</h3>
+              <p className="text-sm text-muted-foreground">
+                Nền tảng thương mại điện tử công nghệ với AI tư vấn thông minh.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Liên kết</h4>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li><Link to="/products" className="hover:text-foreground">Sản phẩm</Link></li>
+                <li><Link to="/chat" className="hover:text-foreground">AI Assistant</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Hỗ trợ</h4>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li>Hotline: 1900 xxxx</li>
+                <li>Email: support@techsphere.vn</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t mt-6 pt-4 text-center text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} TechSphere AI. All rights reserved.
+          </div>
+        </div>
+      </footer>
+
+      <ScrollToTop />
     </div>
   );
 }

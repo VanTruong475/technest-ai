@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Sparkles, MessageSquare, TrendingUp, Zap, ShieldCheck } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { ProductGridSkeleton } from "@/components/common/Skeleton";
+import { SaleBadge } from "@/components/common/SaleBadge";
 
 interface Product {
   id: number;
@@ -29,7 +31,10 @@ interface RecommendResult {
 function ProductCard({ product }: { product: Product }) {
   return (
     <Link to={`/products/${product.id}`}>
-      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden">
+        {product.sale_price && product.sale_price < product.price && (
+          <SaleBadge price={product.price} salePrice={product.sale_price} />
+        )}
         <div className="aspect-square bg-muted flex items-center justify-center rounded-t-xl overflow-hidden">
           {product.image_url ? (
             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
@@ -153,7 +158,7 @@ export default function HomePage() {
         </div>
 
         {productsLoading ? (
-          <div className="text-center py-12 text-muted-foreground">Đang tải sản phẩm...</div>
+          <ProductGridSkeleton count={8} />
         ) : productsError ? (
           <div className="text-center py-12 text-muted-foreground">Không thể tải sản phẩm. Vui lòng thử lại sau.</div>
         ) : products.length === 0 ? (
@@ -180,7 +185,7 @@ export default function HomePage() {
         </div>
 
         {recommendLoading ? (
-          <div className="text-center py-12 text-muted-foreground">Đang tải gợi ý...</div>
+          <ProductGridSkeleton count={4} />
         ) : recommendError ? (
           <div className="text-center py-12 text-muted-foreground">Không thể tải gợi ý. Vui lòng thử lại sau.</div>
         ) : recommendations.length === 0 ? (

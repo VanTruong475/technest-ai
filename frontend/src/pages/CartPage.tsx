@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Trash2, Plus, Minus, ShoppingCart } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { CartItemSkeleton } from "@/components/common/Skeleton";
 
 interface CartItem {
   id: number;
@@ -72,7 +73,16 @@ export default function CartPage() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-12 text-muted-foreground">Đang tải giỏ hàng...</div>;
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold">Giỏ hàng</h1>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <CartItemSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (error) {

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Send, Sparkles, MessageSquare } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { SaleBadge } from "@/components/common/SaleBadge";
 
 interface Product {
   id: number;
@@ -146,7 +147,10 @@ export default function ChatPage() {
                   <div className="mt-2 space-y-2">
                     {msg.products.map((item) => (
                       <Link key={item.product.id} to={`/products/${item.product.id}`}>
-                        <Card className="hover:shadow-sm transition-shadow cursor-pointer">
+                        <Card className="hover:shadow-sm transition-shadow cursor-pointer relative overflow-hidden">
+                          {item.product.sale_price && item.product.sale_price < item.product.price && (
+                            <SaleBadge price={item.product.price} salePrice={item.product.sale_price} />
+                          )}
                           <CardContent className="flex items-center gap-3 py-3">
                             <div className="w-12 h-12 bg-muted flex items-center justify-center rounded-lg shrink-0 overflow-hidden">
                               {item.product.image_url ? (

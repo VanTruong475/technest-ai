@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, ShoppingCart, LogIn } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { ProductDetailSkeleton } from "@/components/common/Skeleton";
+import { SaleBadge } from "@/components/common/SaleBadge";
 
 interface Product {
   id: number;
@@ -40,6 +42,18 @@ export default function ProductDetailPage() {
     enabled: !!id,
   });
 
+  // Fetch related products
+  const { data: relatedData } = useQuery<{ items: Product[] }>({
+    queryKey: ["related-products", product?.category_id, id],
+    queryFn: async () => {
+      const res = await axiosClient.get("/api/products", {
+        params: { category_id: product!.category_id, page: 1, limit: 5 },
+      });
+      return res.data;
+    },
+    enabled: !!product?.category_id,
+  });
+
   // Add to cart mutation
   const addToCartMutation = useMutation({
     mutationFn: async () => {
@@ -59,7 +73,12 @@ export default function ProductDetailPage() {
   });
 
   if (isLoading) {
-    return <div className="text-center py-12 text-muted-foreground">Đang tải sản phẩm...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+        <ProductDetailSkeleton />
+      </div>
+    );
   }
 
   if (error || !product) {
@@ -86,7 +105,10 @@ export default function ProductDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Image */}
-        <div className="aspect-square bg-muted flex items-center justify-center rounded-xl overflow-hidden">
+        <div className="aspect-square bg-muted flex items-center justify-center rounded-xl overflow-hidden relative">
+          {product.sale_price && product.sale_price < product.price && (
+            <SaleBadge price={product.price} salePrice={product.sale_price} />
+          )}
           {product.image_url ? (
             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
           ) : (
@@ -177,6 +199,47 @@ export default function ProductDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Related Products */}
+      {relatedData && relatedData.items && relatedData.items.filter((p) => p.id !== Number(id)).length > 0 && (
+        <section>
+          <h2 className="text-xl font-bold mb-4">Sản phẩm liên quan</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {relatedData.items
+              .filter((p) => p.id !== Number(id))
+              .slice(0, 4)
+              .map((p) => (
+                <Link key={p.id} to={`/products/${p.id}`}>
+                  <Card className="h-full hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden">
+                    {p.sale_price && p.sale_price < p.price && (
+                      <SaleBadge price={p.price} salePrice={p.sale_price} />
+                    )}
+                    <div className="aspect-square bg-muted flex items-center justify-center rounded-t-xl overflow-hidden">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-4xl">📦</span>
+                      )}
+                    </div>
+                    <CardContent className="space-y-2">
+                      <h3 className="font-medium line-clamp-2 text-sm">{p.name}</h3>
+                      <div className="flex items-center gap-2">
+                        {p.sale_price ? (
+                          <>
+                            <span className="text-base font-bold text-destructive">{formatPrice(p.sale_price)}</span>
+                            <span className="text-xs text-muted-foreground line-through">{formatPrice(p.price)}</span>
+                          </>
+                        ) : (
+                          <span className="text-base font-bold">{formatPrice(p.price)}</span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
