@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -84,10 +84,12 @@ export default function CheckoutPage() {
   }
 
   const items = cart?.items || [];
-  if (items.length === 0) {
-    navigate("/cart");
-    return null;
-  }
+
+  useEffect(() => {
+    if (!isLoading && items.length === 0) {
+      navigate("/cart");
+    }
+  }, [isLoading, items.length, navigate]);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
