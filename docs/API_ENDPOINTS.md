@@ -124,6 +124,7 @@ Cập nhật thông tin user.
 |--------|----------|------|--------------|-------|
 | POST | `/api/ai/search` | Public | - | Tìm kiếm sản phẩm thông minh (rule-based) |
 | GET | `/api/ai/recommend` | Public/User | strategy, limit | Gợi ý sản phẩm |
+| POST | `/api/ai/chat` | Public | - | Chatbot tư vấn sản phẩm (rule-based) |
 
 ### POST /api/ai/search
 
@@ -194,6 +195,54 @@ Gợi ý sản phẩm dựa trên strategy.
 **Fallback reasons:**
 - `"Fallback popular vì không có đủ dữ liệu gợi ý (Được đặt X lần)"`
 - `"Fallback sản phẩm mới vì chưa có dữ liệu popular"`
+
+### POST /api/ai/chat
+
+Chatbot tư vấn sản phẩm thông minh (rule-based). Phân tích tin nhắn của user để nhận diện category, brand, ngân sách, nhu cầu.
+
+**Rate limit:** 10/minute
+
+**Request:**
+```json
+{
+  "message": "tôi muốn mua laptop Dell dưới 20 triệu",
+  "limit": 5
+}
+```
+
+| Field | Type | Default | Mô tả |
+|-------|------|---------|-------|
+| message | string | - | Tin nhắn tư vấn (bắt buộc) |
+| limit | int | 5 | Số kết quả (1-10) |
+
+**Nhận diện được:**
+
+| Loại | Ví dụ |
+|------|-------|
+| Category | điện thoại, laptop, tablet, tai nghe, phụ kiện |
+| Brand | Apple, Samsung, Sony, Dell, Xiaomi |
+| Ngân sách | dưới 20 triệu, giá rẻ, cao cấp, dưới 500 usd |
+| Nhu cầu | học tập, công việc, gaming, chụp ảnh, nghe nhạc, chống ồn |
+
+**Response:**
+```json
+{
+  "message": "tôi muốn mua laptop Dell dưới 20 triệu",
+  "reply": "Tôi tìm thấy 2 sản phẩm phù hợp: (danh mục laptop, thương hiệu Dell, giá dưới 20 triệu)",
+  "products": [
+    {
+      "product": { ... },
+      "score": 1.0,
+      "reason": "thương hiệu Dell + danh mục laptop + trong ngân sách → Dell Laptop, giá 15,000,000đ (giảm từ 16,000,000đ), trong ngân sách"
+    }
+  ],
+  "total": 2,
+  "suggestions": ["Bạn có muốn xem thêm laptop Apple, Samsung, Sony không?"]
+}
+```
+
+**Fallback:**
+Nếu không tìm thấy sản phẩm phù hợp, trả về sản phẩm phổ biến hoặc mới nhất (không trả rỗng nếu còn sản phẩm).
 
 ## Health
 

@@ -13,12 +13,14 @@ from app.repositories.user_repository import UserRepository
 from app.schemas.ai import (
     AISearchRequest, AISearchResponse,
     AIRecommendResponse,
+    ChatRequest, ChatResponse,
 )
 from app.services.ai_service import (
     smart_search,
     recommend_by_cart,
     recommend_by_history,
     recommend_popular,
+    chat_with_ai,
 )
 
 router = APIRouter(prefix="/api/ai", tags=["AI"])
@@ -100,3 +102,24 @@ def recommend(
         return recommend_by_history(user.id, limit, session)
     else:
         return recommend_popular(limit, session)
+
+
+@router.post("/chat", response_model=ChatResponse)
+@limiter.limit("10/minute")
+def chat(
+    request: Request,
+    body: ChatRequest,
+    session: Session = Depends(get_session),
+):
+    """
+    Chatbot tư vấn sản phẩm thông minh (rule-based).
+
+    Hỗ trợ nhận diện:
+    - **Category**: điện thoại, laptop, tablet, tai nghe, phụ kiện
+    - **Brand**: Apple, Samsung, Sony, Dell, Xiaomi
+    - **Budget**: dưới X triệu, giá rẻ, cao cấp
+    - **Nhu cầu**: học tập, công việc, gaming, chụp ảnh, nghe nhạc, chống ồn
+
+    Nếu không tìm thấy kết quả, fallback sang sản phẩm phổ biến/mới nhất.
+    """
+    return chat_with_ai(body, session)

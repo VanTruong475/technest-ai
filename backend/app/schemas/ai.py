@@ -66,3 +66,40 @@ class AIRecommendResponse(BaseModel):
     strategy: str
     results: list[AIRecommendResult]
     total: int
+
+
+# ─────────────────────────────────────────────
+# AI Chat
+# ─────────────────────────────────────────────
+
+class ChatRequest(BaseModel):
+    message: str
+    limit: int = 5
+
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Message cannot be empty")
+        return v.strip()
+
+    @field_validator("limit")
+    @classmethod
+    def validate_chat_limit(cls, v: int) -> int:
+        if v < 1 or v > 10:
+            raise ValueError("Limit must be between 1 and 10")
+        return v
+
+
+class ChatProductResult(BaseModel):
+    product: ProductResponse
+    score: float
+    reason: str
+
+
+class ChatResponse(BaseModel):
+    message: str
+    reply: str
+    products: list[ChatProductResult]
+    total: int
+    suggestions: list[str]
