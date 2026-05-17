@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
 
 interface OrderItem {
@@ -66,12 +66,14 @@ const STATUS_OPTIONS = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCEL
 export default function AdminOrderPage() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  // Fetch all orders (admin)
+  // Fetch orders (admin)
   const { data, isLoading, error } = useQuery<OrdersResponse>({
-    queryKey: ["admin-orders"],
+    queryKey: ["admin-orders", page],
     queryFn: async () => {
-      const res = await axiosClient.get("/api/orders", { params: { page: 1, limit: 100 } });
+      const res = await axiosClient.get("/api/orders", { params: { page, limit } });
       return res.data;
     },
   });
@@ -116,7 +118,7 @@ export default function AdminOrderPage() {
         <Button
           variant={statusFilter === "" ? "default" : "outline"}
           size="sm"
-          onClick={() => setStatusFilter("")}
+          onClick={() => { setStatusFilter(""); setPage(1); }}
         >
           Tất cả
         </Button>
@@ -127,7 +129,7 @@ export default function AdminOrderPage() {
               key={status}
               variant={statusFilter === status ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter(status)}
+              onClick={() => { setStatusFilter(status); setPage(1); }}
             >
               {info.label}
             </Button>
@@ -201,6 +203,31 @@ export default function AdminOrderPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Pagination */}
+      {data && data.total_pages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage(page - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Trang {page} / {data.total_pages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= data.total_pages}
+            onClick={() => setPage(page + 1)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       )}
     </div>
   );

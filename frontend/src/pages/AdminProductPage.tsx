@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Plus, X } from "lucide-react";
+import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
 
 interface Product {
@@ -69,6 +69,11 @@ const EMPTY_FORM: ProductFormData = {
   status: "ACTIVE",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  ACTIVE: "Đang bán",
+  INACTIVE: "Ngừng bán",
+};
+
 function formatPrice(price: number) {
   return new Intl.NumberFormat("vi-VN").format(price) + "đ";
 }
@@ -90,15 +95,17 @@ function generateSlug(name: string): string {
 export default function AdminProductPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormData>(EMPTY_FORM);
+  const limit = 10;
 
   // Fetch products
   const { data: productsData, isLoading, error: productsError } = useQuery<ProductsResponse>({
-    queryKey: ["admin-products", search],
+    queryKey: ["admin-products", search, page],
     queryFn: async () => {
-      const params: Record<string, string | number> = { page: 1, limit: 100 };
+      const params: Record<string, string | number> = { page, limit };
       if (search) params.search = search;
       const res = await axiosClient.get("/api/products", { params });
       return res.data;
@@ -258,7 +265,7 @@ export default function AdminProductPage() {
         <Input
           placeholder="Tìm kiếm sản phẩm..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="max-w-sm"
         />
       </div>
@@ -358,8 +365,8 @@ export default function AdminProductPage() {
                   value={form.status}
                   onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
                 >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
+                  <option value="ACTIVE">Đang bán</option>
+                  <option value="INACTIVE">Ngừng bán</option>
                 </select>
               </div>
               <div className="md:col-span-2 space-y-2">
@@ -440,7 +447,7 @@ export default function AdminProductPage() {
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           product.status === "ACTIVE" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-600"
                         }`}>
-                          {product.status}
+                          {STATUS_LABELS[product.status] || product.status}
                         </span>
                       </td>
                       <td className="p-3 text-center">
@@ -460,6 +467,31 @@ export default function AdminProductPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Pagination */}
+      {productsData && productsData.total_pages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage(page - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Trang {page} / {productsData.total_pages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= productsData.total_pages}
+            onClick={() => setPage(page + 1)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       )}
     </div>
   );
