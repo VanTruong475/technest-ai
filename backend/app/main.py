@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.api.health import router as health_router
 from app.api.auth import router as auth_router
 from app.api.user import router as user_router
@@ -10,6 +11,7 @@ from app.api.cart import router as cart_router
 from app.api.order import router as order_router
 from app.api.ai import router as ai_router
 from app.core.database import create_db_and_tables
+from app.core.exceptions import AppException
 
 # Import models để SQLModel nhận diện bảng
 from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem  # noqa: F401
@@ -26,6 +28,17 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.detail,
+            "error_code": exc.error_code,
+        },
+    )
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(category_router)
