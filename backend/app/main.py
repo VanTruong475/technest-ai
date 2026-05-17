@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.health import router as health_router
 from app.api.auth import router as auth_router
+from app.api.user import router as user_router
 from app.api.category import router as category_router
 from app.api.brand import router as brand_router
 from app.api.product import router as product_router
@@ -26,6 +27,7 @@ app.add_middleware(
 
 app.include_router(health_router)
 app.include_router(auth_router)
+app.include_router(user_router)
 app.include_router(category_router)
 app.include_router(brand_router)
 app.include_router(product_router)
