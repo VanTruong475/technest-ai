@@ -70,7 +70,7 @@ export default function HomePage() {
   const [searchInput, setSearchInput] = useState("");
 
   // Fetch featured products
-  const { data: productsData, isLoading: productsLoading } = useQuery<{ items: Product[] }>({
+  const { data: productsData, isLoading: productsLoading, error: productsError } = useQuery<{ items: Product[] }>({
     queryKey: ["home-products"],
     queryFn: async () => {
       const res = await axiosClient.get("/api/products", { params: { page: 1, limit: 8 } });
@@ -79,7 +79,7 @@ export default function HomePage() {
   });
 
   // Fetch popular recommendations
-  const { data: recommendData, isLoading: recommendLoading } = useQuery<{ results: RecommendResult[] }>({
+  const { data: recommendData, isLoading: recommendLoading, error: recommendError } = useQuery<{ results: RecommendResult[] }>({
     queryKey: ["home-recommend"],
     queryFn: async () => {
       const res = await axiosClient.get("/api/ai/recommend", { params: { strategy: "popular", limit: 4 } });
@@ -157,6 +157,8 @@ export default function HomePage() {
 
         {productsLoading ? (
           <div className="text-center py-12 text-muted-foreground">Đang tải sản phẩm...</div>
+        ) : productsError ? (
+          <div className="text-center py-12 text-muted-foreground">Không thể tải sản phẩm. Vui lòng thử lại sau.</div>
         ) : products.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Chưa có sản phẩm nào.</div>
         ) : (
@@ -182,6 +184,8 @@ export default function HomePage() {
 
         {recommendLoading ? (
           <div className="text-center py-12 text-muted-foreground">Đang tải gợi ý...</div>
+        ) : recommendError ? (
+          <div className="text-center py-12 text-muted-foreground">Không thể tải gợi ý. Vui lòng thử lại sau.</div>
         ) : recommendations.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Chưa có dữ liệu gợi ý.</div>
         ) : (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
@@ -12,6 +12,7 @@ interface CartItem {
   id: number;
   product_id: number;
   product_name: string;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   quantity: number;
@@ -38,7 +39,7 @@ export default function CheckoutPage() {
   const [note, setNote] = useState("");
 
   // Fetch cart
-  const { data: cart, isLoading } = useQuery<CartData>({
+  const { data: cart, isLoading, error: cartError } = useQuery<CartData>({
     queryKey: ["cart"],
     queryFn: async () => {
       const res = await axiosClient.get("/api/cart");
@@ -81,6 +82,22 @@ export default function CheckoutPage() {
 
   if (isLoading) {
     return <div className="text-center py-12 text-muted-foreground">Đang tải...</div>;
+  }
+
+  if (cartError) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-12">
+        <p className="text-destructive mb-4">Không thể tải thông tin giỏ hàng.</p>
+        <div className="flex gap-2 justify-center">
+          <Link to="/cart">
+            <Button variant="outline">Quay lại giỏ hàng</Button>
+          </Link>
+          <Link to="/products">
+            <Button>Xem sản phẩm</Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const items = cart?.items || [];

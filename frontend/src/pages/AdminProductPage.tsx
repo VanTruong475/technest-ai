@@ -95,7 +95,7 @@ export default function AdminProductPage() {
   const [form, setForm] = useState<ProductFormData>(EMPTY_FORM);
 
   // Fetch products
-  const { data: productsData, isLoading } = useQuery<ProductsResponse>({
+  const { data: productsData, isLoading, error: productsError } = useQuery<ProductsResponse>({
     queryKey: ["admin-products", search],
     queryFn: async () => {
       const params: Record<string, string | number> = { page: 1, limit: 100 };
@@ -397,6 +397,8 @@ export default function AdminProductPage() {
       {/* Products Table */}
       {isLoading ? (
         <div className="text-center py-12 text-muted-foreground">Đang tải sản phẩm...</div>
+      ) : productsError ? (
+        <div className="text-center py-12 text-destructive">Không thể tải danh sách sản phẩm. Vui lòng thử lại.</div>
       ) : products.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">Không có sản phẩm nào.</div>
       ) : (

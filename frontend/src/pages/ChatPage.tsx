@@ -13,6 +13,7 @@ interface Product {
   name: string;
   slug: string;
   description: string | null;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   stock: number;
@@ -150,8 +151,12 @@ export default function ChatPage() {
                       <Link key={item.product.id} to={`/products/${item.product.id}`}>
                         <Card className="hover:shadow-sm transition-shadow cursor-pointer">
                           <CardContent className="flex items-center gap-3 py-3">
-                            <div className="w-12 h-12 bg-muted flex items-center justify-center rounded-lg shrink-0">
-                              <span className="text-lg">📦</span>
+                            <div className="w-12 h-12 bg-muted flex items-center justify-center rounded-lg shrink-0 overflow-hidden">
+                              {item.product.image_url ? (
+                                <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-lg">📦</span>
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm line-clamp-1">{item.product.name}</p>
