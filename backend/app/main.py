@@ -15,6 +15,7 @@ from app.api.order import router as order_router
 from app.api.ai import router as ai_router
 from app.core.database import create_db_and_tables
 from app.core.exceptions import AppException
+from app.core.logging_middleware import LoggingMiddleware
 from app.core.rate_limit import limiter
 
 # Import models để SQLModel nhận diện bảng
@@ -22,6 +23,7 @@ from app.models import User, Category, Brand, Product, Cart, CartItem, Order, Or
 
 app = FastAPI(title="TechSphere AI - Backend")
 app.state.limiter = limiter
+app.add_middleware(LoggingMiddleware)
 app.add_middleware(SlowAPIMiddleware)
 
 
