@@ -13,6 +13,7 @@ from app.api.product import router as product_router
 from app.api.cart import router as cart_router
 from app.api.order import router as order_router
 from app.api.ai import router as ai_router
+from app.core.config import settings
 from app.core.database import create_db_and_tables
 from app.core.exceptions import AppException
 from app.core.logging_middleware import LoggingMiddleware
@@ -29,7 +30,7 @@ app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:4173"],
+    allow_origins=[origin.strip() for origin in settings.CORS_ORIGINS.split(",")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
