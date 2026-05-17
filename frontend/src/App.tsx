@@ -1,11 +1,13 @@
+import AppRoutes from "@/routes/AppRoutes";
+import { Toaster } from "@/components/ui/sonner";
+
 function App() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-      <h1 className="text-4xl font-bold">
-        TechSphere AI
-      </h1>
-    </div>
-  )
+    <>
+      <AppRoutes />
+      <Toaster />
+    </>
+  );
 }
 
-export default App
+export default App;
