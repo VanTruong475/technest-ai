@@ -6,9 +6,11 @@ import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Send, Sparkles, MessageSquare } from "lucide-react";
+import { Send, Sparkles, MessageSquare, Trash2 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
 import { SaleBadge } from "@/components/common/SaleBadge";
+
+const CHAT_STORAGE_KEY = "techsphere-chat-messages";
 
 interface Product {
   id: number;
@@ -51,9 +53,24 @@ const QUICK_PROMPTS = [
 ];
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Persist messages to localStorage
+  useEffect(() => {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
+
+  const clearChat = () => {
+    setMessages([]);
+    localStorage.removeItem(CHAT_STORAGE_KEY);
+  };
 
   // Chat mutation
   const chatMutation = useMutation({
@@ -99,10 +116,18 @@ export default function ChatPage() {
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
-      <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
-        <Sparkles className="h-6 w-6" />
-        AI Assistant
-      </h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Sparkles className="h-6 w-6" />
+          AI Assistant
+        </h1>
+        {messages.length > 0 && (
+          <Button variant="ghost" size="sm" onClick={clearChat} className="text-muted-foreground">
+            <Trash2 className="h-4 w-4 mr-1.5" />
+            Cuộc trò chuyện mới
+          </Button>
+        )}
+      </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 mb-4">

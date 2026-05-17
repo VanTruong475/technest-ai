@@ -7,7 +7,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ShoppingCart, LogIn } from "lucide-react";
+import { ArrowLeft, ShoppingCart, LogIn, ChevronRight, Home } from "lucide-react";
 import { formatPrice } from "@/utils/format";
 import { ProductDetailSkeleton } from "@/components/common/Skeleton";
 import { SaleBadge } from "@/components/common/SaleBadge";
@@ -97,11 +97,17 @@ export default function ProductDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Back button */}
-      <Link to="/products" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4 mr-1" />
-        Quay lại danh sách
-      </Link>
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link to="/" className="hover:text-foreground flex items-center gap-1">
+          <Home className="h-3.5 w-3.5" />
+          Trang chủ
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <Link to="/products" className="hover:text-foreground">Sản phẩm</Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span className="text-foreground font-medium line-clamp-1">{product.name}</span>
+      </nav>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Image */}
@@ -210,13 +216,13 @@ export default function ProductDetailPage() {
               .slice(0, 4)
               .map((p) => (
                 <Link key={p.id} to={`/products/${p.id}`}>
-                  <Card className="h-full hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden">
+                  <Card className="h-full hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer relative overflow-hidden border-border/60 shadow-sm rounded-2xl group">
                     {p.sale_price && p.sale_price < p.price && (
                       <SaleBadge price={p.price} salePrice={p.sale_price} />
                     )}
-                    <div className="aspect-square bg-muted flex items-center justify-center rounded-t-xl overflow-hidden">
+                    <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
                       {p.image_url ? (
-                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
                         <span className="text-4xl">📦</span>
                       )}

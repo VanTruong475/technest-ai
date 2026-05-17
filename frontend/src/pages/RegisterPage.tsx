@@ -10,20 +10,22 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ fullName?: string; email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
   const register = useAuthStore((s) => s.register);
   const navigate = useNavigate();
 
+  const clearError = (field: keyof typeof errors) => setErrors((p) => ({ ...p, [field]: undefined }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !password) {
-      toast.error("Vui lòng nhập đầy đủ thông tin");
-      return;
-    }
-    if (password.length < 6) {
-      toast.error("Mật khẩu phải ít nhất 6 ký tự");
-      return;
-    }
+    const newErrors: typeof errors = {};
+    if (!fullName.trim()) newErrors.fullName = "Vui lòng nhập họ tên";
+    if (!email.trim()) newErrors.email = "Vui lòng nhập email";
+    if (!password) newErrors.password = "Vui lòng nhập mật khẩu";
+    else if (password.length < 6) newErrors.password = "Mật khẩu phải ít nhất 6 ký tự";
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
     try {
@@ -40,58 +42,56 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-border/60 shadow-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Đăng ký</CardTitle>
           <CardDescription>Tạo tài khoản mới để mua sắm</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="fullName" className="text-sm font-medium">
-                Họ tên
-              </label>
+            <div className="space-y-1.5">
+              <label htmlFor="fullName" className="text-sm font-medium">Họ tên</label>
               <Input
                 id="fullName"
                 type="text"
                 placeholder="Nguyễn Văn A"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => { setFullName(e.target.value); clearError("fullName"); }}
+                className={`h-11 rounded-xl ${errors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
+              {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
             </div>
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-sm font-medium">Email</label>
               <Input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); clearError("email"); }}
+                className={`h-11 rounded-xl ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Mật khẩu
-              </label>
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="text-sm font-medium">Mật khẩu</label>
               <Input
                 id="password"
                 type="password"
                 placeholder="Ít nhất 6 ký tự"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
+                className={`h-11 rounded-xl ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
+              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11 rounded-xl" disabled={loading}>
               {loading ? "Đang đăng ký..." : "Đăng ký"}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Đã có tài khoản?{" "}
-            <Link to="/login" className="text-primary underline">
-              Đăng nhập
-            </Link>
+            <Link to="/login" className="text-primary underline">Đăng nhập</Link>
           </p>
         </CardContent>
       </Card>
