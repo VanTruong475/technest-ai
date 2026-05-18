@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { User, Shield, Mail, Phone, CheckCircle, XCircle } from "lucide-react";
+import { User, Shield, Mail, Phone, CheckCircle, XCircle, Lock } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuthStore();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -38,6 +41,31 @@ export default function ProfilePage() {
     },
   });
 
+  const passwordMutation = useMutation({
+    mutationFn: async () => {
+      const res = await axiosClient.put("/api/auth/change-password", {
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Đổi mật khẩu thành công!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    },
+    onError: (err: any) => {
+      const detail = err.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        toast.error(detail.map((d: any) => d.msg).join(", "));
+      } else {
+        toast.error(detail || "Đổi mật khẩu thất bại");
+      }
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
@@ -45,6 +73,15 @@ export default function ProfilePage() {
       return;
     }
     updateMutation.mutate();
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error("Mật khẩu xác nhận không khớp");
+      return;
+    }
+    passwordMutation.mutate();
   };
 
   if (!user) {
@@ -126,6 +163,62 @@ export default function ProfilePage() {
             </div>
             <Button type="submit" disabled={updateMutation.isPending}>
               {updateMutation.isPending ? "Đang lưu..." : "Cập nhật"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Change password */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Đổi mật khẩu</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="current_password">Mật khẩu hiện tại</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="current_password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="pl-9"
+                  placeholder="Nhập mật khẩu hiện tại"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_password">Mật khẩu mới</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="new_password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="pl-9"
+                  placeholder="Tối thiểu 8 ký tự"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Xác nhận mật khẩu mới</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="confirm_password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pl-9"
+                  placeholder="Nhập lại mật khẩu mới"
+                />
+              </div>
+            </div>
+            <Button type="submit" disabled={passwordMutation.isPending}>
+              {passwordMutation.isPending ? "Đang đổi..." : "Đổi mật khẩu"}
             </Button>
           </form>
         </CardContent>

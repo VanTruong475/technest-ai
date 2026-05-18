@@ -11,7 +11,7 @@ from app.core.config import settings
 from app.core.database import get_session
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.schemas.auth import UserCreate
+from app.schemas.auth import UserCreate, ChangePassword
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
@@ -112,3 +112,15 @@ def get_current_user(
         )
 
     return user
+
+
+def change_password(current_user: User, data: ChangePassword, session: Session) -> None:
+    if not verify_password(data.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+
+    current_user.password_hash = hash_password(data.new_password)
+    repo = UserRepository(session)
+    repo.update(current_user)

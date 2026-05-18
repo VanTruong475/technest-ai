@@ -4,9 +4,10 @@ from sqlmodel import Session
 from app.core.database import get_session
 from app.core.rate_limit import limiter
 from app.models.user import User
-from app.schemas.auth import Token, UserCreate, UserLogin, UserResponse
+from app.schemas.auth import Token, UserCreate, UserLogin, UserResponse, ChangePassword
 from app.services.auth_service import (
     authenticate_user,
+    change_password,
     create_access_token,
     get_current_user,
     register_user,
@@ -33,3 +34,13 @@ def login(request: Request, login_data: UserLogin, session: Session = Depends(ge
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.put("/change-password")
+def update_password(
+    data: ChangePassword,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    change_password(current_user, data, session)
+    return {"message": "Password changed successfully"}
