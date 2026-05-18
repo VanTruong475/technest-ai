@@ -1,3 +1,4 @@
+import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -22,6 +23,14 @@ from app.core.rate_limit import limiter
 
 # Import models để SQLModel nhận diện bảng
 from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem, Review  # noqa: F401
+
+# Init Sentry (chỉ khi có DSN)
+if settings.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.ENVIRONMENT,
+        traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+    )
 
 app = FastAPI(title="TechSphere AI - Backend")
 app.state.limiter = limiter

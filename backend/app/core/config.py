@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str = "admin@techsphere.com"
     ADMIN_PASSWORD: str = "admin123"
     ADMIN_FULL_NAME: str = "Admin Demo"
+    SENTRY_DSN: str = ""
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.0
 
     class Config:
         env_file = ".env"

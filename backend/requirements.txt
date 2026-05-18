@@ -22,6 +22,9 @@ bcrypt==4.0.1
 # Rate limiting
 slowapi==0.1.9
 
+# Monitoring
+sentry-sdk[fastapi]==2.29.1
+
 # Utilities
 python-dotenv==1.2.2
 python-multipart==0.0.28
