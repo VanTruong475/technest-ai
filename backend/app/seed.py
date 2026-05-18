@@ -20,24 +20,48 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
 def seed_admin(session: Session) -> None:
-    """Tạo tài khoản admin demo (chỉ dùng cho dev/demo)."""
-    email = "admin@techsphere.com"
+    """Tạo tài khoản admin từ ENV vars (idempotent)."""
+    from app.core.config import settings
+
+    email = settings.ADMIN_EMAIL
+    password = settings.ADMIN_PASSWORD
+
+    # Kiểm tra password yếu trên production
+    if settings.ENVIRONMENT == "production":
+        if password == "admin123":
+            print("  [WARNING] ADMIN_PASSWORD đang dùng default. Bỏ qua tạo admin.")
+            print("  [WARNING] Hãy set ADMIN_PASSWORD mạnh trong env vars rồi chạy lại.")
+            return
+        if len(password) < 8:
+            print("  [WARNING] ADMIN_PASSWORD quá ngắn (< 8 ký tự). Bỏ qua tạo admin.")
+            return
+
     existing = session.exec(select(User).where(User.email == email)).first()
     if existing:
-        print(f"  [SKIP] Admin đã tồn tại: {email}")
+        # Cho phép update password nếu custom hợp lệ (để đổi password production)
+        if existing.password_hash != hash_password(password):
+            existing.password_hash = hash_password(password)
+            session.add(existing)
+            session.commit()
+            print(f"  [UPDATE] Admin password đã được cập nhật: {email}")
+        else:
+            print(f"  [SKIP] Admin đã tồn tại: {email}")
         return
 
     admin = User(
-        full_name="Admin Demo",
+        full_name=settings.ADMIN_FULL_NAME,
         email=email,
-        password_hash=hash_password("admin123"),
+        password_hash=hash_password(password),
         phone="0901234567",
         role="ADMIN",
         is_active=True,
     )
     session.add(admin)
     session.commit()
-    print(f"  [CREATE] Admin: {email} / admin123 (CHỈ DÙNG CHO DEV/DEMO)")
+    if settings.ENVIRONMENT == "development":
+        print(f"  [CREATE] Admin: {email} (CHỈ DÙNG CHO DEV/DEMO)")
+    else:
+        print(f"  [CREATE] Admin: {email}")
 
 
 def seed_categories(session: Session) -> dict[str, Category]:
