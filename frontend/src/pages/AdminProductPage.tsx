@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
+import ImageUpload from "@/components/common/ImageUpload";
 import { formatPrice } from "@/utils/format";
 import { PRODUCT_STATUS_LABELS } from "@/constants/orderStatus";
 
@@ -363,12 +364,10 @@ export default function AdminProductPage() {
                 </select>
               </div>
               <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="image_url">URL hình ảnh</Label>
-                <Input
-                  id="image_url"
+                <Label>Hình ảnh sản phẩm</Label>
+                <ImageUpload
                   value={form.image_url}
-                  onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))}
-                  placeholder="https://example.com/image.jpg"
+                  onChange={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
                 />
               </div>
               <div className="md:col-span-2 space-y-2">

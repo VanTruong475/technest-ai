@@ -15,6 +15,7 @@ from app.api.cart import router as cart_router
 from app.api.order import router as order_router
 from app.api.ai import router as ai_router
 from app.api.review import router as review_router
+from app.api.upload import router as upload_router
 from app.core.config import settings
 from app.core.database import create_db_and_tables
 from app.core.exceptions import AppException
@@ -75,6 +76,7 @@ app.include_router(cart_router)
 app.include_router(order_router)
 app.include_router(ai_router)
 app.include_router(review_router)
+app.include_router(upload_router)
 
 @app.on_event("startup")
 def on_startup():
