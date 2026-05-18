@@ -5,6 +5,9 @@ Chạy: python -m app.seed
 Lưu ý: Script idempotent - chạy nhiều lần không tạo trùng dữ liệu.
 """
 
+import json
+from pathlib import Path
+
 from app.core.database import engine, get_session
 from app.models.user import User
 from app.models.category import Category
@@ -12,6 +15,8 @@ from app.models.brand import Brand
 from app.models.product import Product
 from app.services.auth_service import hash_password
 from sqlmodel import Session, select
+
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
 def seed_admin(session: Session) -> None:
@@ -63,13 +68,17 @@ def seed_categories(session: Session) -> dict[str, Category]:
 
 
 def seed_brands(session: Session) -> dict[str, Brand]:
-    """Tạo 5 thương hiệu mẫu."""
+    """Tạo 9 thương hiệu mẫu."""
     brands_data = [
         {"name": "Apple", "slug": "apple", "logo_url": None},
         {"name": "Samsung", "slug": "samsung", "logo_url": None},
         {"name": "Sony", "slug": "sony", "logo_url": None},
         {"name": "Dell", "slug": "dell", "logo_url": None},
         {"name": "Xiaomi", "slug": "xiaomi", "logo_url": None},
+        {"name": "Asus", "slug": "asus", "logo_url": None},
+        {"name": "Lenovo", "slug": "lenovo", "logo_url": None},
+        {"name": "HP", "slug": "hp", "logo_url": None},
+        {"name": "Logitech", "slug": "logitech", "logo_url": None},
     ]
 
     result = {}
@@ -90,160 +99,47 @@ def seed_brands(session: Session) -> dict[str, Brand]:
 
 
 def seed_products(session: Session, categories: dict, brands: dict) -> None:
-    """Tạo 12 sản phẩm mẫu."""
-    products_data = [
-        {
-            "category_slug": "dien-thoai",
-            "brand_slug": "apple",
-            "name": "iPhone 15 Pro Max",
-            "slug": "iphone-15-pro-max",
-            "description": "Điện thoại cao cấp nhất của Apple với chip A17 Pro",
-            "image_url": "https://picsum.photos/seed/iphone15/400/400",
-            "price": 1199.0,
-            "sale_price": 1099.0,
-            "stock": 50,
-        },
-        {
-            "category_slug": "dien-thoai",
-            "brand_slug": "samsung",
-            "name": "Samsung Galaxy S24 Ultra",
-            "slug": "samsung-galaxy-s24-ultra",
-            "description": "Flagship Samsung với S Pen và AI",
-            "image_url": "https://picsum.photos/seed/galaxys24/400/400",
-            "price": 1299.0,
-            "sale_price": 1199.0,
-            "stock": 40,
-        },
-        {
-            "category_slug": "dien-thoai",
-            "brand_slug": "xiaomi",
-            "name": "Xiaomi 14",
-            "slug": "xiaomi-14",
-            "description": "Điện thoại flagship giá tốt từ Xiaomi",
-            "image_url": "https://picsum.photos/seed/xiaomi14/400/400",
-            "price": 699.0,
-            "sale_price": 649.0,
-            "stock": 100,
-        },
-        {
-            "category_slug": "laptop",
-            "brand_slug": "apple",
-            "name": "MacBook Pro 14 inch M3",
-            "slug": "macbook-pro-14-m3",
-            "description": "Laptop chuyên nghiệp với chip M3",
-            "image_url": "https://picsum.photos/seed/macbookprom3/400/400",
-            "price": 1999.0,
-            "sale_price": None,
-            "stock": 30,
-        },
-        {
-            "category_slug": "laptop",
-            "brand_slug": "dell",
-            "name": "Dell XPS 15",
-            "slug": "dell-xps-15",
-            "description": "Laptop cao cấp màn hình InfinityEdge",
-            "image_url": "https://picsum.photos/seed/dellxps15/400/400",
-            "price": 1799.0,
-            "sale_price": 1699.0,
-            "stock": 25,
-        },
-        {
-            "category_slug": "tablet",
-            "brand_slug": "apple",
-            "name": "iPad Pro M2 11 inch",
-            "slug": "ipad-pro-m2-11",
-            "description": "Máy tính bảng mạnh mẽ với chip M2",
-            "image_url": "https://picsum.photos/seed/ipadprom2/400/400",
-            "price": 799.0,
-            "sale_price": 749.0,
-            "stock": 60,
-        },
-        {
-            "category_slug": "tablet",
-            "brand_slug": "samsung",
-            "name": "Samsung Galaxy Tab S9",
-            "slug": "samsung-galaxy-tab-s9",
-            "description": "Tablet Android cao cấp với S Pen",
-            "image_url": "https://picsum.photos/seed/galaxytabs9/400/400",
-            "price": 849.0,
-            "sale_price": None,
-            "stock": 45,
-        },
-        {
-            "category_slug": "tai-nghe",
-            "brand_slug": "apple",
-            "name": "AirPods Pro 2",
-            "slug": "airpods-pro-2",
-            "description": "Tai nghe không dây với chống ồn chủ động",
-            "image_url": "https://picsum.photos/seed/airpodspro2/400/400",
-            "price": 249.0,
-            "sale_price": 229.0,
-            "stock": 200,
-        },
-        {
-            "category_slug": "tai-nghe",
-            "brand_slug": "sony",
-            "name": "Sony WH-1000XM5",
-            "slug": "sony-wh-1000xm5",
-            "description": "Tai nghe chống ồn tốt nhất",
-            "image_url": "https://picsum.photos/seed/sonyxm5/400/400",
-            "price": 399.0,
-            "sale_price": 349.0,
-            "stock": 80,
-        },
-        {
-            "category_slug": "phu-kien",
-            "brand_slug": "samsung",
-            "name": "Samsung 65W Charger",
-            "slug": "samsung-65w-charger",
-            "description": "Sạc nhanh 65W cho Samsung",
-            "image_url": "https://picsum.photos/seed/samsung65w/400/400",
-            "price": 49.0,
-            "sale_price": 39.0,
-            "stock": 500,
-        },
-        {
-            "category_slug": "phu-kien",
-            "brand_slug": "apple",
-            "name": "Apple MagSafe Charger",
-            "slug": "apple-magsafe-charger",
-            "description": "Sạc không dây MagSafe cho iPhone",
-            "image_url": "https://picsum.photos/seed/magsafe/400/400",
-            "price": 39.0,
-            "sale_price": None,
-            "stock": 300,
-        },
-        {
-            "category_slug": "laptop",
-            "brand_slug": "dell",
-            "name": "Dell Inspiron 15",
-            "slug": "dell-inspiron-15",
-            "description": "Laptop phổ thông giá tốt",
-            "image_url": "https://picsum.photos/seed/dellinspiron15/400/400",
-            "price": 699.0,
-            "sale_price": 649.0,
-            "stock": 150,
-        },
-    ]
+    """Đọc sản phẩm từ data/products.json và seed vào DB (idempotent)."""
+    products_file = DATA_DIR / "products.json"
+    if not products_file.exists():
+        print(f"  [ERROR] Không tìm thấy file: {products_file}")
+        return
+
+    products_data = json.loads(products_file.read_text(encoding="utf-8"))
+    print(f"  Đọc {len(products_data)} sản phẩm từ {products_file.name}")
+
+    created, updated, skipped = 0, 0, 0
 
     for data in products_data:
-        existing = session.exec(select(Product).where(Product.slug == data["slug"])).first()
-        if existing:
-            # Cập nhật image_url nếu đang null
-            if not existing.image_url and data.get("image_url"):
-                existing.image_url = data["image_url"]
-                session.add(existing)
-                session.commit()
-                print(f"  [UPDATE] Product image_url: {data['name']}")
-            else:
-                print(f"  [SKIP] Product đã tồn tại: {data['name']}")
-            continue
-
         category = categories.get(data["category_slug"])
         brand = brands.get(data["brand_slug"])
 
         if not category or not brand:
             print(f"  [ERROR] Không tìm thấy category/brand cho: {data['name']}")
+            continue
+
+        existing = session.exec(select(Product).where(Product.slug == data["slug"])).first()
+        if existing:
+            changed = False
+            for field in ("name", "description", "image_url", "price", "sale_price", "stock", "status"):
+                new_val = data.get(field)
+                if getattr(existing, field) != new_val:
+                    setattr(existing, field, new_val)
+                    changed = True
+            if existing.category_id != category.id:
+                existing.category_id = category.id
+                changed = True
+            if existing.brand_id != brand.id:
+                existing.brand_id = brand.id
+                changed = True
+            if changed:
+                session.add(existing)
+                session.commit()
+                print(f"  [UPDATE] Product: {data['name']}")
+                updated += 1
+            else:
+                print(f"  [SKIP] Product không thay đổi: {data['name']}")
+                skipped += 1
             continue
 
         product = Product(
@@ -254,13 +150,16 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             description=data["description"],
             image_url=data.get("image_url"),
             price=data["price"],
-            sale_price=data["sale_price"],
-            stock=data["stock"],
-            status="ACTIVE",
+            sale_price=data.get("sale_price"),
+            stock=data.get("stock", 0),
+            status=data.get("status", "ACTIVE"),
         )
         session.add(product)
         session.commit()
         print(f"  [CREATE] Product: {data['name']} (${data['price']})")
+        created += 1
+
+    print(f"\n  Tổng kết: {created} tạo mới, {updated} cập nhật, {skipped} bỏ qua")
 
 
 def main() -> None:
