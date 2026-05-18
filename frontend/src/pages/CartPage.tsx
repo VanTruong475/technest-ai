@@ -87,24 +87,26 @@ export default function CartPage() {
   // ── Loading ──
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="mb-8">
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <CartItemCardSkeleton key={i} />
-            ))}
+      <div className="min-h-screen bg-[#f8fafc] -mx-4 -my-6 px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
           </div>
-          <div>
-            <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-4">
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-12 w-full rounded-xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3 space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <CartItemCardSkeleton key={i} />
+              ))}
+            </div>
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-4">
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-12 w-full rounded-xl" />
+              </div>
             </div>
           </div>
         </div>
@@ -115,22 +117,24 @@ export default function CartPage() {
   // ── Error ──
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto px-4">
-        <Card className="max-w-md mx-auto mt-12 text-center border-border/60 shadow-sm">
-          <CardContent className="pt-8 pb-6 space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
-              <ShoppingCart className="h-8 w-8 text-destructive" />
-            </div>
-            <h2 className="text-lg font-semibold">Không thể tải giỏ hàng</h2>
-            <p className="text-sm text-muted-foreground">Đã xảy ra lỗi, vui lòng thử lại.</p>
-            <div className="flex gap-2 justify-center pt-2">
-              <Button variant="outline" onClick={() => refetch()}>Thử lại</Button>
-              <Link to="/products">
-                <Button>Xem sản phẩm</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-[#f8fafc] -mx-4 -my-6 px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <Card className="max-w-md mx-auto mt-12 text-center border-border/60 shadow-sm">
+            <CardContent className="pt-8 pb-6 space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
+                <ShoppingCart className="h-8 w-8 text-destructive" />
+              </div>
+              <h2 className="text-lg font-semibold">Không thể tải giỏ hàng</h2>
+              <p className="text-sm text-muted-foreground">Đã xảy ra lỗi, vui lòng thử lại.</p>
+              <div className="flex gap-2 justify-center pt-2">
+                <Button variant="outline" onClick={() => refetch()}>Thử lại</Button>
+                <Link to="/products">
+                  <Button>Xem sản phẩm</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -138,35 +142,38 @@ export default function CartPage() {
   // ── Empty ──
   if (items.length === 0) {
     return (
-      <div className="max-w-6xl mx-auto px-4">
-        <Card className="max-w-md mx-auto mt-12 text-center border-border/60 shadow-sm">
-          <CardContent className="pt-8 pb-6 space-y-4">
-            <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center">
-              <ShoppingCart className="h-10 w-10 text-muted-foreground" />
-            </div>
-            <h2 className="text-xl font-semibold">Giỏ hàng của bạn đang trống</h2>
-            <p className="text-sm text-muted-foreground">Hãy khám phá các sản phẩm công nghệ mới nhất của chúng tôi.</p>
-            <Link to="/products">
-              <Button size="lg" className="mt-2">Mua sắm ngay</Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-[#f8fafc] -mx-4 -my-6 px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <Card className="max-w-md mx-auto mt-12 text-center border-border/60 shadow-sm">
+            <CardContent className="pt-8 pb-6 space-y-4">
+              <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center">
+                <ShoppingCart className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <h2 className="text-xl font-semibold">Giỏ hàng của bạn đang trống</h2>
+              <p className="text-sm text-muted-foreground">Hãy khám phá các sản phẩm công nghệ mới nhất của chúng tôi.</p>
+              <Link to="/products">
+                <Button size="lg" className="mt-2">Mua sắm ngay</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   // ── Main ──
   return (
-    <div className="max-w-6xl mx-auto px-4">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Giỏ hàng của bạn</h1>
-        <p className="text-muted-foreground mt-1">Bạn đang có {itemCount} sản phẩm trong giỏ hàng.</p>
-      </div>
+    <div className="min-h-screen bg-[#f8fafc] -mx-4 -my-6 px-4 py-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Giỏ hàng của bạn</h1>
+          <p className="text-muted-foreground mt-1">Bạn đang có {itemCount} sản phẩm trong giỏ hàng.</p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* ── Left: Cart items ── */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* ── Left: Cart items (3/5) ── */}
+          <div className="lg:col-span-3 space-y-4">
           {items.map((item) => (
             <div
               key={item.id}
@@ -240,8 +247,8 @@ export default function CartPage() {
           </Link>
         </div>
 
-        {/* ── Right: Order summary ── */}
-        <div className="lg:sticky lg:top-20 lg:self-start">
+        {/* ── Right: Order summary (2/5) ── */}
+        <div className="lg:col-span-2 lg:sticky lg:top-20 lg:self-start">
           <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-5">
             <h2 className="text-lg font-semibold">Tóm tắt đơn hàng</h2>
 
@@ -285,6 +292,7 @@ export default function CartPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
