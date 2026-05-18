@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     CLOUDINARY_CLOUD_NAME: str = ""
     CLOUDINARY_API_KEY: str = ""
     CLOUDINARY_API_SECRET: str = ""
+    EMAIL_ENABLED: bool = False
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "TechSphere AI <onboarding@resend.dev>"
 
     class Config:
         env_file = ".env"

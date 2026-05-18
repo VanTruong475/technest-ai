@@ -1,3 +1,4 @@
+import logging
 import math
 from datetime import datetime, timezone
 
@@ -9,8 +10,12 @@ from app.models.user import User
 from app.repositories.cart_repository import CartItemRepository, CartRepository
 from app.repositories.order_repository import OrderItemRepository, OrderRepository
 from app.repositories.product_repository import ProductRepository
+from app.repositories.user_repository import UserRepository
 from app.schemas.common import PaginatedResponse
 from app.schemas.order import OrderCreate, OrderResponse, OrderItemResponse, OrderStatusUpdate
+from app.services.email_service import send_order_confirmation, send_status_update
+
+logger = logging.getLogger("techsphere")
 
 VALID_STATUSES = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED"]
 
@@ -119,9 +124,11 @@ def create_order(
     )
     order = order_repo.create(order)
 
+    created_items = []
     for item_data in order_items_data:
         order_item = OrderItem(order_id=order.id, **item_data)
-        order_item_repo.create(order_item)
+        order_item = order_item_repo.create(order_item)
+        created_items.append(order_item)
 
     for cart_item in cart_items:
         product = product_repo.find_by_id(cart_item.product_id)
@@ -130,7 +137,14 @@ def create_order(
             product_repo.update(product)
         cart_item_repo.delete(cart_item)
 
-    return _build_order_response(order, session)
+    order_response = _build_order_response(order, session)
+
+    try:
+        send_order_confirmation(current_user, order, created_items)
+    except Exception as e:
+        logger.error(f"Email notification failed for order #{order.id}: {e}")
+
+    return order_response
 
 
 def get_user_orders(current_user: User, session: Session, page: int = 1, limit: int = 10) -> PaginatedResponse[OrderResponse]:
@@ -209,8 +223,20 @@ def update_order_status(
             detail="Order not found"
         )
 
+    old_status = order.status
     order.status = data.status
     order.updated_at = datetime.now(timezone.utc)
     order_repo.update(order)
 
-    return _build_order_response(order, session)
+    order_response = _build_order_response(order, session)
+
+    if old_status != data.status:
+        try:
+            user_repo = UserRepository(session)
+            order_user = user_repo.find_by_id(order.user_id)
+            if order_user:
+                send_status_update(order_user, order, old_status, data.status)
+        except Exception as e:
+            logger.error(f"Email notification failed for order #{order.id} status update: {e}")
+
+    return order_response
