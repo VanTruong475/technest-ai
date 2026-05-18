@@ -11,6 +11,7 @@ import { ArrowLeft, ShoppingCart, LogIn, ChevronRight, Home } from "lucide-react
 import { formatPrice } from "@/utils/format";
 import { ProductDetailSkeleton } from "@/components/common/Skeleton";
 import { SaleBadge } from "@/components/common/SaleBadge";
+import { ReviewSection } from "@/components/common/ReviewSection";
 
 interface Product {
   id: number;
@@ -205,6 +206,9 @@ export default function ProductDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Reviews */}
+      <ReviewSection productId={Number(id)} />
 
       {/* Related Products */}
       {relatedData && relatedData.items && relatedData.items.filter((p) => p.id !== Number(id)).length > 0 && (
