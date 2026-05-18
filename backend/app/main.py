@@ -83,9 +83,11 @@ def on_startup():
     create_db_and_tables()
 
 
-@app.get("/health")
-def health_check():
+@app.get("/")
+def root():
     return {
-        "status": "healthy",
-        "service": "TechSphere AI Backend"
+        "service": "TechSphere AI Backend",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health",
     }
