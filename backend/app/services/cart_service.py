@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlmodel import Session
@@ -96,7 +96,7 @@ def add_item(
                 detail=f"Not enough stock. Available: {product.stock}"
             )
         existing_item.quantity = new_quantity
-        existing_item.updated_at = datetime.utcnow()
+        existing_item.updated_at = datetime.now(timezone.utc)
         item_repo.update(existing_item)
     else:
         if data.quantity > product.stock:
@@ -111,7 +111,7 @@ def add_item(
         )
         item_repo.create(new_item)
 
-    cart.updated_at = datetime.utcnow()
+    cart.updated_at = datetime.now(timezone.utc)
     cart_repo.update(cart)
 
     return _build_cart_response(cart, session)
@@ -155,10 +155,10 @@ def update_item(
         )
 
     item.quantity = data.quantity
-    item.updated_at = datetime.utcnow()
+    item.updated_at = datetime.now(timezone.utc)
     item_repo.update(item)
 
-    cart.updated_at = datetime.utcnow()
+    cart.updated_at = datetime.now(timezone.utc)
     cart_repo.update(cart)
 
     return _build_cart_response(cart, session)
@@ -188,7 +188,7 @@ def delete_item(
 
     item_repo.delete(item)
 
-    cart.updated_at = datetime.utcnow()
+    cart.updated_at = datetime.now(timezone.utc)
     cart_repo.update(cart)
 
     return _build_cart_response(cart, session)

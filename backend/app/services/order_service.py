@@ -1,5 +1,5 @@
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlmodel import Session
@@ -210,7 +210,7 @@ def update_order_status(
         )
 
     order.status = data.status
-    order.updated_at = datetime.utcnow()
+    order.updated_at = datetime.now(timezone.utc)
     order_repo.update(order)
 
     return _build_order_response(order, session)
