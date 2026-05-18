@@ -16,6 +16,7 @@ from app.api.order import router as order_router
 from app.api.ai import router as ai_router
 from app.api.review import router as review_router
 from app.api.upload import router as upload_router
+from app.api.wishlist import router as wishlist_router
 from app.core.config import settings
 from app.core.database import create_db_and_tables
 from app.core.exceptions import AppException
@@ -23,7 +24,7 @@ from app.core.logging_middleware import LoggingMiddleware
 from app.core.rate_limit import limiter
 
 # Import models để SQLModel nhận diện bảng
-from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem, Review  # noqa: F401
+from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem, Review, WishlistItem  # noqa: F401
 
 # Init Sentry (chỉ khi có DSN)
 if settings.SENTRY_DSN:
@@ -77,6 +78,7 @@ app.include_router(order_router)
 app.include_router(ai_router)
 app.include_router(review_router)
 app.include_router(upload_router)
+app.include_router(wishlist_router)
 
 @app.on_event("startup")
 def on_startup():

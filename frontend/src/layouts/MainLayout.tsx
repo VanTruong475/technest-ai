@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, LogOut, LayoutDashboard, Menu, X, ChevronDown, Headphones } from "lucide-react";
+import { ShoppingCart, User, LogOut, LayoutDashboard, Menu, X, ChevronDown, Headphones, Heart } from "lucide-react";
 import ScrollToTop from "@/components/common/ScrollToTop";
 import { useCategories, getCategoryIdBySlug } from "@/hooks/useCategories";
 
@@ -107,6 +107,11 @@ export default function MainLayout() {
 
             {isAuthenticated ? (
               <>
+                <Link to="/wishlist">
+                  <Button variant="ghost" size="icon">
+                    <Heart className="h-5 w-5" />
+                  </Button>
+                </Link>
                 <Link to="/cart" className="relative">
                   <Button variant="ghost" size="icon">
                     <ShoppingCart className="h-5 w-5" />
@@ -211,6 +216,9 @@ export default function MainLayout() {
             </Link>
             {isAuthenticated ? (
               <>
+                <Link to="/wishlist" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
+                  Yêu thích
+                </Link>
                 <Link to="/cart" className="flex items-center justify-between text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
                   Giỏ hàng
                   {cartCount > 0 && (

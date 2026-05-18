@@ -12,6 +12,7 @@ import { formatPrice } from "@/utils/format";
 import { ProductDetailSkeleton } from "@/components/common/Skeleton";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import { ReviewSection } from "@/components/common/ReviewSection";
+import HeartButton from "@/components/common/HeartButton";
 
 interface Product {
   id: number;
@@ -204,6 +205,15 @@ export default function ProductDetailPage() {
               )}
             </div>
           )}
+
+          {/* Wishlist */}
+          <div>
+            <HeartButton
+              productId={product.id}
+              className="h-10 px-4 gap-2 border rounded-md text-sm hover:bg-accent"
+              showLabel
+            />
+          </div>
         </div>
       </div>
 

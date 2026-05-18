@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/common/Skeleton";
 import { SaleBadge } from "@/components/common/SaleBadge";
+import HeartButton from "@/components/common/HeartButton";
 import {
   Search, ChevronRight, X, SlidersHorizontal, Home,
   Smartphone, Laptop, Tablet, Headphones, Cable,
@@ -366,6 +367,9 @@ export default function ProductListPage() {
                       {product.sale_price && product.sale_price < product.price && (
                         <SaleBadge price={product.price} salePrice={product.sale_price} />
                       )}
+                      <div className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <HeartButton productId={product.id} />
+                      </div>
                       <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
                         {product.image_url ? (
                           <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />

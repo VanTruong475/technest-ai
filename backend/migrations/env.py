@@ -16,6 +16,8 @@ from app.models import (
     CartItem,
     Order,
     OrderItem,
+    Review,
+    WishlistItem,
 )
 
 # this is the Alembic Config object

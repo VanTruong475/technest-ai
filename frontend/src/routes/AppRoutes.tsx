@@ -17,6 +17,7 @@ import AdminProductPage from "@/pages/AdminProductPage";
 import AdminOrderPage from "@/pages/AdminOrderPage";
 import AdminUserPage from "@/pages/AdminUserPage";
 import ProfilePage from "@/pages/ProfilePage";
+import WishlistPage from "@/pages/WishlistPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 // Protected Route - requires auth
@@ -54,6 +55,7 @@ export default function AppRoutes() {
           <Route path="/orders" element={<ProtectedRoute><OrderListPage /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
 
           {/* Admin */}
           <Route path="/admin/products" element={<AdminRoute><AdminProductPage /></AdminRoute>} />
