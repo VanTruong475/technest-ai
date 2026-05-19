@@ -2,11 +2,17 @@ import hashlib
 import hmac
 import logging
 from datetime import datetime, timezone
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 
 from app.core.config import settings
 
 logger = logging.getLogger("techsphere")
+
+
+def _build_hash_data(params: list[tuple[str, str]]) -> str:
+    """Build hash data string from sorted params using raw values (no URL encoding).
+    VNPay requires: key1=value1&key2=value2 with raw values, sorted by key."""
+    return "&".join(f"{k}={v}" for k, v in params)
 
 
 def build_payment_url(order_id: int, amount: float, ip_addr: str) -> str:
@@ -27,15 +33,25 @@ def build_payment_url(order_id: int, amount: float, ip_addr: str) -> str:
     }
 
     sorted_params = sorted(vnp_params.items())
-    query_string = urlencode(sorted_params)
 
-    hash_data = hmac.new(
+    # Hash from raw values (no URL encoding)
+    hash_data = _build_hash_data(sorted_params)
+    secure_hash = hmac.new(
         settings.VNPAY_HASH_SECRET.encode(),
-        query_string.encode(),
+        hash_data.encode(),
         hashlib.sha512,
     ).hexdigest()
 
-    payment_url = f"{settings.VNPAY_PAYMENT_URL}?{query_string}&vnp_SecureHash={hash_data}"
+    # URL-encode only for the final query string
+    query_string = urlencode(sorted_params, quote_via=quote)
+    payment_url = f"{settings.VNPAY_PAYMENT_URL}?{query_string}&vnp_SecureHash={secure_hash}"
+
+    logger.info(
+        "VNPay payment URL created: tmn=%s, txnRef=%s, amount=%s",
+        settings.VNPAY_TMN_CODE,
+        vnp_params["vnp_TxnRef"],
+        vnp_params["vnp_Amount"],
+    )
     return payment_url
 
 
@@ -49,19 +65,25 @@ def verify_return(params: dict[str, str]) -> tuple[bool, str | None]:
     }
 
     sorted_params = sorted(filtered.items())
-    query_string = urlencode(sorted_params)
 
+    # Hash from raw values (same logic as build_payment_url)
+    hash_data = _build_hash_data(sorted_params)
     computed_hash = hmac.new(
         settings.VNPAY_HASH_SECRET.encode(),
-        query_string.encode(),
+        hash_data.encode(),
         hashlib.sha512,
     ).hexdigest()
 
     if secure_hash != computed_hash:
-        logger.warning("VNPay return: invalid secure hash")
+        logger.warning(
+            "VNPay return: invalid secure hash (expected=%s..., got=%s...)",
+            computed_hash[:8],
+            secure_hash[:8],
+        )
         return False, None
 
     response_code = params.get("vnp_ResponseCode")
+    logger.info("VNPay return verified: response_code=%s", response_code)
     return True, response_code
 
 
