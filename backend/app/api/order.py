@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
 from app.core.database import get_session
@@ -8,6 +8,7 @@ from app.schemas.common import PaginatedResponse
 from app.schemas.order import OrderCreate, OrderResponse, OrderStatusUpdate
 from app.services.auth_service import get_current_user
 from app.services.order_service import (
+    VALID_STATUSES,
     create_order,
     get_all_orders,
     get_order_by_id,
@@ -31,12 +32,18 @@ def create(
 def list_orders(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
+    status_filter: str | None = Query(None, alias="status"),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
+    if status_filter and status_filter not in VALID_STATUSES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid status. Must be one of: {', '.join(VALID_STATUSES)}",
+        )
     if current_user.role == "ADMIN":
-        return get_all_orders(session, page=page, limit=limit)
-    return get_user_orders(current_user, session, page=page, limit=limit)
+        return get_all_orders(session, page=page, limit=limit, status=status_filter)
+    return get_user_orders(current_user, session, page=page, limit=limit, status=status_filter)
 
 
 @router.get("/{order_id}", response_model=OrderResponse)

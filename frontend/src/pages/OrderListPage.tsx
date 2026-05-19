@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/common/Skeleton";
+import Pagination from "@/components/common/Pagination";
 import { Package, ChevronRight, Home } from "lucide-react";
 import { formatPrice, formatDate } from "@/utils/format";
-import { ORDER_STATUS_MAP } from "@/constants/orderStatus";
+import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS } from "@/constants/orderStatus";
 
 interface OrderItem {
   id: number;
@@ -39,6 +41,11 @@ interface OrdersResponse {
   total_pages: number;
 }
 
+const STATUS_TABS = [
+  { key: "", label: "Tất cả" },
+  ...ORDER_STATUS_OPTIONS.map((s) => ({ key: s, label: ORDER_STATUS_MAP[s].label })),
+];
+
 function OrderCardSkeleton() {
   return (
     <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 flex items-center justify-between">
@@ -53,10 +60,16 @@ function OrderCardSkeleton() {
 }
 
 export default function OrderListPage() {
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
   const { data, isLoading, error } = useQuery<OrdersResponse>({
-    queryKey: ["orders"],
+    queryKey: ["orders", page, statusFilter],
     queryFn: async () => {
-      const res = await axiosClient.get("/api/orders");
+      const params: Record<string, string | number> = { page, limit };
+      if (statusFilter) params.status = statusFilter;
+      const res = await axiosClient.get("/api/orders", { params });
       return res.data;
     },
   });
@@ -76,6 +89,21 @@ export default function OrderListPage() {
       </nav>
 
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">Đơn hàng của tôi</h1>
+
+      {/* Status tabs */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {STATUS_TABS.map((tab) => (
+          <Button
+            key={tab.key}
+            variant={statusFilter === tab.key ? "default" : "outline"}
+            size="sm"
+            className="rounded-lg"
+            onClick={() => { setStatusFilter(tab.key); setPage(1); }}
+          >
+            {tab.label}
+          </Button>
+        ))}
+      </div>
 
       {/* Loading */}
       {isLoading && (
@@ -101,11 +129,19 @@ export default function OrderListPage() {
             <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
               <Package className="h-8 w-8 text-muted-foreground" />
             </div>
-            <p className="text-lg font-semibold">Chưa có đơn hàng nào</p>
-            <p className="text-sm text-muted-foreground">Hãy đặt hàng đầu tiên của bạn.</p>
-            <Link to="/products">
-              <Button className="mt-2">Mua sắm ngay</Button>
-            </Link>
+            <p className="text-lg font-semibold">
+              {statusFilter
+                ? `Không có đơn hàng "${STATUS_TABS.find((t) => t.key === statusFilter)?.label || statusFilter}"`
+                : "Chưa có đơn hàng nào"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {statusFilter ? "Thử chọn trạng thái khác." : "Hãy đặt hàng đầu tiên của bạn."}
+            </p>
+            {!statusFilter && (
+              <Link to="/products">
+                <Button className="mt-2">Mua sắm ngay</Button>
+              </Link>
+            )}
           </CardContent>
         </Card>
       )}
@@ -137,6 +173,13 @@ export default function OrderListPage() {
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {data && data.total_pages > 1 && (
+        <div className="mt-6">
+          <Pagination page={page} totalPages={data.total_pages} onPageChange={setPage} />
         </div>
       )}
     </div>

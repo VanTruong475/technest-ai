@@ -151,9 +151,9 @@ def create_order(
     return order_response
 
 
-def get_user_orders(current_user: User, session: Session, page: int = 1, limit: int = 10) -> PaginatedResponse[OrderResponse]:
+def get_user_orders(current_user: User, session: Session, page: int = 1, limit: int = 10, status: str | None = None) -> PaginatedResponse[OrderResponse]:
     order_repo = OrderRepository(session)
-    orders, total = order_repo.find_all_by_user_id(current_user.id, page=page, limit=limit)
+    orders, total = order_repo.find_all_by_user_id(current_user.id, page=page, limit=limit, status=status)
     total_pages = math.ceil(total / limit) if total > 0 else 0
 
     items = [_build_order_response(order, session) for order in orders]
@@ -167,9 +167,9 @@ def get_user_orders(current_user: User, session: Session, page: int = 1, limit: 
     )
 
 
-def get_all_orders(session: Session, page: int = 1, limit: int = 10) -> PaginatedResponse[OrderResponse]:
+def get_all_orders(session: Session, page: int = 1, limit: int = 10, status: str | None = None) -> PaginatedResponse[OrderResponse]:
     order_repo = OrderRepository(session)
-    orders, total = order_repo.find_all(page=page, limit=limit)
+    orders, total = order_repo.find_all(page=page, limit=limit, status=status)
     total_pages = math.ceil(total / limit) if total > 0 else 0
 
     items = [_build_order_response(order, session) for order in orders]
