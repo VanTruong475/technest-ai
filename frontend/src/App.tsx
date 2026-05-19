@@ -1,10 +1,13 @@
 import AppRoutes from "@/routes/AppRoutes";
 import { Toaster } from "@/components/ui/sonner";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 function App() {
   return (
     <>
-      <AppRoutes />
+      <ErrorBoundary>
+        <AppRoutes />
+      </ErrorBoundary>
       <Toaster />
     </>
   );
