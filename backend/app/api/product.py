@@ -1,11 +1,12 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
 from app.core.database import get_session
 from app.core.dependencies import require_admin
 from app.models.user import User
+from app.repositories.product_repository import VALID_SORTS
 from app.schemas.common import PaginatedResponse
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.services.product_service import (
@@ -29,8 +30,14 @@ def list_products(
     min_price: Optional[float] = Query(None),
     max_price: Optional[float] = Query(None),
     search: Optional[str] = Query(None),
+    sort: str = Query("newest"),
     session: Session = Depends(get_session),
 ):
+    if sort not in VALID_SORTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid sort. Must be one of: {', '.join(VALID_SORTS)}",
+        )
     return get_all_products(
         session,
         page=page,
@@ -41,6 +48,7 @@ def list_products(
         min_price=min_price,
         max_price=max_price,
         search=search,
+        sort=sort,
     )
 
 

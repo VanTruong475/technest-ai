@@ -4,6 +4,14 @@ from sqlmodel import Session, select, func, and_
 
 from app.models.product import Product
 
+SORT_MAP = {
+    "newest": Product.created_at.desc(),
+    "price_asc": Product.price.asc(),
+    "price_desc": Product.price.desc(),
+}
+
+VALID_SORTS = list(SORT_MAP.keys())
+
 
 class ProductRepository:
     def __init__(self, session: Session):
@@ -19,6 +27,7 @@ class ProductRepository:
         min_price: Optional[float] = None,
         max_price: Optional[float] = None,
         search: Optional[str] = None,
+        sort: str = "newest",
     ) -> tuple[list[Product], int]:
         offset = (page - 1) * limit
         conditions = []
@@ -36,14 +45,16 @@ class ProductRepository:
         if search is not None:
             conditions.append(Product.name.ilike(f"%{search}%"))
 
+        order_by = SORT_MAP.get(sort, Product.created_at.desc())
+
         if conditions:
             count_statement = select(func.count()).select_from(Product).where(and_(*conditions))
             total = self.session.exec(count_statement).one()
-            statement = select(Product).where(and_(*conditions)).offset(offset).limit(limit)
+            statement = select(Product).where(and_(*conditions)).order_by(order_by).offset(offset).limit(limit)
         else:
             count_statement = select(func.count()).select_from(Product)
             total = self.session.exec(count_statement).one()
-            statement = select(Product).offset(offset).limit(limit)
+            statement = select(Product).order_by(order_by).offset(offset).limit(limit)
 
         items = list(self.session.exec(statement).all())
         return items, total

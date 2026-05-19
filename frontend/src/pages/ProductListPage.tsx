@@ -8,11 +8,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/common/Skeleton";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import HeartButton from "@/components/common/HeartButton";
+import Pagination from "@/components/common/Pagination";
 import {
   Search, ChevronRight, X, SlidersHorizontal, Home,
-  Smartphone, Laptop, Tablet, Headphones, Cable,
+  Smartphone, Laptop, Tablet, Headphones, Cable, ArrowUpDown,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Mới nhất" },
+  { value: "price_asc", label: "Giá thấp → cao" },
+  { value: "price_desc", label: "Giá cao → thấp" },
+];
+
+const PRICE_PRESETS = [
+  { label: "Tất cả", min: "", max: "" },
+  { label: "Dưới 5 triệu", min: "", max: "5000000" },
+  { label: "5 - 10 triệu", min: "5000000", max: "10000000" },
+  { label: "10 - 20 triệu", min: "10000000", max: "20000000" },
+  { label: "Trên 20 triệu", min: "20000000", max: "" },
+];
 
 interface Product {
   id: number;
@@ -80,14 +95,20 @@ export default function ProductListPage() {
   const search = searchParams.get("search") || "";
   const categoryId = searchParams.get("category_id") || "";
   const brandId = searchParams.get("brand_id") || "";
+  const sort = searchParams.get("sort") || "newest";
+  const minPrice = searchParams.get("min_price") || "";
+  const maxPrice = searchParams.get("max_price") || "";
 
   const { data, isLoading, error } = useQuery<ProductsResponse>({
-    queryKey: ["products", page, search, categoryId, brandId],
+    queryKey: ["products", page, search, categoryId, brandId, sort, minPrice, maxPrice],
     queryFn: async () => {
       const params: Record<string, string | number> = { page, limit };
       if (search) params.search = search;
       if (categoryId) params.category_id = categoryId;
       if (brandId) params.brand_id = brandId;
+      if (sort && sort !== "newest") params.sort = sort;
+      if (minPrice) params.min_price = minPrice;
+      if (maxPrice) params.max_price = maxPrice;
       const res = await axiosClient.get("/api/products", { params });
       return res.data;
     },
@@ -147,7 +168,11 @@ export default function ProductListPage() {
   const selectedCategoryName = categoryId ? getCategoryName(Number(categoryId)) : null;
   const selectedBrandName = brandId ? getBrandName(Number(brandId)) : null;
 
-  const hasActiveFilters = search || categoryId || brandId;
+  const hasActiveFilters = search || categoryId || brandId || minPrice || maxPrice;
+  const currentPricePreset = PRICE_PRESETS.find(
+    (p) => p.min === minPrice && p.max === maxPrice
+  );
+  const currentSortLabel = SORT_OPTIONS.find((s) => s.value === sort)?.label || "Mới nhất";
   const fromItem = (page - 1) * limit + 1;
   const toItem = Math.min(page * limit, total);
 
@@ -180,6 +205,18 @@ export default function ProductListPage() {
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
                 {selectedBrandName}
                 <button onClick={() => updateParams({ brand_id: "" })}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {(minPrice || maxPrice) && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-medium">
+                {currentPricePreset?.label || `${minPrice ? formatPrice(Number(minPrice)) : "0"} - ${maxPrice ? formatPrice(Number(maxPrice)) : "∞"}`}
+                <button onClick={() => updateParams({ min_price: "", max_price: "" })}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {sort !== "newest" && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                {currentSortLabel}
+                <button onClick={() => updateParams({ sort: "" })}><X className="h-3 w-3" /></button>
               </span>
             )}
           </div>
@@ -308,7 +345,7 @@ export default function ProductListPage() {
         {/* Product grid area */}
         <div className="flex-1 min-w-0">
           {/* Search bar */}
-          <form onSubmit={handleSearch} className="mb-6">
+          <form onSubmit={handleSearch} className="mb-4">
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -319,6 +356,43 @@ export default function ProductListPage() {
               />
             </div>
           </form>
+
+          {/* Sort + Price presets */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+            {/* Sort dropdown */}
+            <div className="relative">
+              <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <select
+                value={sort}
+                onChange={(e) => updateParams({ sort: e.target.value })}
+                className="h-9 pl-9 pr-8 rounded-lg border border-input bg-white text-sm appearance-none cursor-pointer"
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Price presets */}
+            <div className="flex flex-wrap gap-2">
+              {PRICE_PRESETS.map((preset) => {
+                const isActive = preset.min === minPrice && preset.max === maxPrice;
+                return (
+                  <button
+                    key={preset.label}
+                    onClick={() => updateParams({ min_price: preset.min, max_price: preset.max })}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      isActive
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-white text-muted-foreground border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Loading */}
           {isLoading && (
@@ -410,47 +484,8 @@ export default function ProductListPage() {
 
           {/* Pagination */}
           {!isLoading && totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1.5 mt-8">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => handlePageChange(page - 1)}
-                className="rounded-lg"
-              >
-                Trước
-              </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                .reduce<(number | "dots")[]>((acc, p, i, arr) => {
-                  if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("dots");
-                  acc.push(p);
-                  return acc;
-                }, [])
-                .map((p, i) =>
-                  p === "dots" ? (
-                    <span key={`dots-${i}`} className="px-1 text-muted-foreground">...</span>
-                  ) : (
-                    <Button
-                      key={p}
-                      variant={p === page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(p as number)}
-                      className="rounded-lg min-w-[36px]"
-                    >
-                      {p}
-                    </Button>
-                  )
-                )}
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages}
-                onClick={() => handlePageChange(page + 1)}
-                className="rounded-lg"
-              >
-                Sau
-              </Button>
+            <div className="mt-8">
+              <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
           )}
         </div>

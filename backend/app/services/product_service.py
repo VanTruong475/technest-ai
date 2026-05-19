@@ -23,6 +23,7 @@ def get_all_products(
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
     search: Optional[str] = None,
+    sort: str = "newest",
 ) -> PaginatedResponse[Product]:
     repo = ProductRepository(session)
     items, total = repo.find_all(
@@ -34,6 +35,7 @@ def get_all_products(
         min_price=min_price,
         max_price=max_price,
         search=search,
+        sort=sort,
     )
     total_pages = math.ceil(total / limit) if total > 0 else 0
 
