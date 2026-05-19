@@ -49,7 +49,7 @@ export default function CheckoutPage() {
   const [shippingAddress, setShippingAddress] = useState("");
   const [note, setNote] = useState("");
   const [shippingMethod, setShippingMethod] = useState<"standard" | "express">("standard");
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "bank" | "ewallet">("cod");
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay">("cod");
   const [errors, setErrors] = useState<{ fullName?: string; phone?: string; shippingAddress?: string }>({});
   const clearError = (field: keyof typeof errors) => setErrors((p) => ({ ...p, [field]: undefined }));
 
@@ -65,20 +65,30 @@ export default function CheckoutPage() {
     mutationFn: async () => {
       const parts = [note];
       if (shippingMethod === "express") parts.push("Giao hàng nhanh");
-      parts.push(`Thanh toán: ${paymentMethod === "cod" ? "COD" : paymentMethod === "bank" ? "Chuyển khoản" : "Ví điện tử"}`);
       const finalNote = parts.filter(Boolean).join(" | ");
 
       const res = await axiosClient.post("/api/orders", {
         shipping_address: shippingAddress,
         phone,
         note: finalNote || undefined,
+        payment_method: paymentMethod === "vnpay" ? "VNPAY" : "COD",
       });
       return res.data;
     },
-    onSuccess: (data) => {
-      toast.success("Đặt hàng thành công!");
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
-      navigate(`/orders/${data.id}`);
+
+      if (paymentMethod === "vnpay") {
+        try {
+          const payRes = await axiosClient.post(`/api/orders/${data.id}/payment/vnpay`);
+          window.location.href = payRes.data.payment_url;
+        } catch (err: any) {
+          toast.error(err.response?.data?.detail || "Không thể tạo thanh toán VNPay");
+        }
+      } else {
+        toast.success("Đặt hàng thành công!");
+        navigate(`/orders/${data.id}`);
+      }
     },
     onError: (err: any) => toast.error(err.response?.data?.detail || "Đặt hàng thất bại"),
   });
@@ -293,9 +303,8 @@ export default function CheckoutPage() {
                 <h2 className="text-lg font-semibold">Phương thức thanh toán</h2>
                 <div className="space-y-3">
                   {([
-                    { key: "cod" as const, label: "Thanh toán khi nhận hàng (COD)", desc: "Thanh toán bằng tiền mặt" },
-                    { key: "bank" as const, label: "Chuyển khoản ngân hàng", desc: "Chuyển khoản trước khi giao" },
-                    { key: "ewallet" as const, label: "Ví điện tử", desc: "MoMo, ZaloPay, VNPay" },
+                    { key: "cod" as const, label: "Thanh toán khi nhận hàng (COD)", desc: "Thanh toán bằng tiền mặt khi nhận hàng" },
+                    { key: "vnpay" as const, label: "Thanh toán qua VNPay", desc: "ATM, Visa, MasterCard, QR Code" },
                   ]).map((opt) => (
                     <label
                       key={opt.key}

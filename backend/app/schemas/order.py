@@ -8,6 +8,7 @@ class OrderCreate(BaseModel):
     shipping_address: str
     phone: str
     note: Optional[str] = None
+    payment_method: str = "COD"
 
 
 class OrderStatusUpdate(BaseModel):
@@ -30,6 +31,8 @@ class OrderResponse(BaseModel):
     user_id: int
     total_amount: float
     status: str
+    payment_method: str = "COD"
+    payment_status: str = "UNPAID"
     shipping_address: str
     phone: str
     note: Optional[str] = None

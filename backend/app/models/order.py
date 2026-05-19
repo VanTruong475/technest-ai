@@ -11,6 +11,8 @@ class Order(SQLModel, table=True):
     user_id: int = Field(foreign_key="users.id")
     total_amount: float
     status: str = Field(default="PENDING", max_length=20)
+    payment_method: str = Field(default="COD", max_length=20)
+    payment_status: str = Field(default="UNPAID", max_length=20)
     shipping_address: str
     phone: str
     note: Optional[str] = None

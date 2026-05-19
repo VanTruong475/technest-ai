@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/common/Skeleton";
 import { ArrowLeft, Package, Home, ChevronRight } from "lucide-react";
 import { formatPrice, formatDate } from "@/utils/format";
-import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS } from "@/constants/orderStatus";
+import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS, PAYMENT_STATUS_MAP, PAYMENT_METHOD_MAP } from "@/constants/orderStatus";
 
 interface OrderItem {
   id: number;
@@ -26,6 +26,8 @@ interface Order {
   user_id: number;
   total_amount: number;
   status: string;
+  payment_method: string;
+  payment_status: string;
   shipping_address: string;
   phone: string;
   note: string | null;
@@ -95,6 +97,8 @@ export default function OrderDetailPage() {
   }
 
   const statusInfo = ORDER_STATUS_MAP[order.status] || { label: order.status, color: "text-gray-600 bg-gray-50" };
+  const paymentStatusInfo = PAYMENT_STATUS_MAP[order.payment_status] || { label: order.payment_status, color: "text-gray-600 bg-gray-50" };
+  const paymentMethodLabel = PAYMENT_METHOD_MAP[order.payment_method] || order.payment_method;
 
   return (
     <div className="max-w-4xl mx-auto px-4 space-y-6">
@@ -138,6 +142,16 @@ export default function OrderDetailPage() {
             <div>
               <p className="text-muted-foreground mb-1">Số điện thoại</p>
               <p className="font-medium">{order.phone}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">Phương thức thanh toán</p>
+              <p className="font-medium">{paymentMethodLabel}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">Trạng thái thanh toán</p>
+              <span className={`text-sm px-2.5 py-0.5 rounded-full font-medium ${paymentStatusInfo.color}`}>
+                {paymentStatusInfo.label}
+              </span>
             </div>
             {order.note && (
               <div className="sm:col-span-2">
