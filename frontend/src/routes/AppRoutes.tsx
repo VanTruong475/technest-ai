@@ -18,6 +18,7 @@ import ChatPage from "@/pages/ChatPage";
 import AdminProductPage from "@/pages/AdminProductPage";
 import AdminOrderPage from "@/pages/AdminOrderPage";
 import AdminUserPage from "@/pages/AdminUserPage";
+import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import ProfilePage from "@/pages/ProfilePage";
 import WishlistPage from "@/pages/WishlistPage";
 import PaymentResultPage from "@/pages/PaymentResultPage";
@@ -64,6 +65,7 @@ export default function AppRoutes() {
           <Route path="/payment/result" element={<ProtectedRoute><PaymentResultPage /></ProtectedRoute>} />
 
           {/* Admin */}
+          <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
           <Route path="/admin/products" element={<AdminRoute><AdminProductPage /></AdminRoute>} />
           <Route path="/admin/orders" element={<AdminRoute><AdminOrderPage /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><AdminUserPage /></AdminRoute>} />

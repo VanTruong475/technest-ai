@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const LINKS = [
+  { to: "/admin/dashboard", label: "Dashboard" },
   { to: "/admin/products", label: "Sản phẩm" },
   { to: "/admin/orders", label: "Đơn hàng" },
   { to: "/admin/users", label: "Người dùng" },
