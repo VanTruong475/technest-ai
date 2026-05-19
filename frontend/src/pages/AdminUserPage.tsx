@@ -104,7 +104,7 @@ export default function AdminUserPage() {
   return (
     <div className="space-y-6">
       <AdminNav />
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
         <p className="text-sm text-muted-foreground">{data?.total || 0} người dùng</p>
       </div>

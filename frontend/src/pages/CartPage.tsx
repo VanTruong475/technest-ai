@@ -224,10 +224,22 @@ export default function CartPage() {
                     <Plus className="h-3.5 w-3.5" />
                   </button>
                 </div>
+
+                {/* Mobile: subtotal + delete inline */}
+                <div className="flex items-center justify-between sm:hidden">
+                  <p className="text-lg font-bold">{formatPrice(item.subtotal)}</p>
+                  <button
+                    className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    onClick={() => deleteMutation.mutate(item.id)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Right: subtotal + delete */}
-              <div className="text-right shrink-0 space-y-2">
+              <div className="text-right shrink-0 space-y-2 hidden sm:block">
                 <p className="text-lg font-bold">{formatPrice(item.subtotal)}</p>
                 <button
                   className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"

@@ -246,7 +246,7 @@ export default function AdminProductPage() {
   return (
     <div className="space-y-6">
       <AdminNav />
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl font-bold">Quản lý sản phẩm</h1>
         <Button onClick={openCreateForm}>
           <Plus className="h-4 w-4 mr-1" />
@@ -260,7 +260,7 @@ export default function AdminProductPage() {
           placeholder="Tìm kiếm sản phẩm..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="max-w-sm"
+          className="max-w-sm w-full"
         />
       </div>
 
