@@ -18,6 +18,7 @@ from app.api.review import router as review_router
 from app.api.upload import router as upload_router
 from app.api.wishlist import router as wishlist_router
 from app.api.payment import router as payment_router
+from app.api.admin import router as admin_router
 from app.core.config import settings
 from app.core.database import create_db_and_tables
 from app.core.exceptions import AppException
@@ -81,6 +82,7 @@ app.include_router(review_router)
 app.include_router(upload_router)
 app.include_router(wishlist_router)
 app.include_router(payment_router)
+app.include_router(admin_router)
 
 @app.on_event("startup")
 def on_startup():
