@@ -3,12 +3,12 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/common/Skeleton";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import HeartButton from "@/components/common/HeartButton";
 import Pagination from "@/components/common/Pagination";
+import SearchAutocomplete from "@/components/common/SearchAutocomplete";
 import {
   Search, ChevronRight, X, SlidersHorizontal, Home,
   Smartphone, Laptop, Tablet, Headphones, Cable, ArrowUpDown,
@@ -87,7 +87,6 @@ function ProductCardSkeleton() {
 
 export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const page = parseInt(searchParams.get("page") || "1");
@@ -140,14 +139,12 @@ export default function ProductListPage() {
     setSearchParams(params);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateParams({ search: searchInput });
+  const handleSearch = (query: string) => {
+    updateParams({ search: query });
   };
 
   const clearAllFilters = () => {
     setSearchParams({});
-    setSearchInput("");
   };
 
   const handlePageChange = (newPage: number) => {
@@ -344,18 +341,15 @@ export default function ProductListPage() {
 
         {/* Product grid area */}
         <div className="flex-1 min-w-0">
-          {/* Search bar */}
-          <form onSubmit={handleSearch} className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm kiếm sản phẩm..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10 h-11 rounded-xl bg-white"
-              />
-            </div>
-          </form>
+          {/* Search bar with autocomplete */}
+          <div className="mb-4">
+            <SearchAutocomplete
+              onSearch={handleSearch}
+              initialValue={search}
+              categories={categories}
+              brands={brands}
+            />
+          </div>
 
           {/* Sort + Price presets */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
