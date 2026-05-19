@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -13,6 +13,8 @@ import { ProductDetailSkeleton } from "@/components/common/Skeleton";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import { ReviewSection } from "@/components/common/ReviewSection";
 import HeartButton from "@/components/common/HeartButton";
+import RecentlyViewed from "@/components/common/RecentlyViewed";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 
 interface Product {
   id: number;
@@ -43,6 +45,20 @@ export default function ProductDetailPage() {
     },
     enabled: !!id,
   });
+
+  // Save to recently viewed when product loads
+  const { addToRecentlyViewed } = useRecentlyViewed();
+  useEffect(() => {
+    if (product) {
+      addToRecentlyViewed({
+        id: product.id,
+        name: product.name,
+        image_url: product.image_url,
+        price: product.price,
+        sale_price: product.sale_price,
+      });
+    }
+  }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch related products
   const { data: relatedData } = useQuery<{ items: Product[] }>({
@@ -260,6 +276,9 @@ export default function ProductDetailPage() {
           </div>
         </section>
       )}
+
+      {/* Recently Viewed */}
+      <RecentlyViewed currentProductId={Number(id)} />
     </div>
   );
 }
