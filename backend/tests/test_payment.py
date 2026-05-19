@@ -2,7 +2,7 @@ import hashlib
 import hmac
 from datetime import datetime, timezone
 from unittest.mock import patch
-from urllib.parse import urlencode, quote
+from urllib.parse import urlencode
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session
@@ -26,7 +26,7 @@ def _create_order(client: TestClient, token: str, product: Product) -> int:
 
 def _build_vnpay_return_url(order_id: int, response_code: str = "00", secret: str = "test_secret") -> str:
     """Build a valid VNPay return URL with proper HMAC-SHA512 hash.
-    Uses raw values for hash (same logic as vnpay_service._build_hash_data)."""
+    Uses urlencode (quote_plus) for hash data — same logic as vnpay_service."""
     timestamp = int(datetime.now(timezone.utc).timestamp())
     params = {
         "vnp_Version": "2.1.0",
@@ -48,16 +48,15 @@ def _build_vnpay_return_url(order_id: int, response_code: str = "00", secret: st
     }
 
     sorted_params = sorted(params.items())
-    # Hash from raw values (no URL encoding) - matches vnpay_service logic
-    hash_data = "&".join(f"{k}={v}" for k, v in sorted_params)
+    # urlencode uses quote_plus by default — matches VNPay spec
+    hash_data = urlencode(sorted_params)
     secure_hash = hmac.new(
         secret.encode(),
         hash_data.encode(),
         hashlib.sha512,
     ).hexdigest()
 
-    query_string = urlencode(sorted_params, quote_via=quote)
-    return f"?{query_string}&vnp_SecureHash={secure_hash}"
+    return f"?{hash_data}&vnp_SecureHash={secure_hash}"
 
 
 @patch("app.core.config.settings.VNPAY_TMN_CODE", "test_tmn")
