@@ -76,6 +76,9 @@ export default function LoginPage() {
             Chưa có tài khoản?{" "}
             <Link to="/register" className="text-primary underline">Đăng ký</Link>
           </p>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            <Link to="/forgot-password" className="text-primary underline">Quên mật khẩu?</Link>
+          </p>
         </CardContent>
       </Card>
     </div>

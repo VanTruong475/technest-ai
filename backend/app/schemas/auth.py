@@ -46,6 +46,33 @@ class ChangePassword(BaseModel):
         return v
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+    confirm_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("Password must not exceed 72 bytes")
+        return v
+
+    @field_validator("confirm_password")
+    @classmethod
+    def validate_confirm_password(cls, v: str, info) -> str:
+        new_password = info.data.get("new_password")
+        if new_password and v != new_password:
+            raise ValueError("Passwords do not match")
+        return v
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"

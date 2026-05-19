@@ -15,5 +15,8 @@ class User(SQLModel, table=True):
     role: str = Field(default="USER", max_length=20)
     is_active: bool = Field(default=True)
 
+    reset_token_hash: Optional[str] = Field(default=None, index=True)
+    reset_token_expires_at: Optional[datetime] = Field(default=None)
+
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

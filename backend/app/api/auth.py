@@ -1,17 +1,33 @@
+import logging
+
 from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session
 
 from app.core.database import get_session
 from app.core.rate_limit import limiter
 from app.models.user import User
-from app.schemas.auth import Token, UserCreate, UserLogin, UserResponse, ChangePassword
+from app.repositories.user_repository import UserRepository
+from app.schemas.auth import (
+    ChangePassword,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
+)
 from app.services.auth_service import (
     authenticate_user,
     change_password,
     create_access_token,
     get_current_user,
     register_user,
+    request_password_reset,
+    reset_password,
 )
+from app.services.email_service import send_password_reset_email
+
+logger = logging.getLogger("techsphere")
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -44,3 +60,25 @@ def update_password(
 ):
     change_password(current_user, data, session)
     return {"message": "Password changed successfully"}
+
+
+@router.post("/forgot-password")
+@limiter.limit("3/minute")
+def forgot_password(request: Request, data: ForgotPasswordRequest, session: Session = Depends(get_session)):
+    token = request_password_reset(data.email, session)
+
+    if token:
+        user = UserRepository(session).find_by_email(data.email)
+        if user:
+            try:
+                send_password_reset_email(user, token)
+            except Exception as e:
+                logger.error(f"Failed to send reset email to {data.email}: {e}")
+
+    return {"message": "If the email exists, a reset link has been sent"}
+
+
+@router.post("/reset-password")
+def reset_password_endpoint(data: ResetPasswordRequest, session: Session = Depends(get_session)):
+    reset_password(data.token, data.new_password, session)
+    return {"message": "Password reset successfully"}

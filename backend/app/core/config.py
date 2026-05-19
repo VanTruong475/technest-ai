@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     EMAIL_ENABLED: bool = False
     RESEND_API_KEY: str = ""
     EMAIL_FROM: str = "TechSphere AI <onboarding@resend.dev>"
+    FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:
         env_file = ".env"

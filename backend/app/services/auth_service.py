@@ -1,3 +1,6 @@
+import hashlib
+import logging
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -5,13 +8,15 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.core.database import get_session
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import UserCreate, ChangePassword
+
+logger = logging.getLogger("techsphere")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
@@ -124,3 +129,62 @@ def change_password(current_user: User, data: ChangePassword, session: Session) 
     current_user.password_hash = hash_password(data.new_password)
     repo = UserRepository(session)
     repo.update(current_user)
+
+
+RESET_TOKEN_EXPIRE_MINUTES = 15
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def request_password_reset(email: str, session: Session) -> Optional[str]:
+    """Request password reset. Returns plain token if user found, None otherwise."""
+    repo = UserRepository(session)
+    user = repo.find_by_email(email)
+
+    if not user or not user.is_active:
+        return None
+
+    token = secrets.token_urlsafe(32)
+    token_hash = _hash_token(token)
+
+    user.reset_token_hash = token_hash
+    user.reset_token_expires_at = datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
+    repo.update(user)
+
+    return token
+
+
+def reset_password(token: str, new_password: str, session: Session) -> None:
+    """Reset password using valid token."""
+    token_hash = _hash_token(token)
+
+    statement = select(User).where(User.reset_token_hash == token_hash)
+    user = session.exec(statement).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+
+    expires_at = user.reset_token_expires_at
+    if expires_at:
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at < datetime.now(timezone.utc):
+            user.reset_token_hash = None
+            user.reset_token_expires_at = None
+            session.add(user)
+            session.commit()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
+
+    user.password_hash = hash_password(new_password)
+    user.reset_token_hash = None
+    user.reset_token_expires_at = None
+    session.add(user)
+    session.commit()
