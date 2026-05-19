@@ -180,7 +180,7 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
         )
         session.add(product)
         session.commit()
-        print(f"  [CREATE] Product: {data['name']} (${data['price']})")
+        print(f"  [CREATE] Product: {data['name']} ({data['price']:,.0f}đ)")
         created += 1
 
     print(f"\n  Tổng kết: {created} tạo mới, {updated} cập nhật, {skipped} bỏ qua")

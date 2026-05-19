@@ -36,7 +36,7 @@ def test_ai_search_with_results(client: TestClient, session: Session):
         name="iPhone 15 Pro",
         slug="iphone-15-pro",
         description="Latest iPhone Pro",
-        price=1199.0,
+        price=29990000,
         stock=10,
         status="ACTIVE",
         category_id=category.id,

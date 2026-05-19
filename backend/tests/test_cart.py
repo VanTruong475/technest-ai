@@ -28,8 +28,8 @@ def test_add_item_to_cart(client: TestClient, user_token: str, product: Product)
     assert data["items"][0]["product_id"] == product.id
     assert data["items"][0]["quantity"] == 2
     assert data["total_items"] == 2
-    # sale_price=1099.0, subtotal = 1099 * 2 = 2198
-    assert data["total_amount"] == 2198.0
+    # sale_price=27490000, subtotal = 27490000 * 2 = 54980000
+    assert data["total_amount"] == 54980000
 
 
 def test_add_same_item_increases_quantity(client: TestClient, user_token: str, product: Product):

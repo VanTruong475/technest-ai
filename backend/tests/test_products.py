@@ -34,7 +34,7 @@ def test_list_products_with_data(client: TestClient, session: Session):
         name="iPhone 15",
         slug="iphone-15",
         description="Latest iPhone",
-        price=999.0,
+        price=19990000,
         stock=10,
         status="ACTIVE",
         category_id=category.id,

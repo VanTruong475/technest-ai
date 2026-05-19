@@ -42,7 +42,7 @@ def _send(to: str, subject: str, html: str) -> bool:
 
 
 def _format_price(price: float) -> str:
-    return f"{price:,.0f}đ"
+    return f"{price:,.0f}đ".replace(",", ".")
 
 
 def _build_items_html(items: list[OrderItem]) -> str:
