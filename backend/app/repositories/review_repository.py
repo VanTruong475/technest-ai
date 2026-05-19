@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlmodel import Session, select, func
+from sqlmodel import Session, select, func, col
 
 from app.models.review import Review
 
@@ -27,6 +27,20 @@ class ReviewRepository:
             .order_by(Review.created_at.desc())
         )
         return list(self.session.exec(statement).all())
+
+    def find_all(self, page: int = 1, limit: int = 10) -> tuple[list[Review], int]:
+        count_statement = select(func.count()).select_from(Review)
+        total = self.session.exec(count_statement).one()
+
+        offset = (page - 1) * limit
+        statement = (
+            select(Review)
+            .order_by(col(Review.created_at).desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        reviews = list(self.session.exec(statement).all())
+        return reviews, total
 
     def get_product_rating_summary(self, product_id: int) -> dict:
         statement = select(

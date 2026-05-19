@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -48,3 +51,23 @@ class AdminDashboardResponse(BaseModel):
     charts: DashboardCharts
     recent_orders: list[RecentOrder]
     top_products: list[TopProduct]
+
+
+class AdminReviewItem(BaseModel):
+    id: int
+    user_id: int
+    user_name: str
+    product_id: int
+    product_name: str
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class AdminReviewsResponse(BaseModel):
+    items: list[AdminReviewItem]
+    total: int
+    page: int
+    limit: int
+    total_pages: int

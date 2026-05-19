@@ -19,6 +19,7 @@ import AdminProductPage from "@/pages/AdminProductPage";
 import AdminOrderPage from "@/pages/AdminOrderPage";
 import AdminUserPage from "@/pages/AdminUserPage";
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
+import AdminReviewsPage from "@/pages/AdminReviewsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import WishlistPage from "@/pages/WishlistPage";
 import PaymentResultPage from "@/pages/PaymentResultPage";
@@ -69,6 +70,7 @@ export default function AppRoutes() {
           <Route path="/admin/products" element={<AdminRoute><AdminProductPage /></AdminRoute>} />
           <Route path="/admin/orders" element={<AdminRoute><AdminOrderPage /></AdminRoute>} />
           <Route path="/admin/users" element={<AdminRoute><AdminUserPage /></AdminRoute>} />
+          <Route path="/admin/reviews" element={<AdminRoute><AdminReviewsPage /></AdminRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<NotFoundPage />} />
