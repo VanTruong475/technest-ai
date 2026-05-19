@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
 import ImageUpload from "@/components/common/ImageUpload";
+import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatPrice } from "@/utils/format";
 import { PRODUCT_STATUS_LABELS } from "@/constants/orderStatus";
 
@@ -395,7 +396,7 @@ export default function AdminProductPage() {
 
       {/* Products Table */}
       {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Đang tải sản phẩm...</div>
+        <TableSkeleton columns={8} rows={5} />
       ) : productsError ? (
         <div className="text-center py-12 text-destructive">Không thể tải danh sách sản phẩm. Vui lòng thử lại.</div>
       ) : products.length === 0 ? (

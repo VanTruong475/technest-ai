@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Eye } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
 import Pagination from "@/components/common/Pagination";
+import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS } from "@/constants/orderStatus";
 
@@ -109,7 +110,7 @@ export default function AdminOrderPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="text-center py-12 text-muted-foreground">Đang tải đơn hàng...</div>
+        <TableSkeleton columns={8} rows={5} />
       )}
 
       {/* Error */}

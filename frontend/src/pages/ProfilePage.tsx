@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { User, Shield, Mail, Phone, CheckCircle, XCircle, Lock } from "lucide-react";
+import { ProfileSkeleton } from "@/components/common/Skeleton";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuthStore();
@@ -85,7 +86,7 @@ export default function ProfilePage() {
   };
 
   if (!user) {
-    return <div className="text-center py-12 text-muted-foreground">Đang tải thông tin...</div>;
+    return <ProfileSkeleton />;
   }
 
   return (

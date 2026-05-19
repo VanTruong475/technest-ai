@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Pencil, X, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
+import { TableSkeleton } from "@/components/common/Skeleton";
 
 interface User {
   id: number;
@@ -175,7 +176,7 @@ export default function AdminUserPage() {
 
       {/* Users Table */}
       {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Đang tải người dùng...</div>
+        <TableSkeleton columns={8} rows={5} />
       ) : error ? (
         <div className="text-center py-12 text-destructive">Không thể tải danh sách người dùng.</div>
       ) : users.length === 0 ? (

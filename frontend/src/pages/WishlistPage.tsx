@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Trash2 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { WishlistItemSkeleton } from "@/components/common/Skeleton";
 
 interface WishlistItem {
   id: number;
@@ -46,7 +47,11 @@ export default function WishlistPage() {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold">Sản phẩm yêu thích</h1>
-        <div className="text-center py-12 text-muted-foreground">Đang tải...</div>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <WishlistItemSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
