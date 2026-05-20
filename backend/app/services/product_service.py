@@ -10,7 +10,12 @@ from app.repositories.brand_repository import BrandRepository
 from app.repositories.category_repository import CategoryRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.common import PaginatedResponse
-from app.schemas.product import ProductCreate, ProductUpdate
+from app.schemas.product import (
+    BulkStockUpdateRequest,
+    BulkStockUpdateResponse,
+    ProductCreate,
+    ProductUpdate,
+)
 
 
 def get_all_products(
@@ -167,3 +172,33 @@ def delete_product(
 
     product.status = "INACTIVE"
     repo.update(product)
+
+
+def bulk_update_stock(
+    data: BulkStockUpdateRequest,
+    admin: User,
+    session: Session,
+) -> BulkStockUpdateResponse:
+    repo = ProductRepository(session)
+
+    product_ids = [item.product_id for item in data.items]
+    products = repo.find_by_ids(product_ids)
+
+    found_ids = {p.id for p in products}
+    missing_ids = [pid for pid in product_ids if pid not in found_ids]
+    if missing_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Products not found: {missing_ids}"
+        )
+
+    stock_map = {item.product_id: item.stock for item in data.items}
+    for product in products:
+        product.stock = stock_map[product.id]
+
+    updated_products = repo.bulk_update(products)
+
+    return BulkStockUpdateResponse(
+        updated=len(updated_products),
+        products=updated_products,
+    )

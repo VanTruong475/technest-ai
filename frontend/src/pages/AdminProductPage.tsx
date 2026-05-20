@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight, Package } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
 import ImageUpload from "@/components/common/ImageUpload";
 import { TableSkeleton } from "@/components/common/Skeleton";
@@ -94,6 +94,8 @@ export default function AdminProductPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormData>(EMPTY_FORM);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [editingStock, setEditingStock] = useState<Record<number, number>>({});
   const limit = 10;
 
   // Fetch products
@@ -172,6 +174,24 @@ export default function AdminProductPage() {
     },
   });
 
+  // Bulk stock update mutation
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async (items: { product_id: number; stock: number }[]) => {
+      const res = await axiosClient.put("/api/products/bulk-update", { items });
+      return res.data;
+    },
+    onSuccess: (data: { updated: number }) => {
+      toast.success(`Đã cập nhật tồn kho ${data.updated} sản phẩm!`);
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setSelectedIds(new Set());
+      setEditingStock({});
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.detail || "Cập nhật tồn kho thất bại");
+    },
+  });
+
   const openCreateForm = () => {
     setEditingProduct(null);
     setForm(EMPTY_FORM);
@@ -243,6 +263,41 @@ export default function AdminProductPage() {
 
   const getCategoryName = (id: number) => categories.find((c) => c.id === id)?.name || `#${id}`;
   const getBrandName = (id: number) => brands.find((b) => b.id === id)?.name || `#${id}`;
+
+  const toggleSelect = useCallback((id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (!products.length) return;
+    setSelectedIds((prev) => {
+      if (prev.size === products.length) return new Set();
+      return new Set(products.map((p) => p.id));
+    });
+  }, [products]);
+
+  const handleStockChange = useCallback((productId: number, value: string) => {
+    const stock = parseInt(value, 10);
+    if (!isNaN(stock) && stock >= 0) {
+      setEditingStock((prev) => ({ ...prev, [productId]: stock }));
+    }
+  }, []);
+
+  const handleBulkUpdate = useCallback(() => {
+    const items = Object.entries(editingStock)
+      .filter(([id]) => selectedIds.has(Number(id)))
+      .map(([id, stock]) => ({ product_id: Number(id), stock }));
+    if (items.length === 0) {
+      toast.error("Vui lòng chỉnh sửa tồn kho trước khi cập nhật");
+      return;
+    }
+    bulkUpdateMutation.mutate(items);
+  }, [editingStock, selectedIds, bulkUpdateMutation]);
 
   return (
     <div className="space-y-6">
@@ -394,6 +449,30 @@ export default function AdminProductPage() {
         </Card>
       )}
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+          <span className="text-sm font-medium">
+            Đã chọn {selectedIds.size} sản phẩm
+          </span>
+          <Button
+            size="sm"
+            onClick={handleBulkUpdate}
+            disabled={bulkUpdateMutation.isPending || Object.keys(editingStock).filter((id) => selectedIds.has(Number(id))).length === 0}
+          >
+            <Package className="h-4 w-4 mr-1" />
+            {bulkUpdateMutation.isPending ? "Đang cập nhật..." : "Cập nhật tồn kho"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setSelectedIds(new Set()); setEditingStock({}); }}
+          >
+            Bỏ chọn
+          </Button>
+        </div>
+      )}
+
       {/* Products Table */}
       {isLoading ? (
         <TableSkeleton columns={8} rows={5} />
@@ -408,6 +487,14 @@ export default function AdminProductPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
+                    <th className="p-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={products.length > 0 && selectedIds.size === products.length}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                    </th>
                     <th className="text-left p-3 font-medium">ID</th>
                     <th className="text-left p-3 font-medium">Tên</th>
                     <th className="text-left p-3 font-medium">Danh mục</th>
@@ -419,8 +506,20 @@ export default function AdminProductPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product) => (
-                    <tr key={product.id} className="border-b hover:bg-muted/30">
+                  {products.map((product) => {
+                    const isSelected = selectedIds.has(product.id);
+                    const currentStock = editingStock[product.id] ?? product.stock;
+                    const stockChanged = currentStock !== product.stock;
+                    return (
+                    <tr key={product.id} className={`border-b hover:bg-muted/30 ${isSelected ? "bg-muted/40" : ""}`}>
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(product.id)}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                      </td>
                       <td className="p-3">{product.id}</td>
                       <td className="p-3 font-medium max-w-[200px] truncate">{product.name}</td>
                       <td className="p-3 text-muted-foreground">{getCategoryName(product.category_id)}</td>
@@ -435,7 +534,19 @@ export default function AdminProductPage() {
                           <span className="font-medium">{formatPrice(product.price)}</span>
                         )}
                       </td>
-                      <td className="p-3 text-right">{product.stock}</td>
+                      <td className="p-3 text-right">
+                        {isSelected ? (
+                          <Input
+                            type="number"
+                            min={0}
+                            value={currentStock}
+                            onChange={(e) => handleStockChange(product.id, e.target.value)}
+                            className={`w-20 h-7 text-right ml-auto ${stockChanged ? "border-primary" : ""}`}
+                          />
+                        ) : (
+                          <span>{product.stock}</span>
+                        )}
+                      </td>
                       <td className="p-3 text-center">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           product.status === "ACTIVE" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-600"
@@ -454,7 +565,8 @@ export default function AdminProductPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

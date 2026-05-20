@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class ProductCreate(BaseModel):
@@ -66,6 +66,8 @@ class ProductUpdate(BaseModel):
 
 
 class ProductResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     category_id: int
     brand_id: int
@@ -79,3 +81,24 @@ class ProductResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
+
+
+class BulkStockUpdateItem(BaseModel):
+    product_id: int
+    stock: int
+
+    @field_validator("stock")
+    @classmethod
+    def validate_stock(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("Stock must be greater than or equal to 0")
+        return v
+
+
+class BulkStockUpdateRequest(BaseModel):
+    items: list[BulkStockUpdateItem]
+
+
+class BulkStockUpdateResponse(BaseModel):
+    updated: int
+    products: list[ProductResponse]

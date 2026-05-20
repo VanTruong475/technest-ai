@@ -82,3 +82,15 @@ class ProductRepository:
     def delete(self, product: Product) -> None:
         self.session.delete(product)
         self.session.commit()
+
+    def find_by_ids(self, product_ids: list[int]) -> list[Product]:
+        statement = select(Product).where(Product.id.in_(product_ids))
+        return list(self.session.exec(statement).all())
+
+    def bulk_update(self, products: list[Product]) -> list[Product]:
+        for product in products:
+            self.session.add(product)
+        self.session.commit()
+        for product in products:
+            self.session.refresh(product)
+        return products

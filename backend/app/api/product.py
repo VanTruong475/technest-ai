@@ -8,8 +8,15 @@ from app.core.dependencies import require_admin
 from app.models.user import User
 from app.repositories.product_repository import VALID_SORTS
 from app.schemas.common import PaginatedResponse
-from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
+from app.schemas.product import (
+    BulkStockUpdateRequest,
+    BulkStockUpdateResponse,
+    ProductCreate,
+    ProductResponse,
+    ProductUpdate,
+)
 from app.services.product_service import (
+    bulk_update_stock,
     create_product,
     delete_product,
     get_all_products,
@@ -50,6 +57,15 @@ def list_products(
         search=search,
         sort=sort,
     )
+
+
+@router.put("/bulk-update", response_model=BulkStockUpdateResponse)
+def bulk_stock_update(
+    data: BulkStockUpdateRequest,
+    admin: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+):
+    return bulk_update_stock(data, admin, session)
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
