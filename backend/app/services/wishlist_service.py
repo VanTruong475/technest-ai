@@ -27,7 +27,26 @@ def _build_wishlist_item_response(item: WishlistItem, session: Session) -> Wishl
 def get_wishlist(current_user: User, session: Session) -> list[WishlistItemResponse]:
     repo = WishlistRepository(session)
     items = repo.find_all_by_user_id(current_user.id)
-    return [_build_wishlist_item_response(item, session) for item in items]
+
+    product_ids = [item.product_id for item in items]
+    product_repo = ProductRepository(session)
+    products = product_repo.find_by_ids(product_ids) if product_ids else []
+    product_map = {p.id: p for p in products}
+
+    results = []
+    for item in items:
+        product = product_map.get(item.product_id)
+        results.append(WishlistItemResponse(
+            id=item.id,
+            product_id=item.product_id,
+            product_name=product.name if product else "Unknown",
+            product_slug=product.slug if product else "",
+            image_url=product.image_url if product else None,
+            price=product.price if product else 0,
+            sale_price=product.sale_price if product else None,
+            created_at=item.created_at,
+        ))
+    return results
 
 
 def add_to_wishlist(current_user: User, product_id: int, session: Session) -> dict:

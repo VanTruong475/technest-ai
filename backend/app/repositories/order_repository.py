@@ -66,6 +66,10 @@ class OrderItemRepository:
         statement = select(OrderItem).where(OrderItem.order_id == order_id)
         return list(self.session.exec(statement).all())
 
+    def find_by_order_ids(self, order_ids: list[int]) -> list[OrderItem]:
+        statement = select(OrderItem).where(OrderItem.order_id.in_(order_ids))
+        return list(self.session.exec(statement).all())
+
     def create(self, item: OrderItem) -> OrderItem:
         self.session.add(item)
         self.session.commit()

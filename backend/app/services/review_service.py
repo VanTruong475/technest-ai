@@ -31,7 +31,26 @@ def _build_review_response(review: Review, session: Session) -> ReviewResponse:
 def get_reviews_by_product(product_id: int, session: Session) -> list[ReviewResponse]:
     review_repo = ReviewRepository(session)
     reviews = review_repo.find_by_product_id(product_id)
-    return [_build_review_response(r, session) for r in reviews]
+
+    user_ids = list({r.user_id for r in reviews})
+    user_repo = UserRepository(session)
+    users = user_repo.find_by_ids(user_ids) if user_ids else []
+    user_map = {u.id: u for u in users}
+
+    results = []
+    for r in reviews:
+        user = user_map.get(r.user_id)
+        results.append(ReviewResponse(
+            id=r.id,
+            user_id=r.user_id,
+            user_name=user.full_name if user else "Unknown",
+            product_id=r.product_id,
+            rating=r.rating,
+            comment=r.comment,
+            created_at=r.created_at,
+            updated_at=r.updated_at,
+        ))
+    return results
 
 
 def create_review(

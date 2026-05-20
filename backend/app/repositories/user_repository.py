@@ -17,6 +17,10 @@ class UserRepository:
         statement = select(User).where(User.id == user_id)
         return self.session.exec(statement).first()
 
+    def find_by_ids(self, user_ids: list[int]) -> list[User]:
+        statement = select(User).where(User.id.in_(user_ids))
+        return list(self.session.exec(statement).all())
+
     def find_all(self, page: int = 1, limit: int = 10) -> tuple[list[User], int]:
         offset = (page - 1) * limit
 

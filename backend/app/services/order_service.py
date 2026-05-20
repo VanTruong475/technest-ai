@@ -23,9 +23,10 @@ logger = logging.getLogger("techsphere")
 VALID_STATUSES = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED"]
 
 
-def _build_order_response(order: Order, session: Session) -> OrderResponse:
-    item_repo = OrderItemRepository(session)
-    items = item_repo.find_by_order_id(order.id)
+def _build_order_response(order: Order, session: Session, items: list[OrderItem] | None = None) -> OrderResponse:
+    if items is None:
+        item_repo = OrderItemRepository(session)
+        items = item_repo.find_by_order_id(order.id)
 
     order_items = [
         OrderItemResponse(
@@ -57,6 +58,17 @@ def _build_order_response(order: Order, session: Session) -> OrderResponse:
     )
 
 
+def _build_order_responses(orders: list[Order], session: Session) -> list[OrderResponse]:
+    order_ids = [o.id for o in orders]
+    item_repo = OrderItemRepository(session)
+    all_items = item_repo.find_by_order_ids(order_ids) if order_ids else []
+    items_map: dict[int, list[OrderItem]] = {}
+    for item in all_items:
+        items_map.setdefault(item.order_id, []).append(item)
+
+    return [_build_order_response(o, session, items_map.get(o.id, [])) for o in orders]
+
+
 def create_order(
     current_user: User,
     data: OrderCreate,
@@ -82,11 +94,15 @@ def create_order(
             detail="Cart is empty"
         )
 
+    product_ids = [ci.product_id for ci in cart_items]
+    products = product_repo.find_by_ids(product_ids)
+    product_map = {p.id: p for p in products}
+
     total_amount = 0.0
     order_items_data = []
 
     for cart_item in cart_items:
-        product = product_repo.find_by_id(cart_item.product_id)
+        product = product_map.get(cart_item.product_id)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -138,7 +154,7 @@ def create_order(
         created_items.append(order_item)
 
     for cart_item in cart_items:
-        product = product_repo.find_by_id(cart_item.product_id)
+        product = product_map.get(cart_item.product_id)
         if product:
             product.stock -= cart_item.quantity
             product_repo.update(product)
@@ -159,7 +175,7 @@ def get_user_orders(current_user: User, session: Session, page: int = 1, limit: 
     orders, total = order_repo.find_all_by_user_id(current_user.id, page=page, limit=limit, status=status)
     total_pages = math.ceil(total / limit) if total > 0 else 0
 
-    items = [_build_order_response(order, session) for order in orders]
+    items = _build_order_responses(orders, session)
 
     return PaginatedResponse(
         items=items,
@@ -175,7 +191,7 @@ def get_all_orders(session: Session, page: int = 1, limit: int = 10, status: str
     orders, total = order_repo.find_all(page=page, limit=limit, status=status)
     total_pages = math.ceil(total / limit) if total > 0 else 0
 
-    items = [_build_order_response(order, session) for order in orders]
+    items = _build_order_responses(orders, session)
 
     return PaginatedResponse(
         items=items,

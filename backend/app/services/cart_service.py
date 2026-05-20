@@ -15,12 +15,17 @@ def _build_cart_response(cart: Cart, session: Session) -> CartResponse:
     product_repo = ProductRepository(session)
 
     items = item_repo.find_by_cart_id(cart.id)
+
+    product_ids = [item.product_id for item in items]
+    products = product_repo.find_by_ids(product_ids) if product_ids else []
+    product_map = {p.id: p for p in products}
+
     cart_items = []
     total_items = 0
     total_amount = 0.0
 
     for item in items:
-        product = product_repo.find_by_id(item.product_id)
+        product = product_map.get(item.product_id)
         if product:
             price = product.sale_price if product.sale_price else product.price
             subtotal = price * item.quantity
