@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
 
+from app.core.cache import cache_key, get_cached, set_cached, invalidate_prefix
 from app.core.database import get_session
 from app.core.dependencies import require_admin
 from app.models.user import User
@@ -45,7 +46,15 @@ def list_products(
             status_code=400,
             detail=f"Invalid sort. Must be one of: {', '.join(VALID_SORTS)}",
         )
-    return get_all_products(
+
+    ck = cache_key("products", page=page, limit=limit, category_id=category_id,
+                    brand_id=brand_id, status=status, min_price=min_price,
+                    max_price=max_price, search=search, sort=sort)
+    cached = get_cached(ck)
+    if cached is not None:
+        return cached
+
+    result = get_all_products(
         session,
         page=page,
         limit=limit,
@@ -57,6 +66,9 @@ def list_products(
         search=search,
         sort=sort,
     )
+    response = result.model_dump()
+    set_cached(ck, response, ttl=300)
+    return response
 
 
 @router.put("/bulk-update", response_model=BulkStockUpdateResponse)
@@ -65,7 +77,9 @@ def bulk_stock_update(
     admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
-    return bulk_update_stock(data, admin, session)
+    result = bulk_update_stock(data, admin, session)
+    invalidate_prefix("products")
+    return result
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
@@ -79,7 +93,9 @@ def create(
     admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
-    return create_product(data, admin, session)
+    result = create_product(data, admin, session)
+    invalidate_prefix("products")
+    return result
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
@@ -89,7 +105,9 @@ def update(
     admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
-    return update_product(product_id, data, admin, session)
+    result = update_product(product_id, data, admin, session)
+    invalidate_prefix("products")
+    return result
 
 
 @router.delete("/{product_id}", response_model=ProductResponse)
@@ -99,4 +117,5 @@ def delete(
     session: Session = Depends(get_session),
 ):
     delete_product(product_id, admin, session)
+    invalidate_prefix("products")
     return get_product_by_id(product_id, session)

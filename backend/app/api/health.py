@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, text
 
+from app.core.cache import get_redis
 from app.core.config import settings
 from app.core.database import get_session
 from app.core.dependencies import require_admin
@@ -43,6 +44,18 @@ def detailed_health(
     except Exception:
         db_status = "error"
 
+    redis_status = "not_configured"
+    if settings.REDIS_URL:
+        r = get_redis()
+        if r:
+            try:
+                r.ping()
+                redis_status = "connected"
+            except Exception:
+                redis_status = "error"
+        else:
+            redis_status = "error"
+
     overall = "healthy" if db_status == "connected" else "degraded"
 
     return {
@@ -54,6 +67,9 @@ def detailed_health(
         "database": {
             "status": db_status,
             "name": db_name,
+        },
+        "redis": {
+            "status": redis_status,
         },
         "cloudinary_configured": all([
             settings.CLOUDINARY_CLOUD_NAME,

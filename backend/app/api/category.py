@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlmodel import Session
 
+from app.core.cache import cache_key, get_cached, set_cached, invalidate_prefix
 from app.core.database import get_session
 from app.core.dependencies import require_admin
 from app.models.user import User
@@ -23,7 +24,15 @@ def list_categories(
     limit: int = Query(10, ge=1, le=100),
     session: Session = Depends(get_session),
 ):
-    return get_all_categories(session, page=page, limit=limit)
+    ck = cache_key("categories", page=page, limit=limit)
+    cached = get_cached(ck)
+    if cached is not None:
+        return cached
+
+    result = get_all_categories(session, page=page, limit=limit)
+    response = result.model_dump()
+    set_cached(ck, response, ttl=1800)
+    return response
 
 
 @router.get("/{category_id}", response_model=CategoryResponse)
@@ -37,7 +46,9 @@ def create(
     admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
-    return create_category(data, admin, session)
+    result = create_category(data, admin, session)
+    invalidate_prefix("categories")
+    return result
 
 
 @router.put("/{category_id}", response_model=CategoryResponse)
@@ -47,7 +58,9 @@ def update(
     admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
-    return update_category(category_id, data, admin, session)
+    result = update_category(category_id, data, admin, session)
+    invalidate_prefix("categories")
+    return result
 
 
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -57,4 +70,5 @@ def delete(
     session: Session = Depends(get_session),
 ):
     delete_category(category_id, admin, session)
+    invalidate_prefix("categories")
     return None
