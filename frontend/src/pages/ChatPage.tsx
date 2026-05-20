@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
@@ -179,7 +180,7 @@ export default function ChatPage() {
                           <CardContent className="flex items-center gap-3 py-3">
                             <div className="w-12 h-12 bg-muted flex items-center justify-center rounded-lg shrink-0 overflow-hidden">
                               {item.product.image_url ? (
-                                <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" />
+                                <OptimizedImage src={item.product.image_url} alt={item.product.name} width={48} height={48} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-lg">📦</span>
                               )}

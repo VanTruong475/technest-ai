@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import { formatPrice } from "@/utils/format";
@@ -34,7 +35,7 @@ export default function RecentlyViewed({ currentProductId }: RecentlyViewedProps
               )}
               <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
                 {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <OptimizedImage src={p.image_url} alt={p.name} width={400} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
                   <span className="text-4xl">📦</span>
                 )}

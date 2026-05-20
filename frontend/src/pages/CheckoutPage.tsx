@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
@@ -355,7 +356,7 @@ export default function CheckoutPage() {
                     <div key={item.id} className="flex items-center gap-3">
                       <div className="w-14 h-14 bg-muted rounded-lg overflow-hidden shrink-0">
                         {item.image_url ? (
-                          <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover" />
+                          <OptimizedImage src={item.image_url} alt={item.product_name} width={56} height={56} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-lg">📦</div>
                         )}

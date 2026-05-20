@@ -1,5 +1,6 @@
 import csv
 import io
+import uuid
 from datetime import datetime, timezone, timedelta
 
 from fastapi.testclient import TestClient
@@ -22,7 +23,7 @@ def _create_order_in_db(
 ) -> Order:
     product = Product(
         name=f"Test Product {user.id}",
-        slug=f"test-product-{user.id}-{datetime.now().timestamp()}",
+        slug=f"test-product-{user.id}-{uuid.uuid4().hex[:8]}",
         price=1000000,
         stock=50,
         status="ACTIVE",

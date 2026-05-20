@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,7 @@ export default function WishlistPage() {
                 <Link to={`/products/${item.product_id}`} className="shrink-0">
                   <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex items-center justify-center">
                     {item.image_url ? (
-                      <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover" />
+                      <OptimizedImage src={item.image_url} alt={item.product_name} width={96} height={96} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-3xl">📦</span>
                     )}

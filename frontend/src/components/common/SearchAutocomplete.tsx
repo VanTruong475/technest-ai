@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useNavigate } from "react-router-dom";
 import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -173,9 +174,11 @@ export default function SearchAutocomplete({
                       {/* Image */}
                       <div className="w-12 h-12 rounded-lg bg-muted flex-shrink-0 overflow-hidden flex items-center justify-center">
                         {product.image_url ? (
-                          <img
+                          <OptimizedImage
                             src={product.image_url}
                             alt={product.name}
+                            width={48}
+                            height={48}
                             className="w-full h-full object-cover"
                           />
                         ) : (

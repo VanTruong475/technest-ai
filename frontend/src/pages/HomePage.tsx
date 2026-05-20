@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
@@ -54,7 +55,7 @@ function ProductCard({ product }: { product: Product }) {
         )}
         <div className="aspect-[4/3] bg-muted flex items-center justify-center rounded-t-xl overflow-hidden">
           {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <OptimizedImage src={product.image_url} alt={product.name} width={400} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
             <span className="text-4xl">📦</span>
           )}
@@ -179,10 +180,13 @@ export default function HomePage() {
             <div className="relative rounded-3xl overflow-hidden shadow-xl bg-muted">
               <div className="aspect-[4/3] overflow-hidden">
                 {heroProduct?.image_url ? (
-                  <img
+                  <OptimizedImage
                     src={heroProduct.image_url}
                     alt={heroProduct.name}
+                    width={600}
+                    height={450}
                     className="w-full h-full object-cover"
+                    priority
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">

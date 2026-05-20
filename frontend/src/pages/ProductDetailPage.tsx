@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
@@ -134,7 +135,7 @@ export default function ProductDetailPage() {
             <SaleBadge price={product.price} salePrice={product.sale_price} />
           )}
           {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+            <OptimizedImage src={product.image_url} alt={product.name} width={600} height={600} className="w-full h-full object-cover" priority />
           ) : (
             <span className="text-8xl">📦</span>
           )}
@@ -252,7 +253,7 @@ export default function ProductDetailPage() {
                     )}
                     <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
                       {p.image_url ? (
-                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <OptimizedImage src={p.image_url} alt={p.name} width={400} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
                         <span className="text-4xl">📦</span>
                       )}

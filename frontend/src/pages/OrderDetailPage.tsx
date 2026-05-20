@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { useAuthStore } from "@/store/authStore";
@@ -172,7 +173,7 @@ export default function OrderDetailPage() {
               <div key={item.id} className="flex items-center gap-4 py-3 border-b last:border-0">
                 <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0">
                   {item.image_url ? (
-                    <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover" />
+                    <OptimizedImage src={item.image_url} alt={item.product_name} width={64} height={64} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-xl">📦</div>
                   )}
