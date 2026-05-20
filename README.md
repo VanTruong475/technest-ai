@@ -14,69 +14,69 @@
 
 ## Live Demo
 
-| Dich vu | URL |
+| Dịch vụ | URL |
 |---------|-----|
 | Frontend | https://techsphere-ai.vercel.app |
 | Backend API | https://techsphere-ai.onrender.com |
 | API Docs (Swagger) | https://techsphere-ai.onrender.com/docs |
 
-> Thong tin tai khoan demo se duoc cung cap khi can.
+> Thông tin tài khoản demo sẽ được cung cấp khi cần.
 
 ---
 
-## Tinh nang chinh
+## Tính năng chính
 
-### Nguoi dung
-- Dang ky / Dang nhap (JWT authentication)
-- Doi mat khau, quen mat khau (gui email qua Resend)
-- Duyet san pham theo danh muc, thuong hieu
-- Tim kiem san pham thong minh (AI Search)
-- Gio hang + Checkout
-- Thanh toan online (VNPay sandbox)
-- Lich su don hang, chi tiet don hang
-- Danh gia san pham (Reviews & Ratings)
-- Yeu thich (Wishlist)
-- Ho so ca nhan
-- San pham da xem gan day (Recently Viewed)
+### Người dùng
+- Đăng ký / Đăng nhập (JWT authentication)
+- Đổi mật khẩu, quên mật khẩu (gửi email qua Resend)
+- Duyệt sản phẩm theo danh mục, thương hiệu
+- Tìm kiếm sản phẩm thông minh (AI Search)
+- Giỏ hàng + Checkout
+- Thanh toán online (VNPay sandbox)
+- Lịch sử đơn hàng, chi tiết đơn hàng
+- Đánh giá sản phẩm (Reviews & Ratings)
+- Yêu thích (Wishlist)
+- Hồ sơ cá nhân
+- Sản phẩm đã xem gần đây (Recently Viewed)
 
-### Tinh nang AI
-- **AI Search** — Tim kiem san pham theo relevance score, fuzzy matching
-- **AI Recommendation** — Goi y dua tren gio hang, lich su, muc do pho bien
-- **AI Chatbot** — Tu van san pham theo nhu cau, ngan sach, thuong hieu
+### Tính năng AI
+- **AI Search** — Tìm kiếm sản phẩm theo relevance score, fuzzy matching
+- **AI Recommendation** — Gợi ý dựa trên giỏ hàng, lịch sử, mức độ phổ biến
+- **AI Chatbot** — Tư vấn sản phẩm theo nhu cầu, ngân sách, thương hiệu
 
-### Quan tri (Admin)
-- Dashboard thong ke (doanh thu, don hang, san pham, nguoi dung, bieu do)
-- Quan ly san pham (CRUD, upload hinh anh Cloudinary)
-- Quan ly don hang (cap nhat trang thai, xuat CSV)
-- Quan ly nguoi dung (phan quyen, kich hoat/vo hieu hoa)
-- Quan ly danh gia (xem, xoa danh gia vi pham)
-- Quan ly kho hang (bulk update ton kho)
-- Nhat ky he thong (Audit Log)
-- Quan ly danh muc, thuong hieu (CRUD)
+### Quản trị (Admin)
+- Dashboard thống kê (doanh thu, đơn hàng, sản phẩm, người dùng, biểu đồ)
+- Quản lý sản phẩm (CRUD, upload hình ảnh Cloudinary)
+- Quản lý đơn hàng (cập nhật trạng thái, xuất CSV)
+- Quản lý người dùng (phân quyền, kích hoạt/vô hiệu hóa)
+- Quản lý đánh giá (xem, xóa đánh giá vi phạm)
+- Quản lý kho hàng (bulk update tồn kho)
+- Nhật ký hệ thống (Audit Log)
+- Quản lý danh mục, thương hiệu (CRUD)
 
 ---
 
-## Cong nghe su dung
+## Công nghệ sử dụng
 
-| Lop | Cong nghe |
+| Lớp | Công nghệ |
 |-----|-----------|
 | **Backend** | FastAPI 0.136, SQLModel, PostgreSQL 16, Alembic |
 | **Frontend** | React 19, Vite, TypeScript, Tailwind CSS, shadcn/ui |
-| **Quan ly state** | Zustand, TanStack Query |
-| **Xac thuc** | JWT (python-jose), bcrypt (passlib) |
-| **Cache** | Redis (graceful degradation — app van chay neu khong co Redis) |
-| **Upload hinh anh** | Cloudinary (auto WebP/AVIF, resize, CDN) |
-| **Bao loi** | Sentry (error tracking + performance monitoring) |
+| **Quản lý state** | Zustand, TanStack Query |
+| **Xác thực** | JWT (python-jose), bcrypt (passlib) |
+| **Cache** | Redis (graceful degradation — app vẫn chạy nếu không có Redis) |
+| **Upload hình ảnh** | Cloudinary (auto WebP/AVIF, resize, CDN) |
+| **Báo lỗi** | Sentry (error tracking + performance monitoring) |
 | **Email** | Resend (transactional email) |
-| **Bieu do** | Recharts (admin dashboard) |
-| **Thanh toan** | VNPay (sandbox) |
-| **Nen truyen** | GZip middleware (Starlette) |
-| **Kiem thu** | Pytest, httpx, pytest-cov, GitHub Actions |
-| **Trien khai** | Render (Backend + DB + Redis), Vercel (Frontend) |
+| **Biểu đồ** | Recharts (admin dashboard) |
+| **Thanh toán** | VNPay (sandbox) |
+| **Nén truyền** | GZip middleware (Starlette) |
+| **Kiểm thử** | Pytest, httpx, pytest-cov, GitHub Actions |
+| **Triển khai** | Render (Backend + DB + Redis), Vercel (Frontend) |
 
 ---
 
-## Kien truc he thong
+## Kiến trúc hệ thống
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -115,7 +115,7 @@
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Backend Architecture (4-Layer Pattern)
+### Kiến trúc Backend (4-Layer Pattern)
 
 ```
 Request → API (router.py) → Service (service.py) → Repository (repository.py) → Database
@@ -136,30 +136,30 @@ backend/app/
 
 ---
 
-## Anh chup man hinh
+## Ảnh chụp màn hình
 
-> Se duoc bo sung sau. Cac man hinh du kien:
+> Sẽ được bổ sung sau. Các màn hình dự kiến:
 
-- Trang chu (hero banner, san pham noi bat, danh muc)
-- Danh sach san pham (filter, search, pagination)
-- Chi tiet san pham (hinh anh optimize, danh gia, san pham lien quan)
-- Gio hang / Thanh toan (VNPay)
-- Lich su don hang / Chi tiet don hang
+- Trang chủ (hero banner, sản phẩm nổi bật, danh mục)
+- Danh sách sản phẩm (filter, search, pagination)
+- Chi tiết sản phẩm (hình ảnh optimize, đánh giá, sản phẩm liên quan)
+- Giỏ hàng / Thanh toán (VNPay)
+- Lịch sử đơn hàng / Chi tiết đơn hàng
 - Wishlist / Recently Viewed
 - AI Chatbot
-- Admin Dashboard (stats, bieu do)
+- Admin Dashboard (stats, biểu đồ)
 - Admin Product Management (bulk edit, image upload)
 - Admin Order Export / Audit Log
 
 ---
 
-## Cai dat local
+## Cài đặt local
 
-### Yeu cau
+### Yêu cầu
 - Python 3.11+
 - Node.js 20+
 - PostgreSQL 16+
-- Redis (tuy chon — app van chay binh thuong neu khong co Redis)
+- Redis (tùy chọn — app vẫn chạy bình thường nếu không có Redis)
 
 ### Backend
 
@@ -171,21 +171,21 @@ source venv/bin/activate       # macOS/Linux
 pip install -r requirements.txt
 ```
 
-Tao file `.env` tu mau:
+Tạo file `.env` từ mẫu:
 
 ```bash
 cp .env.example .env
-# Chinh sua DATABASE_URL va cac bien moi truong khac
+# Chỉnh sửa DATABASE_URL và các biến môi trường khác
 ```
 
-Chuyen migration va seed du lieu:
+Chạy migration và seed dữ liệu:
 
 ```bash
 alembic upgrade head
 python -m app.seed
 ```
 
-Khoi dong server:
+Khởi động server:
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -202,28 +202,28 @@ npm install
 npm run dev
 ```
 
-Truy cap: http://localhost:5173
+Truy cập: http://localhost:5173
 
 ---
 
-## Kiem thu
+## Kiểm thử
 
 ### Backend
 
 ```bash
 cd backend
-pytest tests/ -v                    # Chay tat ca tests
-pytest tests/ -v --cov=app          # Chay voi coverage report
+pytest tests/ -v                    # Chạy tất cả tests
+pytest tests/ -v --cov=app          # Chạy với coverage report
 ```
 
-**263/263 tests** — 87% coverage bao gom:
+**263/263 tests** — 87% coverage bao gồm:
 
-| Module | So luong | Noi dung |
+| Module | Số lượng | Nội dung |
 |--------|----------|----------|
 | test_auth | 14 | Register, login, JWT, change password, forgot password |
-| test_category | 13 | CRUD, phan quyen, pagination, duplicate slug |
-| test_brand | 13 | CRUD, phan quyen, pagination, duplicate slug |
-| test_user_management | 13 | List, get, update, phan quyen, role escalation |
+| test_category | 13 | CRUD, phân quyền, pagination, duplicate slug |
+| test_brand | 13 | CRUD, phân quyền, pagination, duplicate slug |
+| test_user_management | 13 | List, get, update, phân quyền, role escalation |
 | test_product_crud | 10 | CRUD, filter, search, soft delete, pagination |
 | test_cart | 14 | Add, update, delete, stock validation, checkout |
 | test_order | 15 | Create, status update, user orders, admin orders |
@@ -248,41 +248,41 @@ npm run build
 
 ### CI/CD
 
-GitHub Actions tu dong chay khi push hoac PR vao nhanh `main`:
-- Backend: cai dat dependencies + chay pytest
-- Frontend: cai dat dependencies + build production
+GitHub Actions tự động chạy khi push hoặc PR vào nhánh `main`:
+- Backend: cài đặt dependencies + chạy pytest
+- Frontend: cài đặt dependencies + build production
 
 ---
 
-## Trien khai
+## Triển khai
 
-Du an su dung kien truc:
-- **Frontend**: Vercel (auto-deploy tu GitHub)
-- **Backend**: Render Web Service (auto-deploy tu GitHub)
+Dự án sử dụng kiến trúc:
+- **Frontend**: Vercel (auto-deploy từ GitHub)
+- **Backend**: Render Web Service (auto-deploy từ GitHub)
 - **Database**: Render PostgreSQL
-- **Cache**: Render Redis (tuy chon)
+- **Cache**: Render Redis (tùy chọn)
 - **Image CDN**: Cloudinary
 - **Error Tracking**: Sentry
 - **Email**: Resend
 
-Huong dan deploy chi tiet: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+Hướng dẫn deploy chi tiết: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 
 ---
 
-## Trang thai du an
+## Trạng thái dự án
 
-### Da hoan thanh (Month 1 + 2 + 3)
+### Đã hoàn thành (Month 1 + 2 + 3)
 
 **Core Features:**
-- Dang ky, dang nhap, phan quyen (JWT)
-- Doi mat khau, quen mat khau (Resend email)
-- Quan ly danh muc, thuong hieu, san pham (CRUD)
-- Gio hang, checkout, don hang
-- Thanh toan VNPay (sandbox)
-- Danh gia san pham (Reviews & Ratings)
-- Yeu thich (Wishlist)
-- San pham da xem (Recently Viewed)
+- Đăng ký, đăng nhập, phân quyền (JWT)
+- Đổi mật khẩu, quên mật khẩu (Resend email)
+- Quản lý danh mục, thương hiệu, sản phẩm (CRUD)
+- Giỏ hàng, checkout, đơn hàng
+- Thanh toán VNPay (sandbox)
+- Đánh giá sản phẩm (Reviews & Ratings)
+- Yêu thích (Wishlist)
+- Sản phẩm đã xem (Recently Viewed)
 
 **AI Features:**
 - AI Search (relevance score, fuzzy matching)
@@ -290,13 +290,13 @@ API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 - AI Chatbot (category, brand, budget, needs)
 
 **Admin Features:**
-- Dashboard thong ke (stats, charts, recent orders)
-- Quan ly san pham (CRUD, hinh anh Cloudinary)
-- Quan ly don hang (cap nhat trang thai, xuat CSV)
-- Quan ly nguoi dung (phan quyen, kich hoat)
-- Quan ly danh gia (xem, xoa)
-- Bulk update ton kho
-- Nhat ky he thong (Audit Log)
+- Dashboard thống kê (stats, charts, recent orders)
+- Quản lý sản phẩm (CRUD, hình ảnh Cloudinary)
+- Quản lý đơn hàng (cập nhật trạng thái, xuất CSV)
+- Quản lý người dùng (phân quyền, kích hoạt)
+- Quản lý đánh giá (xem, xóa)
+- Bulk update tồn kho
+- Nhật ký hệ thống (Audit Log)
 
 **Technical:**
 - Redis caching (product 5min, category/brand 30min, graceful degradation)
@@ -306,13 +306,13 @@ API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 - Rate limiting (slowapi)
 - Logging middleware
 - Sentry error tracking
-- Seed du lieu (45 san pham, 9 thuong hieu, 5 danh muc)
+- Seed dữ liệu (45 sản phẩm, 9 thương hiệu, 5 danh mục)
 - 263/263 tests, 87% coverage
 - CI/CD (GitHub Actions)
-- Trien khai production (Render + Vercel)
+- Triển khai production (Render + Vercel)
 
 ---
 
-## Giay phep
+## Giấy phép
 
-Du an phuc vu muc dich hoc tap va portfolio.
+Dự án phục vụ mục đích học tập và portfolio.
