@@ -134,3 +134,45 @@ def product2_fixture(session: Session, category: Category, brand: Brand):
     session.commit()
     session.refresh(product)
     return product
+
+
+@pytest.fixture(name="test_user2")
+def test_user2_fixture(session: Session):
+    user = User(
+        full_name="Test User 2",
+        email="test2@example.com",
+        password_hash=hash_password("test123"),
+        phone="0900000001",
+        role="USER",
+        is_active=True,
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@pytest.fixture(name="user2_token")
+def user2_token_fixture(test_user2: User):
+    return create_access_token(data={"sub": str(test_user2.id)})
+
+
+@pytest.fixture(name="inactive_user")
+def inactive_user_fixture(session: Session):
+    user = User(
+        full_name="Inactive User",
+        email="inactive@example.com",
+        password_hash=hash_password("inactive123"),
+        phone="0900000002",
+        role="USER",
+        is_active=False,
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@pytest.fixture(name="inactive_token")
+def inactive_token_fixture(inactive_user: User):
+    return create_access_token(data={"sub": str(inactive_user.id)})
