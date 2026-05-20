@@ -27,8 +27,8 @@ def get_dashboard_stats(
 
 @router.get("/reviews", response_model=AdminReviewsResponse)
 def get_all_reviews(
-    page: int = 1,
-    limit: int = 10,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
     admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ) -> AdminReviewsResponse:

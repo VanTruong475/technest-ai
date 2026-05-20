@@ -78,6 +78,10 @@ export default function ProfilePage() {
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (newPassword.length < 8) {
+      toast.error("Mật khẩu phải ít nhất 8 ký tự");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       toast.error("Mật khẩu xác nhận không khớp");
       return;

@@ -22,6 +22,14 @@ logger = logging.getLogger("techsphere")
 
 VALID_STATUSES = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED"]
 
+VALID_TRANSITIONS = {
+    "PENDING": ["CONFIRMED", "CANCELLED"],
+    "CONFIRMED": ["SHIPPING", "CANCELLED"],
+    "SHIPPING": ["COMPLETED", "CANCELLED"],
+    "COMPLETED": [],
+    "CANCELLED": [],
+}
+
 
 def _build_order_response(order: Order, session: Session, items: list[OrderItem] | None = None) -> OrderResponse:
     if items is None:
@@ -248,9 +256,28 @@ def update_order_status(
         )
 
     old_status = order.status
+
+    if data.status != old_status:
+        allowed = VALID_TRANSITIONS.get(old_status, [])
+        if data.status not in allowed:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot transition from {old_status} to {data.status}. Allowed: {', '.join(allowed) or 'none'}"
+            )
+
     order.status = data.status
     order.updated_at = datetime.now(timezone.utc)
     order_repo.update(order)
+
+    if data.status == "CANCELLED":
+        item_repo = OrderItemRepository(session)
+        product_repo = ProductRepository(session)
+        order_items = item_repo.find_by_order_id(order.id)
+        for item in order_items:
+            product = product_repo.find_by_id(item.product_id)
+            if product:
+                product.stock += item.quantity
+                product_repo.update(product)
 
     order_response = _build_order_response(order, session)
 

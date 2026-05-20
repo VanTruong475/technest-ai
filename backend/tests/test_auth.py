@@ -20,7 +20,7 @@ def test_register_duplicate_email(client: TestClient, test_user):
     response = client.post("/api/auth/register", json={
         "full_name": "Duplicate",
         "email": "test@example.com",
-        "password": "test123",
+        "password": "test12345",
     })
     assert response.status_code == 400
     assert "already registered" in response.json()["detail"]

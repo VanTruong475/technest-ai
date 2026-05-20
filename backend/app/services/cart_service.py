@@ -26,21 +26,23 @@ def _build_cart_response(cart: Cart, session: Session) -> CartResponse:
 
     for item in items:
         product = product_map.get(item.product_id)
-        if product:
-            price = product.sale_price if product.sale_price else product.price
-            subtotal = price * item.quantity
-            cart_items.append(CartItemResponse(
-                id=item.id,
-                product_id=product.id,
-                product_name=product.name,
-                image_url=product.image_url,
-                price=product.price,
-                sale_price=product.sale_price,
-                quantity=item.quantity,
-                subtotal=subtotal,
-            ))
-            total_items += item.quantity
-            total_amount += subtotal
+        if not product or product.status != "ACTIVE":
+            item_repo.delete(item)
+            continue
+        price = product.sale_price if product.sale_price else product.price
+        subtotal = price * item.quantity
+        cart_items.append(CartItemResponse(
+            id=item.id,
+            product_id=product.id,
+            product_name=product.name,
+            image_url=product.image_url,
+            price=product.price,
+            sale_price=product.sale_price,
+            quantity=item.quantity,
+            subtotal=subtotal,
+        ))
+        total_items += item.quantity
+        total_amount += subtotal
 
     return CartResponse(
         id=cart.id,

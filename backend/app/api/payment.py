@@ -87,6 +87,7 @@ def vnpay_return(
 
     if response_code == "00":
         order.payment_status = "PAID"
+        order.status = "CONFIRMED"
         logger.info(f"Order #{order_id} payment successful via VNPay")
     else:
         order.payment_status = "FAILED"

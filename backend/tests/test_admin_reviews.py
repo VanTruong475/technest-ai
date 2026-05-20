@@ -59,7 +59,7 @@ def test_list_reviews_empty(client: TestClient, admin_token: str) -> None:
     assert data["items"] == []
     assert data["total"] == 0
     assert data["page"] == 1
-    assert data["limit"] == 10
+    assert data["limit"] == 20
     assert data["total_pages"] == 1
 
 

@@ -46,7 +46,6 @@ export default function CheckoutPage() {
 
   const [fullName, setFullName] = useState(user?.full_name || "");
   const [phone, setPhone] = useState(user?.phone || "");
-  const [email, setEmail] = useState(user?.email || "");
   const [shippingAddress, setShippingAddress] = useState("");
   const [note, setNote] = useState("");
   const [shippingMethod, setShippingMethod] = useState<"standard" | "express">("standard");
@@ -99,6 +98,7 @@ export default function CheckoutPage() {
     const newErrors: typeof errors = {};
     if (!fullName.trim()) newErrors.fullName = "Vui lòng nhập họ tên";
     if (!phone.trim()) newErrors.phone = "Vui lòng nhập số điện thoại";
+    else if (!/^0\d{9}$/.test(phone.replace(/\s/g, ""))) newErrors.phone = "Số điện thoại không hợp lệ (VD: 0901234567)";
     if (!shippingAddress.trim()) newErrors.shippingAddress = "Vui lòng nhập địa chỉ giao hàng";
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
@@ -219,17 +219,6 @@ export default function CheckoutPage() {
                     />
                     {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
                   </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Email</label>
-                  <Input
-                    type="email"
-                    placeholder="email@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-11 rounded-xl bg-muted/30"
-                  />
                 </div>
 
                 <div className="space-y-1.5">

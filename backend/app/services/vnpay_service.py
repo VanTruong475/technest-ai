@@ -22,7 +22,7 @@ def build_payment_url(order_id: int, amount: float, ip_addr: str) -> str:
         "vnp_Version": "2.1.0",
         "vnp_Command": "pay",
         "vnp_TmnCode": settings.VNPAY_TMN_CODE,
-        "vnp_Amount": str(int(amount) * 100),
+        "vnp_Amount": str(round(amount) * 100),
         "vnp_CurrCode": "VND",
         "vnp_TxnRef": f"order_{order_id}_{int(datetime.now(timezone.utc).timestamp())}",
         "vnp_OrderInfo": f"Thanh toan don hang #{order_id}",

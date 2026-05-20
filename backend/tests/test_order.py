@@ -267,7 +267,13 @@ def test_orders_filter_status(client: TestClient, user_token: str, admin_token: 
     }, json={"shipping_address": "Addr 2", "phone": "0900000002"})
     order2_id = r2.json()["id"]
 
-    # Update order1 to COMPLETED (as admin)
+    # Update order1 to COMPLETED (as admin) — must go through transitions
+    client.put(f"/api/orders/{order1_id}/status", headers={
+        "Authorization": f"Bearer {admin_token}",
+    }, json={"status": "CONFIRMED"})
+    client.put(f"/api/orders/{order1_id}/status", headers={
+        "Authorization": f"Bearer {admin_token}",
+    }, json={"status": "SHIPPING"})
     client.put(f"/api/orders/{order1_id}/status", headers={
         "Authorization": f"Bearer {admin_token}",
     }, json={"status": "COMPLETED"})

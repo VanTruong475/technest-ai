@@ -10,7 +10,8 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ fullName?: string; email?: string; password?: string }>({});
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<{ fullName?: string; email?: string; password?: string; confirmPassword?: string }>({});
   const [loading, setLoading] = useState(false);
   const register = useAuthStore((s) => s.register);
   const navigate = useNavigate();
@@ -22,8 +23,11 @@ export default function RegisterPage() {
     const newErrors: typeof errors = {};
     if (!fullName.trim()) newErrors.fullName = "Vui lòng nhập họ tên";
     if (!email.trim()) newErrors.email = "Vui lòng nhập email";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = "Email không hợp lệ";
     if (!password) newErrors.password = "Vui lòng nhập mật khẩu";
-    else if (password.length < 6) newErrors.password = "Mật khẩu phải ít nhất 6 ký tự";
+    else if (password.length < 8) newErrors.password = "Mật khẩu phải ít nhất 8 ký tự";
+    if (!confirmPassword) newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu";
+    else if (password !== confirmPassword) newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
@@ -78,12 +82,24 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Ít nhất 6 ký tự"
+                placeholder="Ít nhất 8 ký tự"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
                 className={`h-11 rounded-xl ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
               {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="confirmPassword" className="text-sm font-medium">Nhập lại mật khẩu</label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Nhập lại mật khẩu"
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); clearError("confirmPassword"); }}
+                className={`h-11 rounded-xl ${errors.confirmPassword ? "border-destructive focus-visible:ring-destructive" : ""}`}
+              />
+              {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
             </div>
             <Button type="submit" className="w-full h-11 rounded-xl" disabled={loading}>
               {loading ? "Đang đăng ký..." : "Đăng ký"}

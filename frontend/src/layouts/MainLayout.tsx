@@ -141,8 +141,15 @@ export default function MainLayout() {
                     {adminDropdownOpen && (
                       <div className="absolute right-0 top-full mt-1 w-48 rounded-md border bg-popover shadow-md z-50">
                         <Link
-                          to="/admin/products"
+                          to="/admin/dashboard"
                           className="block px-3 py-2 text-sm hover:bg-accent rounded-t-md"
+                          onClick={() => setAdminDropdownOpen(false)}
+                        >
+                          Dashboard
+                        </Link>
+                        <Link
+                          to="/admin/products"
+                          className="block px-3 py-2 text-sm hover:bg-accent"
                           onClick={() => setAdminDropdownOpen(false)}
                         >
                           Quản lý sản phẩm
@@ -156,10 +163,24 @@ export default function MainLayout() {
                         </Link>
                         <Link
                           to="/admin/users"
-                          className="block px-3 py-2 text-sm hover:bg-accent rounded-b-md"
+                          className="block px-3 py-2 text-sm hover:bg-accent"
                           onClick={() => setAdminDropdownOpen(false)}
                         >
                           Quản lý người dùng
+                        </Link>
+                        <Link
+                          to="/admin/reviews"
+                          className="block px-3 py-2 text-sm hover:bg-accent"
+                          onClick={() => setAdminDropdownOpen(false)}
+                        >
+                          Quản lý đánh giá
+                        </Link>
+                        <Link
+                          to="/admin/audit-logs"
+                          className="block px-3 py-2 text-sm hover:bg-accent rounded-b-md"
+                          onClick={() => setAdminDropdownOpen(false)}
+                        >
+                          Nhật ký hệ thống
                         </Link>
                       </div>
                     )}

@@ -5,8 +5,7 @@ import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, Tag, ShieldCheck } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, ShieldCheck } from "lucide-react";
 import { formatPrice } from "@/utils/format";
 import { Skeleton } from "@/components/common/Skeleton";
 
@@ -282,15 +281,6 @@ export default function CartPage() {
                 <span className="font-semibold text-base">Tổng cộng</span>
                 <span className="text-2xl font-bold">{formatPrice(subtotal)}</span>
               </div>
-            </div>
-
-            {/* Coupon input (UI only) */}
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Nhập mã giảm giá" className="pl-9 h-10 rounded-lg bg-muted/30" />
-              </div>
-              <Button variant="outline" className="shrink-0">Áp dụng</Button>
             </div>
 
             <Link to="/checkout" className="block">
