@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Download, Eye } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
 import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
@@ -47,6 +48,9 @@ export default function AdminOrderPage() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [page, setPage] = useState(1);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const limit = 10;
 
   const { data, isLoading, error } = useQuery<OrdersResponse>({
@@ -72,6 +76,41 @@ export default function AdminOrderPage() {
     },
   });
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const params: Record<string, string> = {};
+      if (fromDate) params.from = fromDate;
+      if (toDate) params.to = toDate;
+      if (statusFilter) params.status = statusFilter;
+
+      const res = await axiosClient.get("/api/admin/orders/export", {
+        params,
+        responseType: "blob",
+      });
+
+      const blob = new Blob([res.data], { type: "text/csv; charset=utf-8" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+
+      const disposition = res.headers["content-disposition"];
+      const filenameMatch = disposition?.match(/filename="?([^"]+)"?/);
+      a.download = filenameMatch?.[1] || "orders_export.csv";
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Xuất file CSV thành công!");
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Xuất file thất bại");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const orders = data?.items || [];
 
   return (
@@ -82,6 +121,37 @@ export default function AdminOrderPage() {
         {data && (
           <p className="text-sm text-muted-foreground">{data.total} đơn hàng</p>
         )}
+      </div>
+
+      {/* Export controls */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Từ ngày</label>
+          <Input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="h-8 w-[150px]"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Đến ngày</label>
+          <Input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="h-8 w-[150px]"
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExport}
+          disabled={isExporting}
+        >
+          <Download className="h-4 w-4 mr-1" />
+          {isExporting ? "Đang xuất..." : "Export CSV"}
+        </Button>
       </div>
 
       {/* Status filter */}

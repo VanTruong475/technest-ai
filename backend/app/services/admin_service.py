@@ -1,9 +1,14 @@
+import csv
+import io
 import math
+from datetime import datetime, time, timezone
+from typing import Optional
 
 from fastapi import HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlmodel import Session
 
-from app.repositories.admin_repository import AdminRepository
+from app.repositories.admin_repository import AdminRepository, VALID_ORDER_STATUSES
 from app.repositories.product_repository import ProductRepository
 from app.repositories.review_repository import ReviewRepository
 from app.repositories.user_repository import UserRepository
@@ -104,3 +109,55 @@ class AdminService:
                 detail="Review not found",
             )
         review_repo.delete(review)
+
+    def export_orders_csv(
+        self,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+        order_status: Optional[str] = None,
+    ) -> StreamingResponse:
+        if order_status and order_status not in VALID_ORDER_STATUSES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {', '.join(sorted(VALID_ORDER_STATUSES))}",
+            )
+
+        from_dt = None
+        to_dt = None
+        if from_date:
+            from_dt = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        if to_date:
+            to_dt = datetime.combine(
+                datetime.strptime(to_date, "%Y-%m-%d").date(),
+                time.max,
+                tzinfo=timezone.utc,
+            )
+
+        rows = self.repo.export_orders(
+            from_date=from_dt,
+            to_date=to_dt,
+            order_status=order_status,
+        )
+
+        headers = [
+            "order_id", "order_date", "customer_name", "customer_email",
+            "customer_phone", "shipping_address", "payment_method",
+            "payment_status", "order_status", "product_name", "price",
+            "sale_price", "quantity", "subtotal", "total_amount", "note",
+        ]
+
+        buffer = io.StringIO()
+        buffer.write("﻿")  # UTF-8 BOM for Excel
+        writer = csv.DictWriter(buffer, fieldnames=headers, extrasaction="ignore")
+        writer.writeheader()
+        for row in rows:
+            row["order_date"] = row["order_date"].strftime("%Y-%m-%d %H:%M:%S") if row["order_date"] else ""
+            writer.writerow(row)
+
+        buffer.seek(0)
+        filename = "orders_export.csv"
+        return StreamingResponse(
+            iter([buffer.getvalue()]),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )

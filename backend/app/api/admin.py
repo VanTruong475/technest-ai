@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, status
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import StreamingResponse
 from sqlmodel import Session
 
 from app.core.database import get_session
@@ -38,3 +41,19 @@ def delete_review(
 ) -> None:
     service = AdminService(session)
     service.delete_review(review_id)
+
+
+@router.get("/orders/export")
+def export_orders(
+    from_date: Optional[str] = Query(None, alias="from"),
+    to_date: Optional[str] = Query(None),
+    order_status: Optional[str] = Query(None, alias="status"),
+    admin: User = Depends(require_admin),
+    session: Session = Depends(get_session),
+) -> StreamingResponse:
+    service = AdminService(session)
+    return service.export_orders_csv(
+        from_date=from_date,
+        to_date=to_date,
+        order_status=order_status,
+    )

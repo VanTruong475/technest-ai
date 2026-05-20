@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
+from typing import Optional
 
 from sqlmodel import Session, select, func, col
 
@@ -6,6 +7,8 @@ from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.models.review import Review
 from app.models.user import User
+
+VALID_ORDER_STATUSES = {"PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED"}
 
 
 LOW_STOCK_THRESHOLD = 10
@@ -105,3 +108,43 @@ class AdminRepository:
             }
             for row in results
         ]
+
+    def export_orders(
+        self,
+        from_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = None,
+        order_status: Optional[str] = None,
+    ) -> list[dict]:
+        statement = (
+            select(
+                Order.id.label("order_id"),
+                Order.created_at.label("order_date"),
+                User.full_name.label("customer_name"),
+                User.email.label("customer_email"),
+                Order.phone.label("customer_phone"),
+                Order.shipping_address,
+                Order.payment_method,
+                Order.payment_status,
+                Order.status.label("order_status"),
+                OrderItem.product_name,
+                OrderItem.price,
+                OrderItem.sale_price,
+                OrderItem.quantity,
+                OrderItem.subtotal,
+                Order.total_amount,
+                Order.note,
+            )
+            .join(OrderItem, Order.id == OrderItem.order_id)
+            .join(User, Order.user_id == User.id)
+            .order_by(col(Order.created_at).desc(), Order.id, OrderItem.id)
+        )
+
+        if from_date is not None:
+            statement = statement.where(Order.created_at >= from_date)
+        if to_date is not None:
+            statement = statement.where(Order.created_at <= to_date)
+        if order_status is not None:
+            statement = statement.where(Order.status == order_status)
+
+        results = self.session.exec(statement).all()
+        return [dict(row._mapping) for row in results]
