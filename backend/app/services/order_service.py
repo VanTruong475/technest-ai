@@ -1,6 +1,8 @@
+import json
 import logging
 import math
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import HTTPException, status
 from sqlmodel import Session
@@ -13,6 +15,7 @@ from app.repositories.product_repository import ProductRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.common import PaginatedResponse
 from app.schemas.order import OrderCreate, OrderResponse, OrderItemResponse, OrderStatusUpdate
+from app.services.audit_service import log_action
 from app.services.email_service import send_order_confirmation, send_status_update
 
 logger = logging.getLogger("techsphere")
@@ -211,6 +214,7 @@ def update_order_status(
     order_id: int,
     data: OrderStatusUpdate,
     session: Session,
+    admin_user: Optional[User] = None,
 ) -> OrderResponse:
     if data.status not in VALID_STATUSES:
         raise HTTPException(
@@ -235,6 +239,11 @@ def update_order_status(
     order_response = _build_order_response(order, session)
 
     if old_status != data.status:
+        if admin_user:
+            log_action(
+                session, admin_user.id, "UPDATE", "ORDER", order.id,
+                json.dumps({"old_status": old_status, "new_status": data.status}),
+            )
         try:
             user_repo = UserRepository(session)
             order_user = user_repo.find_by_id(order.user_id)

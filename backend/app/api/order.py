@@ -63,4 +63,4 @@ def update_status(
     admin: User = Depends(require_admin),
     session: Session = Depends(get_session),
 ):
-    return update_order_status(order_id, data, session)
+    return update_order_status(order_id, data, session, admin_user=admin)

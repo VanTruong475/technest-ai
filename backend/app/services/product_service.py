@@ -1,3 +1,4 @@
+import json
 import math
 from typing import Optional
 
@@ -16,6 +17,7 @@ from app.schemas.product import (
     ProductCreate,
     ProductUpdate,
 )
+from app.services.audit_service import log_action
 
 
 def get_all_products(
@@ -98,7 +100,9 @@ def create_product(
         )
 
     product = Product(**data.model_dump())
-    return product_repo.create(product)
+    product = product_repo.create(product)
+    log_action(session, admin.id, "CREATE", "PRODUCT", product.id, f"Created product: {product.name}")
+    return product
 
 
 def update_product(
@@ -153,7 +157,9 @@ def update_product(
     for key, value in update_data.items():
         setattr(product, key, value)
 
-    return product_repo.update(product)
+    product = product_repo.update(product)
+    log_action(session, admin.id, "UPDATE", "PRODUCT", product.id, json.dumps(update_data, default=str))
+    return product
 
 
 def delete_product(
@@ -172,6 +178,7 @@ def delete_product(
 
     product.status = "INACTIVE"
     repo.update(product)
+    log_action(session, admin.id, "DELETE", "PRODUCT", product.id, f"Soft-deleted product: {product.name}")
 
 
 def bulk_update_stock(
@@ -197,6 +204,11 @@ def bulk_update_stock(
         product.stock = stock_map[product.id]
 
     updated_products = repo.bulk_update(products)
+
+    log_action(
+        session, admin.id, "UPDATE", "INVENTORY", None,
+        json.dumps({"updated": len(updated_products), "items": [{"product_id": i.product_id, "stock": i.stock} for i in data.items]}, default=str),
+    )
 
     return BulkStockUpdateResponse(
         updated=len(updated_products),

@@ -26,7 +26,7 @@ from app.core.logging_middleware import LoggingMiddleware
 from app.core.rate_limit import limiter
 
 # Import models để SQLModel nhận diện bảng
-from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem, Review, WishlistItem  # noqa: F401
+from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem, Review, WishlistItem, AuditLog  # noqa: F401
 
 # Init Sentry (chỉ khi có DSN)
 if settings.SENTRY_DSN:
