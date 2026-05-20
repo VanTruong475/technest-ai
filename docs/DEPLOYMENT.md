@@ -40,6 +40,23 @@
 | `CORS_ORIGINS` | `https://techsphere-ai.vercel.app` | URL frontend Vercel |
 | `ENVIRONMENT` | `production` | Tắt SQL echo |
 | `PYTHON_VERSION` | `3.12` | Render cần biết version |
+| `REDIS_URL` | `redis://...` | Optional — app vẫn chạy nếu không có Redis |
+| `CLOUDINARY_CLOUD_NAME` | `<cloud-name>` | Optional — upload ảnh disabled nếu thiếu |
+| `CLOUDINARY_API_KEY` | `<api-key>` | Optional |
+| `CLOUDINARY_API_SECRET` | `<api-secret>` | Optional |
+| `SENTRY_DSN` | `https://xxx@sentry.io/xxx` | Optional — error tracking disabled nếu thiếu |
+| `SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Optional |
+| `EMAIL_ENABLED` | `true` | Optional — email disabled nếu false |
+| `RESEND_API_KEY` | `re_xxx` | Optional |
+| `EMAIL_FROM` | `TechSphere AI <noreply@domain.com>` | Optional |
+| `FRONTEND_URL` | `https://techsphere-ai.vercel.app` | Dùng cho email links, payment redirect |
+| `ADMIN_EMAIL` | `admin@techsphere.com` | Seed admin account |
+| `ADMIN_PASSWORD` | `<strong-password>` | Seed admin account |
+| `ADMIN_FULL_NAME` | `Admin` | Seed admin account |
+| `VNPAY_TMN_CODE` | `<tmn-code>` | Optional — VNPay sandbox |
+| `VNPAY_HASH_SECRET` | `<hash-secret>` | Optional |
+| `VNPAY_PAYMENT_URL` | `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html` | Default |
+| `VNPAY_RETURN_URL` | `https://techsphere-ai.onrender.com/api/payments/vnpay-return` | Callback URL |
 
 ### Start command chi tiết
 
@@ -109,6 +126,125 @@ python -m app.seed
 ```
 
 > **Lưu ý:** Không chạy seed trong start command. Seed chỉ chạy 1 lần khi setup database lần đầu.
+
+---
+
+## 5. Redis setup (Optional)
+
+Redis dùng để cache sản phẩm, danh mục, thương hiệu. App vẫn chạy bình thường nếu không có Redis (graceful degradation).
+
+### Tạo Redis trên Render
+
+1. Render Dashboard > New > Redis
+2. Plan: Free
+3. Copy Internal Redis URL
+
+### Environment variable
+
+```
+REDIS_URL=redis://default:<password>@<host>:<port>
+```
+
+### Cache strategy
+
+| Data | TTL | Ghi chú |
+|------|-----|---------|
+| Product detail | 5 phút | Invalidate khi update product |
+| Product list | 5 phút | Invalidate khi create/update/delete |
+| Categories | 30 phút | Invalidate khi CRUD category |
+| Brands | 30 phút | Invalidate khi CRUD brand |
+
+---
+
+## 6. Cloudinary setup (Optional)
+
+Cloudinary dùng để upload và optimize hình ảnh sản phẩm. Tự động serve WebP/AVIF, resize on-the-fly.
+
+### Tạo Cloudinary account
+
+1. Đăng ký tại [cloudinary.com](https://cloudinary.com)
+2. Dashboard > Account Details
+3. Copy: Cloud Name, API Key, API Secret
+
+### Environment variables
+
+```
+CLOUDINARY_CLOUD_NAME=<your-cloud-name>
+CLOUDINARY_API_KEY=<your-api-key>
+CLOUDINARY_API_SECRET=<your-api-secret>
+```
+
+### Image transforms
+
+Frontend sử dụng URL transforms để optimize:
+- `f_auto` — Tự động serve WebP/AVIF
+- `q_auto` — Auto quality
+- `w_{width}` — Resize theo width cần thiết
+
+---
+
+## 7. Sentry setup (Optional)
+
+Sentry theo dõi lỗi và performance.
+
+### Tạo Sentry project
+
+1. Đăng ký tại [sentry.io](https://sentry.io)
+2. Create project > Python/FastAPI
+3. Copy DSN
+
+### Environment variable
+
+```
+SENTRY_DSN=https://xxx@sentry.io/xxx
+SENTRY_TRACES_SAMPLE_RATE=0.1
+```
+
+---
+
+## 8. Resend setup (Optional)
+
+Resend gửi email: forgot password, order confirmation.
+
+### Tạo Resend account
+
+1. Đăng ký tại [resend.com](https://resend.com)
+2. Get API key
+
+### Environment variables
+
+```
+EMAIL_ENABLED=true
+RESEND_API_KEY=re_xxx
+EMAIL_FROM=TechSphere AI <noreply@yourdomain.com>
+```
+
+---
+
+## 9. VNPay setup (Sandbox)
+
+### Đăng ký sandbox
+
+1. Đăng ký tại [sandbox.vnpayment.vn](https://sandbox.vnpayment.vn)
+2. Lấy TMN Code và Hash Secret
+
+### Environment variables
+
+```
+VNPAY_TMN_CODE=<your-tmn-code>
+VNPAY_HASH_SECRET=<your-hash-secret>
+VNPAY_PAYMENT_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNPAY_RETURN_URL=https://techsphere-ai.onrender.com/api/payments/vnpay-return
+```
+
+### Test card
+
+| Field | Value |
+|-------|-------|
+| Card Number | `9704198526191432198` |
+| Card Holder | `NGUYEN VAN A` |
+| Expiry | `07/15` |
+| OTP | `123456` |
 
 ---
 
@@ -225,9 +361,14 @@ python -m app.seed
 - [ ] Login hoạt động (admin@techsphere.com / admin123)
 - [ ] Thêm sản phẩm vào giỏ hàng
 - [ ] Checkout flow hoạt động
-- [ ] Admin pages: Products, Orders, Users
+- [ ] VNPay payment redirect hoạt động (sandbox)
+- [ ] Admin pages: Products, Orders, Users, Dashboard
+- [ ] Admin Dashboard hiển thị stats và charts
+- [ ] Image upload hoạt động (nếu có Cloudinary)
 - [ ] AI Chat hoạt động
+- [ ] Review / Wishlist hoạt động
 - [ ] Refresh trang bất kỳ → không 404 (SPA routing)
+- [ ] Mobile responsive trên 375px
 
 ---
 

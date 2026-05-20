@@ -9,6 +9,9 @@ Base URL: `http://localhost:8000`
 | POST | `/api/auth/register` | Public | Đăng ký tài khoản |
 | POST | `/api/auth/login` | Public | Đăng nhập, trả access_token |
 | GET | `/api/auth/me` | User | Lấy thông tin user hiện tại |
+| POST | `/api/auth/change-password` | User | Đổi mật khẩu |
+| POST | `/api/auth/forgot-password` | Public | Gửi email đặt lại mật khẩu |
+| POST | `/api/auth/reset-password` | Public | Đặt lại mật khẩu từ token |
 
 ## Users
 
@@ -117,6 +120,44 @@ Cập nhật thông tin user.
 | GET | `/api/orders` | User | page, limit | Danh sách đơn hàng (user: của mình, admin: tất cả) |
 | GET | `/api/orders/{id}` | User | - | Chi tiết đơn hàng |
 | PUT | `/api/orders/{id}/status` | Admin | - | Cập nhật trạng thái đơn hàng |
+| GET | `/api/admin/orders` | Admin | page, limit, status, start_date, end_date | Tất cả đơn hàng (admin) |
+| GET | `/api/admin/orders/export` | Admin | start_date, end_date, status | Xuất đơn hàng CSV |
+
+## Reviews
+
+| Method | Endpoint | Auth | Mô tả |
+|--------|----------|------|-------|
+| POST | `/api/products/{id}/reviews` | User | Tạo đánh giá sản phẩm |
+| GET | `/api/products/{id}/reviews` | Public | Danh sách đánh giá sản phẩm |
+| DELETE | `/api/reviews/{id}` | User* | Xóa đánh giá |
+| GET | `/api/admin/reviews` | Admin | Tất cả đánh giá (admin) |
+| DELETE | `/api/admin/reviews/{id}` | Admin | Xóa đánh giá (admin) |
+
+*User chỉ xóa đánh giá của mình, Admin xóa tất cả.
+
+## Wishlist
+
+| Method | Endpoint | Auth | Mô tả |
+|--------|----------|------|-------|
+| GET | `/api/wishlist` | User | Danh sách yêu thích |
+| POST | `/api/wishlist/{product_id}` | User | Thêm vào yêu thích |
+| DELETE | `/api/wishlist/{product_id}` | User | Xóa khỏi yêu thích |
+
+## Payments
+
+| Method | Endpoint | Auth | Mô tả |
+|--------|----------|------|-------|
+| POST | `/api/payments/vnpay-create` | User | Tạo link thanh toán VNPay |
+| GET | `/api/payments/vnpay-return` | Public | VNPay callback (redirect) |
+
+## Admin
+
+| Method | Endpoint | Auth | Mô tả |
+|--------|----------|------|-------|
+| GET | `/api/admin/stats` | Admin | Dashboard thống kê |
+| PUT | `/api/products/bulk-update` | Admin | Bulk update tồn kho |
+| GET | `/api/admin/audit-logs` | Admin | Nhật ký hệ thống |
+| POST | `/api/admin/upload-image` | Admin | Upload hình ảnh (Cloudinary) |
 
 ## AI
 
@@ -249,6 +290,7 @@ Nếu không tìm thấy sản phẩm phù hợp, trả về sản phẩm phổ 
 | Method | Endpoint | Auth | Mô tả |
 |--------|----------|------|-------|
 | GET | `/health` | Public | Kiểm tra server |
+| GET | `/api/health` | Public | Health check (DB, Redis status) |
 | GET | `/api/health/db` | Public | Kiểm tra kết nối database |
 
 ## Pagination Query Params
