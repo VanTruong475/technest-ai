@@ -1,6 +1,7 @@
 # TechSphere AI
 
-> Nền tảng thương mại điện tử thiết bị công nghệ tích hợp AI tư vấn sản phẩm.
+> **AI-powered e-commerce platform** cho thiết bị công nghệ — full-stack, deployed production, kiểm thử kỹ.
+> Backend FastAPI + PostgreSQL + Redis, Frontend React 19 + TypeScript. Tích hợp AI search, recommendation và chatbot tư vấn theo nhu cầu.
 
 ![CI](https://github.com/VanTruong475/techsphere-ai/actions/workflows/ci.yml/badge.svg)
 ![Tests](https://img.shields.io/badge/Tests-263/263-brightgreen)
@@ -9,6 +10,8 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688)
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1)
+
+**🚀 Production highlights:** `263/263` tests pass · `87%` backend coverage · Redis caching · Cloudinary CDN · N+1 query optimization · GZip · Sentry monitoring · CI/CD · Light/Dark/System theme · Responsive mobile · A11y ARIA labels
 
 ---
 
@@ -24,20 +27,51 @@
 
 ---
 
+## ✨ Why this project stands out
+
+| Khía cạnh | Điểm nổi bật |
+|---|---|
+| **AI features thực tế** | 3 hệ thống AI rule-based khác nhau: Search (relevance + fuzzy), Recommendation (cart/history/popular), Chatbot (intent matching theo category/brand/budget) |
+| **Test coverage thật** | 263 tests, 87% coverage — không phải sample data, có integration tests cho cart/order/payment flow, edge cases SQL injection/XSS |
+| **Production-oriented** | Redis cache với graceful degradation, Sentry monitoring, GZip middleware, rate limiting, N+1 query optimization (batch find_by_ids), Cloudinary auto-WebP/AVIF |
+| **Hệ thống Audit Log** | Mọi action admin (CRUD product, đổi role user, xóa review...) được log có thể truy vết — không phải feature trang trí, có 10 tests |
+| **A11y + Dark mode** | ARIA labels đầy đủ, focus management, mobile menu role nav, Light/Dark/System theme toggle với localStorage persistence |
+| **CI/CD ready** | GitHub Actions chạy pytest + frontend build trên mọi PR, deploy auto lên Render + Vercel |
+
+---
+
+## 🎬 Demo flow
+
+Quy trình trải nghiệm 7 bước trên live demo:
+
+1. **Browse** — Vào trang chủ → xem hero + featured products → filter theo category/brand/price ở `/products`
+2. **AI Search** — Gõ "laptop gaming dưới 30 triệu" trên search bar → AI rank theo relevance
+3. **Product detail** — Click sản phẩm → xem ảnh optimized (Cloudinary), reviews, sản phẩm liên quan, add to wishlist
+4. **Cart → Checkout** — Add to cart → `/cart` (stock validation) → `/checkout` → chọn VNPay sandbox → quay về `/payment/result`
+5. **AI Chatbot** — Vào `/chat` → mô tả nhu cầu ("cần laptop làm văn phòng và edit ảnh") → AI tư vấn sản phẩm phù hợp
+6. **Reviews & Wishlist** — Đánh giá đơn hàng đã hoàn thành, quản lý wishlist
+7. **Admin** — Login admin → `/admin/dashboard` (stats, charts) → quản lý products/orders → bulk update tồn kho → export CSV đơn hàng → xem Audit Log
+
+Theme toggle (Sun/Moon/Monitor) ở header — thử Light/Dark/System bất cứ lúc nào.
+
+---
+
 ## Tính năng chính
 
 ### Người dùng
 - Đăng ký / Đăng nhập (JWT authentication)
 - Đổi mật khẩu, quên mật khẩu (gửi email qua Resend)
-- Duyệt sản phẩm theo danh mục, thương hiệu
-- Tìm kiếm sản phẩm thông minh (AI Search)
-- Giỏ hàng + Checkout
+- Duyệt sản phẩm theo danh mục, thương hiệu (75+ sản phẩm thật, ảnh từ Unsplash CDN)
+- Tìm kiếm sản phẩm thông minh (AI Search) + autocomplete
+- Giỏ hàng + Checkout với stock validation
 - Thanh toán online (VNPay sandbox)
 - Lịch sử đơn hàng, chi tiết đơn hàng
 - Đánh giá sản phẩm (Reviews & Ratings)
 - Yêu thích (Wishlist)
 - Hồ sơ cá nhân
 - Sản phẩm đã xem gần đây (Recently Viewed)
+- **Light/Dark/System theme** với persistence
+- **Responsive UI** mobile-first (375px+)
 
 ### Tính năng AI
 - **AI Search** — Tìm kiếm sản phẩm theo relevance score, fuzzy matching
@@ -138,18 +172,29 @@ backend/app/
 
 ## Ảnh chụp màn hình
 
-> Sẽ được bổ sung sau. Các màn hình dự kiến:
+> Để README nhẹ, ảnh không commit vào repo. Đặt 6 file dưới đây vào thư mục `docs/screenshots/` để hiển thị (file lớn được khuyến nghị `.gitignore`).
 
-- Trang chủ (hero banner, sản phẩm nổi bật, danh mục)
-- Danh sách sản phẩm (filter, search, pagination)
-- Chi tiết sản phẩm (hình ảnh optimize, đánh giá, sản phẩm liên quan)
-- Giỏ hàng / Thanh toán (VNPay)
-- Lịch sử đơn hàng / Chi tiết đơn hàng
-- Wishlist / Recently Viewed
-- AI Chatbot
-- Admin Dashboard (stats, biểu đồ)
-- Admin Product Management (bulk edit, image upload)
-- Admin Order Export / Audit Log
+| Màn hình | Đường dẫn |
+|---|---|
+| 🏠 Trang chủ (hero + featured + categories) | `docs/screenshots/homepage.jpg` |
+| 📱 Mobile responsive (375px) | `docs/screenshots/Mobile Homepage.jpeg` |
+| 🛒 Chi tiết sản phẩm | `docs/screenshots/productdetail.jpeg` |
+| 💬 AI Chatbot tư vấn | `docs/screenshots/AI Chat.jpeg` |
+| 💳 Checkout với VNPay | `docs/screenshots/Checkout.jpeg` |
+| 📊 Admin Dashboard (stats + charts) | `docs/screenshots/Admin Dashboard.jpeg` |
+
+<!--
+Khi đã có ảnh, uncomment khối dưới đây:
+
+![Trang chủ](docs/screenshots/homepage.jpg)
+![Chi tiết sản phẩm](docs/screenshots/productdetail.jpeg)
+![AI Chatbot](docs/screenshots/AI%20Chat.jpeg)
+![Checkout](docs/screenshots/Checkout.jpeg)
+![Admin Dashboard](docs/screenshots/Admin%20Dashboard.jpeg)
+![Mobile](docs/screenshots/Mobile%20Homepage.jpeg)
+-->
+
+Các màn hình khác (không hiển thị inline để giữ README gọn): Product list/filter, Cart, Order Detail, Wishlist, Login/Register, Admin Products/Orders/Users/Reviews/Audit Log, Payment Result, 404, Search Autocomplete, Forgot/Reset Password.
 
 ---
 
@@ -306,10 +351,18 @@ API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 - Rate limiting (slowapi)
 - Logging middleware
 - Sentry error tracking
-- Seed dữ liệu (45 sản phẩm, 9 thương hiệu, 5 danh mục)
+- Seed dữ liệu (75 sản phẩm, 9 thương hiệu, 5 danh mục, ảnh thật từ Unsplash)
 - 263/263 tests, 87% coverage
 - CI/CD (GitHub Actions)
 - Triển khai production (Render + Vercel)
+
+**UI/UX:**
+- Hero banner hiện đại với gradient, AI badge, social proof, floating product cards
+- Light/Dark/System theme toggle (next-themes + Tailwind class variant)
+- Responsive mobile-first (375px+)
+- Accessibility: aria-label cho icon buttons, role nav cho mobile menu, ARIA cho admin dropdown, id/htmlFor cho form, aria-hidden cho decorative emojis
+- Semantic tokens (bg-card, bg-popover, bg-muted) — dark mode không vỡ giao diện
+- Order/payment status badges có dark variant
 
 ---
 
