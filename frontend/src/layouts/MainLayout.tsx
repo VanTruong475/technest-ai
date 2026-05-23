@@ -72,7 +72,7 @@ export default function MainLayout() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-0 left-0 right-0 z-[60] border-b bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           {/* Left: Logo + Nav */}
           <div className="flex items-center gap-6">
