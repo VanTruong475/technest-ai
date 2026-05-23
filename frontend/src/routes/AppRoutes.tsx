@@ -1,30 +1,31 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import MainLayout from "@/layouts/MainLayout";
 
-// Pages
-import HomePage from "@/pages/HomePage";
-import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
-import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
-import ResetPasswordPage from "@/pages/ResetPasswordPage";
-import ProductListPage from "@/pages/ProductListPage";
-import ProductDetailPage from "@/pages/ProductDetailPage";
-import CartPage from "@/pages/CartPage";
-import CheckoutPage from "@/pages/CheckoutPage";
-import OrderListPage from "@/pages/OrderListPage";
-import OrderDetailPage from "@/pages/OrderDetailPage";
-import ChatPage from "@/pages/ChatPage";
-import AdminProductPage from "@/pages/AdminProductPage";
-import AdminOrderPage from "@/pages/AdminOrderPage";
-import AdminUserPage from "@/pages/AdminUserPage";
-import AdminDashboardPage from "@/pages/AdminDashboardPage";
-import AdminReviewsPage from "@/pages/AdminReviewsPage";
-import AdminAuditPage from "@/pages/AdminAuditPage";
-import ProfilePage from "@/pages/ProfilePage";
-import WishlistPage from "@/pages/WishlistPage";
-import PaymentResultPage from "@/pages/PaymentResultPage";
-import NotFoundPage from "@/pages/NotFoundPage";
+// Lazy-loaded page components — each becomes its own chunk
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
+const ProductListPage = lazy(() => import("@/pages/ProductListPage"));
+const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
+const CartPage = lazy(() => import("@/pages/CartPage"));
+const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
+const OrderListPage = lazy(() => import("@/pages/OrderListPage"));
+const OrderDetailPage = lazy(() => import("@/pages/OrderDetailPage"));
+const ChatPage = lazy(() => import("@/pages/ChatPage"));
+const AdminProductPage = lazy(() => import("@/pages/AdminProductPage"));
+const AdminOrderPage = lazy(() => import("@/pages/AdminOrderPage"));
+const AdminUserPage = lazy(() => import("@/pages/AdminUserPage"));
+const AdminDashboardPage = lazy(() => import("@/pages/AdminDashboardPage"));
+const AdminReviewsPage = lazy(() => import("@/pages/AdminReviewsPage"));
+const AdminAuditPage = lazy(() => import("@/pages/AdminAuditPage"));
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const WishlistPage = lazy(() => import("@/pages/WishlistPage"));
+const PaymentResultPage = lazy(() => import("@/pages/PaymentResultPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 // Protected Route - requires auth
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -42,40 +43,55 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Lightweight loader shown while a route chunk is downloading
+function RouteFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="Đang tải trang"
+      className="flex items-center justify-center min-h-[50vh]"
+    >
+      <div className="h-8 w-8 rounded-full border-2 border-muted border-t-primary animate-spin" />
+      <span className="sr-only">Đang tải trang...</span>
+    </div>
+  );
+}
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<MainLayout />}>
           {/* Public */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductListPage />} />
-          <Route path="/products/:id" element={<ProductDetailPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/" element={<Suspense fallback={<RouteFallback />}><HomePage /></Suspense>} />
+          <Route path="/products" element={<Suspense fallback={<RouteFallback />}><ProductListPage /></Suspense>} />
+          <Route path="/products/:id" element={<Suspense fallback={<RouteFallback />}><ProductDetailPage /></Suspense>} />
+          <Route path="/login" element={<Suspense fallback={<RouteFallback />}><LoginPage /></Suspense>} />
+          <Route path="/register" element={<Suspense fallback={<RouteFallback />}><RegisterPage /></Suspense>} />
+          <Route path="/forgot-password" element={<Suspense fallback={<RouteFallback />}><ForgotPasswordPage /></Suspense>} />
+          <Route path="/reset-password" element={<Suspense fallback={<RouteFallback />}><ResetPasswordPage /></Suspense>} />
+          <Route path="/chat" element={<Suspense fallback={<RouteFallback />}><ChatPage /></Suspense>} />
 
           {/* Protected */}
-          <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-          <Route path="/orders" element={<ProtectedRoute><OrderListPage /></ProtectedRoute>} />
-          <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
-          <Route path="/payment/result" element={<PaymentResultPage />} />
+          <Route path="/cart" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><CartPage /></Suspense></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><CheckoutPage /></Suspense></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><OrderListPage /></Suspense></ProtectedRoute>} />
+          <Route path="/orders/:id" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><OrderDetailPage /></Suspense></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><ProfilePage /></Suspense></ProtectedRoute>} />
+          <Route path="/wishlist" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><WishlistPage /></Suspense></ProtectedRoute>} />
+          <Route path="/payment/result" element={<Suspense fallback={<RouteFallback />}><PaymentResultPage /></Suspense>} />
 
           {/* Admin */}
-          <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
-          <Route path="/admin/products" element={<AdminRoute><AdminProductPage /></AdminRoute>} />
-          <Route path="/admin/orders" element={<AdminRoute><AdminOrderPage /></AdminRoute>} />
-          <Route path="/admin/users" element={<AdminRoute><AdminUserPage /></AdminRoute>} />
-          <Route path="/admin/reviews" element={<AdminRoute><AdminReviewsPage /></AdminRoute>} />
-          <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditPage /></AdminRoute>} />
+          <Route path="/admin/dashboard" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminDashboardPage /></Suspense></AdminRoute>} />
+          <Route path="/admin/products" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminProductPage /></Suspense></AdminRoute>} />
+          <Route path="/admin/orders" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminOrderPage /></Suspense></AdminRoute>} />
+          <Route path="/admin/users" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminUserPage /></Suspense></AdminRoute>} />
+          <Route path="/admin/reviews" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminReviewsPage /></Suspense></AdminRoute>} />
+          <Route path="/admin/audit-logs" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminAuditPage /></Suspense></AdminRoute>} />
 
           {/* 404 */}
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="*" element={<Suspense fallback={<RouteFallback />}><NotFoundPage /></Suspense>} />
         </Route>
       </Routes>
     </BrowserRouter>
