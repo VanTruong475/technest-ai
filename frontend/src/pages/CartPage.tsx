@@ -30,7 +30,7 @@ interface CartData {
 
 function CartItemCardSkeleton() {
   return (
-    <div className="flex items-center gap-5 p-5 bg-white rounded-2xl border border-border/60 shadow-sm">
+    <div className="flex items-center gap-5 p-5 bg-card rounded-2xl border border-border/60 shadow-sm">
       <Skeleton className="w-[120px] h-[120px] rounded-xl shrink-0" />
       <div className="flex-1 space-y-3">
         <Skeleton className="h-5 w-2/3" />
@@ -87,7 +87,7 @@ export default function CartPage() {
   // ── Loading ──
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] -mx-4 -my-6 px-4 py-8">
+      <div className="min-h-screen bg-muted/30 -mx-4 -my-6 px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <Skeleton className="h-8 w-48 mb-2" />
@@ -100,7 +100,7 @@ export default function CartPage() {
               ))}
             </div>
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-4">
+              <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6 space-y-4">
                 <Skeleton className="h-6 w-40" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
@@ -117,7 +117,7 @@ export default function CartPage() {
   // ── Error ──
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] -mx-4 -my-6 px-4 py-8">
+      <div className="min-h-screen bg-muted/30 -mx-4 -my-6 px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <Card className="max-w-md mx-auto mt-12 text-center border-border/60 shadow-sm">
             <CardContent className="pt-8 pb-6 space-y-4">
@@ -142,7 +142,7 @@ export default function CartPage() {
   // ── Empty ──
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] -mx-4 -my-6 px-4 py-8">
+      <div className="min-h-screen bg-muted/30 -mx-4 -my-6 px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <Card className="max-w-md mx-auto mt-12 text-center border-border/60 shadow-sm">
             <CardContent className="pt-8 pb-6 space-y-4">
@@ -163,7 +163,7 @@ export default function CartPage() {
 
   // ── Main ──
   return (
-    <div className="min-h-screen bg-[#f8fafc] -mx-4 -my-6 px-4 py-8">
+    <div className="min-h-screen bg-muted/30 -mx-4 -my-6 px-4 py-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -177,7 +177,7 @@ export default function CartPage() {
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-5 p-4 sm:p-5 bg-white rounded-2xl border border-border/60 shadow-sm hover:shadow-md transition-shadow"
+              className="flex items-center gap-5 p-4 sm:p-5 bg-card rounded-2xl border border-border/60 shadow-sm hover:shadow-md transition-shadow"
             >
               {/* Image */}
               <Link to={`/products/${item.product_id}`} className="shrink-0">
@@ -261,7 +261,7 @@ export default function CartPage() {
 
         {/* ── Right: Order summary (2/5) ── */}
         <div className="lg:col-span-2 lg:sticky lg:top-20 lg:self-start">
-          <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-5">
+          <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6 space-y-5">
             <h2 className="text-lg font-semibold">Tóm tắt đơn hàng</h2>
 
             <div className="space-y-3 text-sm">

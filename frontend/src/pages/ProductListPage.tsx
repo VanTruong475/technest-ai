@@ -74,7 +74,7 @@ const CATEGORY_ICONS: Record<string, typeof Smartphone> = {
 
 function ProductCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border/60 shadow-sm overflow-hidden">
       <Skeleton className="aspect-[4/3] w-full rounded-none" />
       <div className="p-4 space-y-3">
         <Skeleton className="h-3 w-16" />
@@ -316,7 +316,7 @@ export default function ProductListPage() {
       {mobileFilterOpen && (
         <>
           <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setMobileFilterOpen(false)} />
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-y-auto bg-white rounded-t-2xl shadow-xl p-5 space-y-4">
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-y-auto bg-card rounded-t-2xl shadow-xl p-5 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b">
               <h2 className="text-lg font-semibold">Bộ lọc</h2>
               <button onClick={() => setMobileFilterOpen(false)} className="p-2 hover:bg-muted rounded-lg">
@@ -335,7 +335,7 @@ export default function ProductListPage() {
       <div className="flex gap-8">
         {/* Desktop sidebar */}
         <aside className="hidden lg:block w-64 shrink-0">
-          <div className="sticky top-20 bg-white rounded-2xl border border-border/60 shadow-sm p-5">
+          <div className="sticky top-20 bg-card rounded-2xl border border-border/60 shadow-sm p-5">
             {filterContent}
           </div>
         </aside>
@@ -360,7 +360,7 @@ export default function ProductListPage() {
               <select
                 value={sort}
                 onChange={(e) => updateParams({ sort: e.target.value })}
-                className="h-9 pl-9 pr-8 rounded-lg border border-input bg-white text-sm appearance-none cursor-pointer"
+                className="h-9 pl-9 pr-8 rounded-lg border border-input bg-card text-sm appearance-none cursor-pointer"
               >
                 {SORT_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -379,7 +379,7 @@ export default function ProductListPage() {
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                       isActive
                         ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-white text-muted-foreground border-border hover:border-primary/50"
+                        : "bg-card text-muted-foreground border-border hover:border-primary/50"
                     }`}
                   >
                     {preset.label}

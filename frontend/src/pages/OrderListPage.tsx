@@ -48,7 +48,7 @@ const STATUS_TABS = [
 
 function OrderCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 flex items-center justify-between">
+    <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5 flex items-center justify-between">
       <div className="space-y-2">
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-4 w-24" />

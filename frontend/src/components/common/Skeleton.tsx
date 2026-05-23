@@ -83,7 +83,7 @@ export function TableSkeleton({ columns = 5, rows = 5 }: { columns?: number; row
 
 export function WishlistItemSkeleton() {
   return (
-    <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-border/60 shadow-sm">
+    <div className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border/60 shadow-sm">
       <Skeleton className="w-24 h-24 rounded-lg shrink-0" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-2/3" />

@@ -336,7 +336,7 @@ export default function CheckoutPage() {
           {/* ── Right: Order Summary ── */}
           <div className="lg:col-span-2">
             <div className="lg:sticky lg:top-20 lg:self-start">
-              <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-5">
+              <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6 space-y-5">
                 <h2 className="text-lg font-semibold">Đơn hàng của bạn</h2>
 
                 {/* Items */}

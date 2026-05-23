@@ -142,14 +142,14 @@ export default function SearchAutocomplete({
             onFocus={() => {
               if (debouncedQuery.length >= 2) setIsOpen(true);
             }}
-            className="pl-10 h-11 rounded-xl bg-white"
+            className="pl-10 h-11 rounded-xl bg-card"
           />
         </div>
       </form>
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-border shadow-lg z-50 max-h-[360px] overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-popover rounded-xl border border-border shadow-lg z-50 max-h-[360px] overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
