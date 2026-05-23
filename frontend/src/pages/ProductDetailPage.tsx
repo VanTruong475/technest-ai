@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
           {product.image_url ? (
             <OptimizedImage src={product.image_url} alt={product.name} width={600} height={600} className="w-full h-full object-cover" priority />
           ) : (
-            <span className="text-8xl">📦</span>
+            <span className="text-8xl" aria-hidden="true">📦</span>
           )}
         </div>
 
@@ -255,7 +255,7 @@ export default function ProductDetailPage() {
                       {p.image_url ? (
                         <OptimizedImage src={p.image_url} alt={p.name} width={400} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
-                        <span className="text-4xl">📦</span>
+                        <span className="text-4xl" aria-hidden="true">📦</span>
                       )}
                     </div>
                     <CardContent className="space-y-2">

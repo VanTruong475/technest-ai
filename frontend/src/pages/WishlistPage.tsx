@@ -79,7 +79,7 @@ export default function WishlistPage() {
                     {item.image_url ? (
                       <OptimizedImage src={item.image_url} alt={item.product_name} width={96} height={96} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-3xl">📦</span>
+                      <span className="text-3xl" aria-hidden="true">📦</span>
                     )}
                   </div>
                 </Link>
@@ -107,6 +107,7 @@ export default function WishlistPage() {
                     onClick={() => removeMutation.mutate(item.product_id)}
                     disabled={removeMutation.isPending}
                     className="text-muted-foreground hover:text-destructive"
+                    aria-label="Xóa khỏi danh sách yêu thích"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

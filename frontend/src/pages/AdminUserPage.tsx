@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Pencil, X, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
+import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import { TableSkeleton } from "@/components/common/Skeleton";
 
 interface User {
@@ -46,6 +47,7 @@ function formatDate(dateStr: string) {
 export default function AdminUserPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  useScrollToTopOnChange(page);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form, setForm] = useState<UserFormData>({ full_name: "", phone: "", role: "USER", is_active: true });
 
@@ -103,7 +105,7 @@ export default function AdminUserPage() {
   const totalPages = data?.total_pages || 1;
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <AdminNav />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
@@ -115,7 +117,7 @@ export default function AdminUserPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Sửa người dùng #{editingUser.id}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={closeForm}>
+            <Button variant="ghost" size="icon" onClick={closeForm} aria-label="Đóng form">
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
@@ -221,7 +223,7 @@ export default function AdminUserPage() {
                       </td>
                       <td className="p-3 text-muted-foreground">{formatDate(user.created_at)}</td>
                       <td className="p-3 text-center">
-                        <Button variant="ghost" size="icon" onClick={() => openEditForm(user)}>
+                        <Button variant="ghost" size="icon" onClick={() => openEditForm(user)} aria-label={`Chỉnh sửa ${user.full_name}`}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </td>

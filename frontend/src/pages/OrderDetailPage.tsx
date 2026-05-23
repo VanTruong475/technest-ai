@@ -175,7 +175,7 @@ export default function OrderDetailPage() {
                   {item.image_url ? (
                     <OptimizedImage src={item.image_url} alt={item.product_name} width={64} height={64} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xl">📦</div>
+                    <div className="w-full h-full flex items-center justify-center text-xl" aria-hidden="true">📦</div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

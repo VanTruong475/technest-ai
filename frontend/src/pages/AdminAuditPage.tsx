@@ -7,6 +7,7 @@ import AdminNav from "@/components/common/AdminNav";
 import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatDate } from "@/utils/format";
+import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 
 interface AuditLogItem {
   id: number;
@@ -36,6 +37,7 @@ const ACTION_COLORS: Record<string, string> = {
 
 export default function AdminAuditPage() {
   const [page, setPage] = useState(1);
+  useScrollToTopOnChange(page);
   const [actionFilter, setActionFilter] = useState<string>("");
   const [targetFilter, setTargetFilter] = useState<string>("");
   const limit = 20;
@@ -54,7 +56,7 @@ export default function AdminAuditPage() {
   const logs = data?.items || [];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <AdminNav />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Nhật ký hoạt động</h1>

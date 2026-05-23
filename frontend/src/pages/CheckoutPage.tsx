@@ -200,41 +200,65 @@ export default function CheckoutPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Họ tên <span className="text-destructive">*</span></label>
+                    <label htmlFor="checkout-fullname" className="text-sm font-medium">Họ tên <span className="text-destructive">*</span></label>
                     <Input
+                      id="checkout-fullname"
+                      name="fullName"
+                      autoComplete="name"
+                      required
+                      aria-required="true"
+                      aria-invalid={!!errors.fullName}
+                      aria-describedby={errors.fullName ? "checkout-fullname-error" : undefined}
                       placeholder="Nguyễn Văn A"
                       value={fullName}
                       onChange={(e) => { setFullName(e.target.value); clearError("fullName"); }}
                       className={`h-11 rounded-xl bg-muted/30 ${errors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                    {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
+                    {errors.fullName && <p id="checkout-fullname-error" className="text-xs text-destructive">{errors.fullName}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Số điện thoại <span className="text-destructive">*</span></label>
+                    <label htmlFor="checkout-phone" className="text-sm font-medium">Số điện thoại <span className="text-destructive">*</span></label>
                     <Input
+                      id="checkout-phone"
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      required
+                      aria-required="true"
+                      aria-invalid={!!errors.phone}
+                      aria-describedby={errors.phone ? "checkout-phone-error" : undefined}
                       placeholder="0901234567"
                       value={phone}
                       onChange={(e) => { setPhone(e.target.value); clearError("phone"); }}
                       className={`h-11 rounded-xl bg-muted/30 ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     />
-                    {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                    {errors.phone && <p id="checkout-phone-error" className="text-xs text-destructive">{errors.phone}</p>}
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Địa chỉ nhận hàng <span className="text-destructive">*</span></label>
+                  <label htmlFor="checkout-address" className="text-sm font-medium">Địa chỉ nhận hàng <span className="text-destructive">*</span></label>
                   <Input
+                    id="checkout-address"
+                    name="shippingAddress"
+                    autoComplete="street-address"
+                    required
+                    aria-required="true"
+                    aria-invalid={!!errors.shippingAddress}
+                    aria-describedby={errors.shippingAddress ? "checkout-address-error" : undefined}
                     placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố"
                     value={shippingAddress}
                     onChange={(e) => { setShippingAddress(e.target.value); clearError("shippingAddress"); }}
                     className={`h-11 rounded-xl bg-muted/30 ${errors.shippingAddress ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   />
-                  {errors.shippingAddress && <p className="text-xs text-destructive">{errors.shippingAddress}</p>}
+                  {errors.shippingAddress && <p id="checkout-address-error" className="text-xs text-destructive">{errors.shippingAddress}</p>}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Ghi chú</label>
+                  <label htmlFor="checkout-note" className="text-sm font-medium">Ghi chú</label>
                   <Input
+                    id="checkout-note"
+                    name="note"
                     placeholder="Giao giờ hành chính, gọi trước khi giao..."
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
@@ -347,7 +371,7 @@ export default function CheckoutPage() {
                         {item.image_url ? (
                           <OptimizedImage src={item.image_url} alt={item.product_name} width={56} height={56} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-lg">📦</div>
+                          <div className="w-full h-full flex items-center justify-center text-lg" aria-hidden="true">📦</div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">

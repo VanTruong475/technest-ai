@@ -182,7 +182,7 @@ export default function ChatPage() {
                               {item.product.image_url ? (
                                 <OptimizedImage src={item.product.image_url} alt={item.product.name} width={48} height={48} className="w-full h-full object-cover" />
                               ) : (
-                                <span className="text-lg">📦</span>
+                                <span className="text-lg" aria-hidden="true">📦</span>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">

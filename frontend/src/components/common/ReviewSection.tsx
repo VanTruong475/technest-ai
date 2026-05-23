@@ -226,6 +226,7 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
                             variant="ghost"
                             className="h-8 w-8"
                             onClick={() => startEdit(review)}
+                            aria-label="Chỉnh sửa đánh giá của bạn"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </Button>
@@ -235,6 +236,7 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
                             className="h-8 w-8 text-destructive"
                             onClick={() => deleteMutation.mutate(review.id)}
                             disabled={deleteMutation.isPending}
+                            aria-label="Xóa đánh giá của bạn"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>

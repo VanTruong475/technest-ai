@@ -49,6 +49,16 @@ export default function MainLayout() {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  // Close mobile menu on Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMobileOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
+
   const handleLogout = () => {
     logout();
     setMobileOpen(false);
@@ -108,12 +118,12 @@ export default function MainLayout() {
             {isAuthenticated ? (
               <>
                 <Link to="/wishlist">
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" aria-label="Danh sách yêu thích">
                     <Heart className="h-5 w-5" />
                   </Button>
                 </Link>
                 <Link to="/cart" className="relative">
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" aria-label={cartCount > 0 ? `Giỏ hàng (${cartCount} sản phẩm)` : "Giỏ hàng"}>
                     <ShoppingCart className="h-5 w-5" />
                   </Button>
                   {cartCount > 0 && (
@@ -133,15 +143,25 @@ export default function MainLayout() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
+                      id="admin-menu-trigger"
+                      aria-haspopup="menu"
+                      aria-expanded={adminDropdownOpen}
+                      aria-controls="admin-menu-panel"
                     >
                       <LayoutDashboard className="h-4 w-4 mr-1" />
                       Admin
                       <ChevronDown className="h-3 w-3 ml-1" />
                     </Button>
                     {adminDropdownOpen && (
-                      <div className="absolute right-0 top-full mt-1 w-48 rounded-md border bg-popover shadow-md z-50">
+                      <div
+                        id="admin-menu-panel"
+                        role="menu"
+                        aria-labelledby="admin-menu-trigger"
+                        className="absolute right-0 top-full mt-1 w-48 rounded-md border bg-popover shadow-md z-50"
+                      >
                         <Link
                           to="/admin/dashboard"
+                          role="menuitem"
                           className="block px-3 py-2 text-sm hover:bg-accent rounded-t-md"
                           onClick={() => setAdminDropdownOpen(false)}
                         >
@@ -149,6 +169,7 @@ export default function MainLayout() {
                         </Link>
                         <Link
                           to="/admin/products"
+                          role="menuitem"
                           className="block px-3 py-2 text-sm hover:bg-accent"
                           onClick={() => setAdminDropdownOpen(false)}
                         >
@@ -156,6 +177,7 @@ export default function MainLayout() {
                         </Link>
                         <Link
                           to="/admin/orders"
+                          role="menuitem"
                           className="block px-3 py-2 text-sm hover:bg-accent"
                           onClick={() => setAdminDropdownOpen(false)}
                         >
@@ -163,6 +185,7 @@ export default function MainLayout() {
                         </Link>
                         <Link
                           to="/admin/users"
+                          role="menuitem"
                           className="block px-3 py-2 text-sm hover:bg-accent"
                           onClick={() => setAdminDropdownOpen(false)}
                         >
@@ -170,6 +193,7 @@ export default function MainLayout() {
                         </Link>
                         <Link
                           to="/admin/reviews"
+                          role="menuitem"
                           className="block px-3 py-2 text-sm hover:bg-accent"
                           onClick={() => setAdminDropdownOpen(false)}
                         >
@@ -177,6 +201,7 @@ export default function MainLayout() {
                         </Link>
                         <Link
                           to="/admin/audit-logs"
+                          role="menuitem"
                           className="block px-3 py-2 text-sm hover:bg-accent rounded-b-md"
                           onClick={() => setAdminDropdownOpen(false)}
                         >
@@ -190,7 +215,7 @@ export default function MainLayout() {
                   <User className="h-4 w-4" />
                   <span>{user?.full_name}</span>
                 </Link>
-                <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Đăng xuất">
                   <LogOut className="h-4 w-4" />
                 </Button>
               </>
@@ -214,6 +239,9 @@ export default function MainLayout() {
             size="icon"
             className="md:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -221,7 +249,12 @@ export default function MainLayout() {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden border-t bg-background px-4 py-4 space-y-1">
+          <nav
+            id="mobile-menu"
+            role="navigation"
+            aria-label="Menu di động"
+            className="md:hidden border-t bg-background px-4 py-4 space-y-1"
+          >
             {navLinks.map((link) => (
               <Link
                 key={link.to}
@@ -285,7 +318,7 @@ export default function MainLayout() {
                 </Link>
               </div>
             )}
-          </div>
+          </nav>
         )}
       </header>
 

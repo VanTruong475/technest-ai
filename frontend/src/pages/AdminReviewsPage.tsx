@@ -8,6 +8,7 @@ import { Trash2, Star } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
 import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
+import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import { formatDate } from "@/utils/format";
 
 interface ReviewItem {
@@ -33,6 +34,7 @@ interface ReviewsResponse {
 export default function AdminReviewsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  useScrollToTopOnChange(page);
   const limit = 10;
 
   const { data, isLoading, error } = useQuery<ReviewsResponse>({
@@ -65,7 +67,7 @@ export default function AdminReviewsPage() {
   const reviews = data?.items || [];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <AdminNav />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Quản lý đánh giá</h1>
@@ -132,6 +134,7 @@ export default function AdminReviewsPage() {
                             size="icon"
                             onClick={() => handleDelete(review.id)}
                             disabled={deleteMutation.isPending}
+                            aria-label={`Xóa đánh giá #${review.id}`}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>

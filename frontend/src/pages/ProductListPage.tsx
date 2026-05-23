@@ -443,7 +443,7 @@ export default function ProductListPage() {
                         {product.image_url ? (
                           <OptimizedImage src={product.image_url} alt={product.name} width={400} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         ) : (
-                          <span className="text-5xl">📦</span>
+                          <span className="text-5xl" aria-hidden="true">📦</span>
                         )}
                       </div>
                       <CardContent className="p-4 space-y-2">

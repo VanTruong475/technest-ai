@@ -37,7 +37,7 @@ export default function RecentlyViewed({ currentProductId }: RecentlyViewedProps
                 {p.image_url ? (
                   <OptimizedImage src={p.image_url} alt={p.name} width={400} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
-                  <span className="text-4xl">📦</span>
+                  <span className="text-4xl" aria-hidden="true">📦</span>
                 )}
               </div>
               <CardContent className="space-y-2">

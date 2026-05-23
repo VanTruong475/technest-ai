@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <AdminNav />
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <DashboardSkeleton />
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <AdminNav />
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="text-center py-12 space-y-4">
@@ -185,7 +185,7 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <AdminNav />
       <h1 className="text-2xl font-bold">Dashboard</h1>
 

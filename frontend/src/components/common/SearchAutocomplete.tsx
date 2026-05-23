@@ -182,7 +182,7 @@ export default function SearchAutocomplete({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <span className="text-lg">📦</span>
+                          <span className="text-lg" aria-hidden="true">📦</span>
                         )}
                       </div>
 

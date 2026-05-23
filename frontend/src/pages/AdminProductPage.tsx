@@ -12,6 +12,7 @@ import ImageUpload from "@/components/common/ImageUpload";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatPrice } from "@/utils/format";
 import { PRODUCT_STATUS_LABELS } from "@/constants/orderStatus";
+import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 
 interface Product {
   id: number;
@@ -91,6 +92,7 @@ export default function AdminProductPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  useScrollToTopOnChange(page);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormData>(EMPTY_FORM);
@@ -300,7 +302,7 @@ export default function AdminProductPage() {
   }, [editingStock, selectedIds, bulkUpdateMutation]);
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <AdminNav />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl font-bold">Quản lý sản phẩm</h1>
@@ -325,7 +327,7 @@ export default function AdminProductPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={closeForm}>
+            <Button variant="ghost" size="icon" onClick={closeForm} aria-label="Đóng form">
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
@@ -556,10 +558,10 @@ export default function AdminProductPage() {
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditForm(product)}>
+                          <Button variant="ghost" size="icon" onClick={() => openEditForm(product)} aria-label={`Chỉnh sửa ${product.name}`}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id, product.name)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id, product.name)} aria-label={`Xóa ${product.name}`}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>

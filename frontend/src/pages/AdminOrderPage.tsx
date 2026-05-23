@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Download, Eye } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
+import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatPrice, formatDate } from "@/utils/format";
@@ -48,6 +49,7 @@ export default function AdminOrderPage() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [page, setPage] = useState(1);
+  useScrollToTopOnChange(page);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [isExporting, setIsExporting] = useState(false);
@@ -114,7 +116,7 @@ export default function AdminOrderPage() {
   const orders = data?.items || [];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <AdminNav />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Quản lý đơn hàng</h1>
@@ -230,7 +232,7 @@ export default function AdminOrderPage() {
                           <td className="p-3 text-center">
                             <div className="flex items-center justify-center gap-1">
                               <Link to={`/orders/${order.id}`}>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" aria-label={`Xem chi tiết đơn hàng #${order.id}`}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               </Link>

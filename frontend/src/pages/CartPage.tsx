@@ -185,7 +185,7 @@ export default function CartPage() {
                   {item.image_url ? (
                     <OptimizedImage src={item.image_url} alt={item.product_name} width={96} height={96} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
+                    <div className="w-full h-full flex items-center justify-center text-3xl" aria-hidden="true">📦</div>
                   )}
                 </div>
               </Link>
