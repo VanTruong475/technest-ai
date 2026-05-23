@@ -9,7 +9,7 @@
     "status": "ACTIVE",
     "category_slug": "dien-thoai",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/iphone15promax/400/400"
+    "image_url": "https://images.unsplash.com/photo-1592286927505-1def25115558?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "iPhone 15",
@@ -21,7 +21,31 @@
     "status": "ACTIVE",
     "category_slug": "dien-thoai",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/iphone15/400/400"
+    "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "iPhone 14 Pro",
+    "slug": "iphone-14-pro",
+    "description": "iPhone 14 Pro với chip A16, Dynamic Island và camera 48MP",
+    "price": 24990000,
+    "sale_price": 21990000,
+    "stock": 60,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "iPhone 13",
+    "slug": "iphone-13",
+    "description": "iPhone 13 với chip A15 Bionic, camera kép và pin tốt cả ngày",
+    "price": 15990000,
+    "sale_price": 14490000,
+    "stock": 100,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Samsung Galaxy S24 Ultra",
@@ -33,7 +57,31 @@
     "status": "ACTIVE",
     "category_slug": "dien-thoai",
     "brand_slug": "samsung",
-    "image_url": "https://picsum.photos/seed/galaxys24ultra/400/400"
+    "image_url": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Samsung Galaxy S24",
+    "slug": "samsung-galaxy-s24",
+    "description": "Galaxy S24 với chip Snapdragon 8 Gen 3 for Galaxy và Galaxy AI",
+    "price": 21990000,
+    "sale_price": 19990000,
+    "stock": 70,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "samsung",
+    "image_url": "https://images.unsplash.com/photo-1583573636446-7860ec9b6c25?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Samsung Galaxy Z Fold 5",
+    "slug": "samsung-galaxy-z-fold-5",
+    "description": "Điện thoại gập cao cấp với màn hình 7.6 inch Dynamic AMOLED 2X",
+    "price": 41990000,
+    "sale_price": 36990000,
+    "stock": 20,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "samsung",
+    "image_url": "https://images.unsplash.com/photo-1574755393849-623942496936?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Samsung Galaxy A55",
@@ -45,55 +93,7 @@
     "status": "ACTIVE",
     "category_slug": "dien-thoai",
     "brand_slug": "samsung",
-    "image_url": "https://picsum.photos/seed/galaxya55/400/400"
-  },
-  {
-    "name": "Xiaomi 14",
-    "slug": "xiaomi-14",
-    "description": "Điện thoại flagship giá tốt với camera Leica và Snapdragon 8 Gen 3",
-    "price": 16990000,
-    "sale_price": 15990000,
-    "stock": 100,
-    "status": "ACTIVE",
-    "category_slug": "dien-thoai",
-    "brand_slug": "xiaomi",
-    "image_url": "https://picsum.photos/seed/xiaomi14/400/400"
-  },
-  {
-    "name": "Xiaomi Redmi Note 13 Pro",
-    "slug": "xiaomi-redmi-note-13-pro",
-    "description": "Điện thoại tầm trung với camera 200MP và sạc nhanh 67W",
-    "price": 7990000,
-    "sale_price": 6990000,
-    "stock": 200,
-    "status": "ACTIVE",
-    "category_slug": "dien-thoai",
-    "brand_slug": "xiaomi",
-    "image_url": "https://picsum.photos/seed/redminote13pro/400/400"
-  },
-  {
-    "name": "Sony Xperia 1 VI",
-    "slug": "sony-xperia-1-vi",
-    "description": "Điện thoại chuyên nghiệp với màn hình 4K OLED và camera Alpha",
-    "price": 34990000,
-    "sale_price": null,
-    "stock": 30,
-    "status": "ACTIVE",
-    "category_slug": "dien-thoai",
-    "brand_slug": "sony",
-    "image_url": "https://picsum.photos/seed/xperia1vi/400/400"
-  },
-  {
-    "name": "Asus ROG Phone 8 Pro",
-    "slug": "asus-rog-phone-8-pro",
-    "description": "Điện thoại gaming hiệu năng cực mạnh với Snapdragon 8 Gen 3",
-    "price": 26990000,
-    "sale_price": 24990000,
-    "stock": 35,
-    "status": "ACTIVE",
-    "category_slug": "dien-thoai",
-    "brand_slug": "asus",
-    "image_url": "https://picsum.photos/seed/rogphone8pro/400/400"
+    "image_url": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Samsung Galaxy S23 FE",
@@ -105,8 +105,69 @@
     "status": "ACTIVE",
     "category_slug": "dien-thoai",
     "brand_slug": "samsung",
-    "image_url": "https://picsum.photos/seed/galaxys23fe/400/400"
+    "image_url": "https://images.unsplash.com/photo-1556656793-08538906a9f8?w=600&h=600&fit=crop&auto=format&q=80"
   },
+  {
+    "name": "Xiaomi 14",
+    "slug": "xiaomi-14",
+    "description": "Điện thoại flagship giá tốt với camera Leica và Snapdragon 8 Gen 3",
+    "price": 16990000,
+    "sale_price": 15990000,
+    "stock": 100,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "xiaomi",
+    "image_url": "https://images.unsplash.com/photo-1567581935884-3349723552ca?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Xiaomi 14 Ultra",
+    "slug": "xiaomi-14-ultra",
+    "description": "Phiên bản cao cấp với camera Leica Vario-Summilux quad-cam",
+    "price": 25990000,
+    "sale_price": 23990000,
+    "stock": 35,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "xiaomi",
+    "image_url": "https://images.unsplash.com/photo-1604671801908-6f0c6a092c05?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Xiaomi Redmi Note 13 Pro",
+    "slug": "xiaomi-redmi-note-13-pro",
+    "description": "Điện thoại tầm trung với camera 200MP và sạc nhanh 67W",
+    "price": 7990000,
+    "sale_price": 6990000,
+    "stock": 200,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "xiaomi",
+    "image_url": "https://images.unsplash.com/photo-1592434134753-a70baf7979d5?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Sony Xperia 1 VI",
+    "slug": "sony-xperia-1-vi",
+    "description": "Điện thoại chuyên nghiệp với màn hình 4K OLED và camera Alpha",
+    "price": 34990000,
+    "sale_price": null,
+    "stock": 30,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "sony",
+    "image_url": "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Asus ROG Phone 8 Pro",
+    "slug": "asus-rog-phone-8-pro",
+    "description": "Điện thoại gaming hiệu năng cực mạnh với Snapdragon 8 Gen 3",
+    "price": 26990000,
+    "sale_price": 24990000,
+    "stock": 35,
+    "status": "ACTIVE",
+    "category_slug": "dien-thoai",
+    "brand_slug": "asus",
+    "image_url": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+
   {
     "name": "MacBook Pro 14 inch M3",
     "slug": "macbook-pro-14-m3",
@@ -117,7 +178,43 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/macbookprom3/400/400"
+    "image_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "MacBook Pro 16 inch M3 Max",
+    "slug": "macbook-pro-16-m3-max",
+    "description": "Laptop workstation với chip M3 Max, RAM 36GB, màn hình 16.2 inch",
+    "price": 79990000,
+    "sale_price": 74990000,
+    "stock": 15,
+    "status": "ACTIVE",
+    "category_slug": "laptop",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "MacBook Air M2 2022",
+    "slug": "macbook-air-m2-2022",
+    "description": "Laptop mỏng nhẹ với chip M2, pin 18 giờ, thiết kế Liquid Retina",
+    "price": 28990000,
+    "sale_price": 26990000,
+    "stock": 65,
+    "status": "ACTIVE",
+    "category_slug": "laptop",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "MacBook Air M3 13 inch",
+    "slug": "macbook-air-m3-13",
+    "description": "MacBook Air mới nhất với chip M3, hỗ trợ 2 màn hình ngoài",
+    "price": 32990000,
+    "sale_price": 30990000,
+    "stock": 45,
+    "status": "ACTIVE",
+    "category_slug": "laptop",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Dell XPS 15",
@@ -129,7 +226,19 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "dell",
-    "image_url": "https://picsum.photos/seed/dellxps15/400/400"
+    "image_url": "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Dell XPS 13 Plus",
+    "slug": "dell-xps-13-plus",
+    "description": "Ultrabook 13.4 inch với thiết kế tối giản, bàn phím edge-to-edge",
+    "price": 31990000,
+    "sale_price": 29990000,
+    "stock": 40,
+    "status": "ACTIVE",
+    "category_slug": "laptop",
+    "brand_slug": "dell",
+    "image_url": "https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Dell Inspiron 15",
@@ -141,7 +250,7 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "dell",
-    "image_url": "https://picsum.photos/seed/dellinspiron15/400/400"
+    "image_url": "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Asus ROG Zephyrus G16",
@@ -153,7 +262,19 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "asus",
-    "image_url": "https://picsum.photos/seed/rogzephyrusg16/400/400"
+    "image_url": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Asus TUF Gaming F15",
+    "slug": "asus-tuf-gaming-f15",
+    "description": "Laptop gaming bền bỉ chuẩn quân đội, RTX 4060, màn 144Hz",
+    "price": 24990000,
+    "sale_price": 22990000,
+    "stock": 55,
+    "status": "ACTIVE",
+    "category_slug": "laptop",
+    "brand_slug": "asus",
+    "image_url": "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Asus ZenBook 14",
@@ -165,7 +286,7 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "asus",
-    "image_url": "https://picsum.photos/seed/zenbook14/400/400"
+    "image_url": "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Lenovo ThinkPad X1 Carbon",
@@ -177,7 +298,19 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "lenovo",
-    "image_url": "https://picsum.photos/seed/thinkpadx1/400/400"
+    "image_url": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Lenovo Legion 5 Pro",
+    "slug": "lenovo-legion-5-pro",
+    "description": "Laptop gaming với RTX 4070, màn 16 inch 240Hz, làm mát hiệu quả",
+    "price": 35990000,
+    "sale_price": 32990000,
+    "stock": 28,
+    "status": "ACTIVE",
+    "category_slug": "laptop",
+    "brand_slug": "lenovo",
+    "image_url": "https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Lenovo IdeaPad Slim 5",
@@ -189,7 +322,7 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "lenovo",
-    "image_url": "https://picsum.photos/seed/ideapadslim5/400/400"
+    "image_url": "https://images.unsplash.com/photo-1593642634402-b0eb5e2eebc9?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "HP Spectre x360 14",
@@ -201,7 +334,19 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "hp",
-    "image_url": "https://picsum.photos/seed/hpspectrex360/400/400"
+    "image_url": "https://images.unsplash.com/photo-1605773527852-c546a8584ea3?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "HP Omen 16",
+    "slug": "hp-omen-16",
+    "description": "Laptop gaming với RTX 4060, RGB keyboard, hệ thống làm mát OMEN",
+    "price": 29990000,
+    "sale_price": 27490000,
+    "stock": 32,
+    "status": "ACTIVE",
+    "category_slug": "laptop",
+    "brand_slug": "hp",
+    "image_url": "https://images.unsplash.com/photo-1629429407759-01cd3d7cfb38?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "HP Pavilion 15",
@@ -213,8 +358,9 @@
     "status": "ACTIVE",
     "category_slug": "laptop",
     "brand_slug": "hp",
-    "image_url": "https://picsum.photos/seed/hppavilion15/400/400"
+    "image_url": "https://images.unsplash.com/photo-1629131726692-1accd0c53ce0?w=600&h=600&fit=crop&auto=format&q=80"
   },
+
   {
     "name": "iPad Pro M2 11 inch",
     "slug": "ipad-pro-m2-11",
@@ -225,7 +371,19 @@
     "status": "ACTIVE",
     "category_slug": "tablet",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/ipadprom2/400/400"
+    "image_url": "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "iPad Pro M4 13 inch",
+    "slug": "ipad-pro-m4-13",
+    "description": "iPad Pro mới nhất với chip M4, màn hình Tandem OLED Ultra Retina XDR",
+    "price": 32990000,
+    "sale_price": 30990000,
+    "stock": 25,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1585770536735-27993a080586?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "iPad Air M2",
@@ -237,79 +395,19 @@
     "status": "ACTIVE",
     "category_slug": "tablet",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/ipadairm2/400/400"
+    "image_url": "https://images.unsplash.com/photo-1623126908029-58cb08a2b272?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
-    "name": "Samsung Galaxy Tab S9",
-    "slug": "samsung-galaxy-tab-s9",
-    "description": "Tablet Android cao cấp với S Pen, màn hình Dynamic AMOLED 2X",
-    "price": 20990000,
-    "sale_price": null,
-    "stock": 45,
+    "name": "iPad 10th Gen",
+    "slug": "ipad-10",
+    "description": "iPad cơ bản với chip A14, màn hình 10.9 inch Liquid Retina",
+    "price": 10990000,
+    "sale_price": 9990000,
+    "stock": 110,
     "status": "ACTIVE",
     "category_slug": "tablet",
-    "brand_slug": "samsung",
-    "image_url": "https://picsum.photos/seed/galaxytabs9/400/400"
-  },
-  {
-    "name": "Samsung Galaxy Tab A9",
-    "slug": "samsung-galaxy-tab-a9",
-    "description": "Tablet phổ thông giá rẻ, phù hợp giải trí và học tập",
-    "price": 5490000,
-    "sale_price": 4990000,
-    "stock": 150,
-    "status": "ACTIVE",
-    "category_slug": "tablet",
-    "brand_slug": "samsung",
-    "image_url": "https://picsum.photos/seed/galaxytaba9/400/400"
-  },
-  {
-    "name": "Xiaomi Pad 6",
-    "slug": "xiaomi-pad-6",
-    "description": "Tablet giá tốt với màn hình 11 inch 144Hz và Snapdragon 870",
-    "price": 8990000,
-    "sale_price": 8290000,
-    "stock": 90,
-    "status": "ACTIVE",
-    "category_slug": "tablet",
-    "brand_slug": "xiaomi",
-    "image_url": "https://picsum.photos/seed/xiaomipad6/400/400"
-  },
-  {
-    "name": "Xiaomi Pad 6 Pro",
-    "slug": "xiaomi-pad-6-pro",
-    "description": "Tablet cao cấp với Snapdragon 8+ Gen 1 và sạc nhanh 67W",
-    "price": 12990000,
-    "sale_price": 11990000,
-    "stock": 50,
-    "status": "ACTIVE",
-    "category_slug": "tablet",
-    "brand_slug": "xiaomi",
-    "image_url": "https://picsum.photos/seed/xiaomipad6pro/400/400"
-  },
-  {
-    "name": "Lenovo Tab P12",
-    "slug": "lenovo-tab-p12",
-    "description": "Tablet màn hình lớn 12.7 inch, pin 10200mAh, loa JBL",
-    "price": 10490000,
-    "sale_price": 9490000,
-    "stock": 55,
-    "status": "ACTIVE",
-    "category_slug": "tablet",
-    "brand_slug": "lenovo",
-    "image_url": "https://picsum.photos/seed/lenovotabp12/400/400"
-  },
-  {
-    "name": "Asus ROG Flow Z13",
-    "slug": "asus-rog-flow-z13",
-    "description": "Tablet gaming 2-in-1 với RTX 4060 và màn hình 13.4 inch 165Hz",
-    "price": 42990000,
-    "sale_price": 39990000,
-    "stock": 15,
-    "status": "ACTIVE",
-    "category_slug": "tablet",
-    "brand_slug": "asus",
-    "image_url": "https://picsum.photos/seed/rogflowz13/400/400"
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "iPad Mini 6",
@@ -321,8 +419,105 @@
     "status": "ACTIVE",
     "category_slug": "tablet",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/ipadmini6/400/400"
+    "image_url": "https://images.unsplash.com/photo-1556656793-08538906a9f8?w=600&h=600&fit=crop&auto=format&q=80"
   },
+  {
+    "name": "Samsung Galaxy Tab S9",
+    "slug": "samsung-galaxy-tab-s9",
+    "description": "Tablet Android cao cấp với S Pen, màn hình Dynamic AMOLED 2X",
+    "price": 20990000,
+    "sale_price": null,
+    "stock": 45,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "samsung",
+    "image_url": "https://images.unsplash.com/photo-1632634571833-3b04b41be0f6?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Samsung Galaxy Tab S9 Ultra",
+    "slug": "samsung-galaxy-tab-s9-ultra",
+    "description": "Tablet 14.6 inch khổng lồ với Snapdragon 8 Gen 2 for Galaxy",
+    "price": 30990000,
+    "sale_price": 28490000,
+    "stock": 18,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "samsung",
+    "image_url": "https://images.unsplash.com/photo-1623126908029-58cb08a2b272?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Samsung Galaxy Tab A9",
+    "slug": "samsung-galaxy-tab-a9",
+    "description": "Tablet phổ thông giá rẻ, phù hợp giải trí và học tập",
+    "price": 5490000,
+    "sale_price": 4990000,
+    "stock": 150,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "samsung",
+    "image_url": "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Xiaomi Pad 6",
+    "slug": "xiaomi-pad-6",
+    "description": "Tablet giá tốt với màn hình 11 inch 144Hz và Snapdragon 870",
+    "price": 8990000,
+    "sale_price": 8290000,
+    "stock": 90,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "xiaomi",
+    "image_url": "https://images.unsplash.com/photo-1585770536735-27993a080586?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Xiaomi Pad 6 Pro",
+    "slug": "xiaomi-pad-6-pro",
+    "description": "Tablet cao cấp với Snapdragon 8+ Gen 1 và sạc nhanh 67W",
+    "price": 12990000,
+    "sale_price": 11990000,
+    "stock": 50,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "xiaomi",
+    "image_url": "https://images.unsplash.com/photo-1632634571833-3b04b41be0f6?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Lenovo Tab P12",
+    "slug": "lenovo-tab-p12",
+    "description": "Tablet màn hình lớn 12.7 inch, pin 10200mAh, loa JBL",
+    "price": 10490000,
+    "sale_price": 9490000,
+    "stock": 55,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "lenovo",
+    "image_url": "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Lenovo Tab M11",
+    "slug": "lenovo-tab-m11",
+    "description": "Tablet 11 inch giá tốt với bút Lenovo Tab Pen, pin 7040mAh",
+    "price": 6490000,
+    "sale_price": 5990000,
+    "stock": 85,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "lenovo",
+    "image_url": "https://images.unsplash.com/photo-1623126908029-58cb08a2b272?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Asus ROG Flow Z13",
+    "slug": "asus-rog-flow-z13",
+    "description": "Tablet gaming 2-in-1 với RTX 4060 và màn hình 13.4 inch 165Hz",
+    "price": 42990000,
+    "sale_price": 39990000,
+    "stock": 15,
+    "status": "ACTIVE",
+    "category_slug": "tablet",
+    "brand_slug": "asus",
+    "image_url": "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+
   {
     "name": "AirPods Pro 2",
     "slug": "airpods-pro-2",
@@ -333,7 +528,19 @@
     "status": "ACTIVE",
     "category_slug": "tai-nghe",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/airpodspro2/400/400"
+    "image_url": "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "AirPods 3",
+    "slug": "airpods-3",
+    "description": "AirPods thế hệ 3 với Spatial Audio và pin 30 giờ với hộp sạc",
+    "price": 4990000,
+    "sale_price": 4490000,
+    "stock": 180,
+    "status": "ACTIVE",
+    "category_slug": "tai-nghe",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1588423771073-b8903fbb85b5?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "AirPods Max",
@@ -345,7 +552,7 @@
     "status": "ACTIVE",
     "category_slug": "tai-nghe",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/airpodsmax/400/400"
+    "image_url": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Sony WH-1000XM5",
@@ -357,7 +564,19 @@
     "status": "ACTIVE",
     "category_slug": "tai-nghe",
     "brand_slug": "sony",
-    "image_url": "https://picsum.photos/seed/sonyxm5/400/400"
+    "image_url": "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Sony WH-1000XM4",
+    "slug": "sony-wh-1000xm4",
+    "description": "Tai nghe over-ear chống ồn thế hệ trước, vẫn rất xuất sắc",
+    "price": 7490000,
+    "sale_price": 6490000,
+    "stock": 95,
+    "status": "ACTIVE",
+    "category_slug": "tai-nghe",
+    "brand_slug": "sony",
+    "image_url": "https://images.unsplash.com/photo-1545127398-14699f92334b?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Sony WF-1000XM5",
@@ -369,7 +588,7 @@
     "status": "ACTIVE",
     "category_slug": "tai-nghe",
     "brand_slug": "sony",
-    "image_url": "https://picsum.photos/seed/sonywfxm5/400/400"
+    "image_url": "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Sony LinkBuds S",
@@ -381,43 +600,7 @@
     "status": "ACTIVE",
     "category_slug": "tai-nghe",
     "brand_slug": "sony",
-    "image_url": "https://picsum.photos/seed/sonylinkbuds/400/400"
-  },
-  {
-    "name": "Samsung Galaxy Buds3 Pro",
-    "slug": "samsung-galaxy-buds3-pro",
-    "description": "Tai nghe true wireless với chống ồn thông minh và 360 Audio",
-    "price": 5490000,
-    "sale_price": 4990000,
-    "stock": 90,
-    "status": "ACTIVE",
-    "category_slug": "tai-nghe",
-    "brand_slug": "samsung",
-    "image_url": "https://picsum.photos/seed/galaxybuds3pro/400/400"
-  },
-  {
-    "name": "Xiaomi Buds 3T Pro",
-    "slug": "xiaomi-buds-3t-pro",
-    "description": "Tai nghe true wireless với chống ồn 40dB và LDAC",
-    "price": 2490000,
-    "sale_price": 2190000,
-    "stock": 200,
-    "status": "ACTIVE",
-    "category_slug": "tai-nghe",
-    "brand_slug": "xiaomi",
-    "image_url": "https://picsum.photos/seed/xiaomibuds3tpro/400/400"
-  },
-  {
-    "name": "Logitech Zone Vibe 100",
-    "slug": "logitech-zone-vibe-100",
-    "description": "Tai nghe không dây nhẹ 185g, mic rõ ràng cho họp online",
-    "price": 2990000,
-    "sale_price": 2490000,
-    "stock": 150,
-    "status": "ACTIVE",
-    "category_slug": "tai-nghe",
-    "brand_slug": "logitech",
-    "image_url": "https://picsum.photos/seed/zonevibe100/400/400"
+    "image_url": "https://images.unsplash.com/photo-1606400082777-ef05f3c5cde2?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Sony INZONE H9",
@@ -429,8 +612,81 @@
     "status": "ACTIVE",
     "category_slug": "tai-nghe",
     "brand_slug": "sony",
-    "image_url": "https://picsum.photos/seed/sonyinzoneh9/400/400"
+    "image_url": "https://images.unsplash.com/photo-1599669454699-248893623440?w=600&h=600&fit=crop&auto=format&q=80"
   },
+  {
+    "name": "Samsung Galaxy Buds3 Pro",
+    "slug": "samsung-galaxy-buds3-pro",
+    "description": "Tai nghe true wireless với chống ồn thông minh và 360 Audio",
+    "price": 5490000,
+    "sale_price": 4990000,
+    "stock": 90,
+    "status": "ACTIVE",
+    "category_slug": "tai-nghe",
+    "brand_slug": "samsung",
+    "image_url": "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Samsung Galaxy Buds FE",
+    "slug": "samsung-galaxy-buds-fe",
+    "description": "Tai nghe TWS giá tốt với chống ồn chủ động, pin 30 giờ",
+    "price": 2490000,
+    "sale_price": 1990000,
+    "stock": 160,
+    "status": "ACTIVE",
+    "category_slug": "tai-nghe",
+    "brand_slug": "samsung",
+    "image_url": "https://images.unsplash.com/photo-1631176093617-63490a3d785a?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Xiaomi Buds 3T Pro",
+    "slug": "xiaomi-buds-3t-pro",
+    "description": "Tai nghe true wireless với chống ồn 40dB và LDAC",
+    "price": 2490000,
+    "sale_price": 2190000,
+    "stock": 200,
+    "status": "ACTIVE",
+    "category_slug": "tai-nghe",
+    "brand_slug": "xiaomi",
+    "image_url": "https://images.unsplash.com/photo-1610438235354-a6ae5528385c?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Xiaomi Redmi Buds 5 Pro",
+    "slug": "xiaomi-redmi-buds-5-pro",
+    "description": "Tai nghe TWS giá rẻ với chống ồn 52dB và driver kép",
+    "price": 1490000,
+    "sale_price": 1290000,
+    "stock": 230,
+    "status": "ACTIVE",
+    "category_slug": "tai-nghe",
+    "brand_slug": "xiaomi",
+    "image_url": "https://images.unsplash.com/photo-1574920162043-b872873f19c8?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Logitech Zone Vibe 100",
+    "slug": "logitech-zone-vibe-100",
+    "description": "Tai nghe không dây nhẹ 185g, mic rõ ràng cho họp online",
+    "price": 2990000,
+    "sale_price": 2490000,
+    "stock": 150,
+    "status": "ACTIVE",
+    "category_slug": "tai-nghe",
+    "brand_slug": "logitech",
+    "image_url": "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Logitech G Pro X Wireless",
+    "slug": "logitech-g-pro-x-wireless",
+    "description": "Tai nghe gaming không dây với DTS Headphone:X 2.0, mic Blue VO!CE",
+    "price": 5990000,
+    "sale_price": 5290000,
+    "stock": 60,
+    "status": "ACTIVE",
+    "category_slug": "tai-nghe",
+    "brand_slug": "logitech",
+    "image_url": "https://images.unsplash.com/photo-1591105575633-922c8897af9a?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+
   {
     "name": "Apple MagSafe Charger",
     "slug": "apple-magsafe-charger",
@@ -441,7 +697,7 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/magsafe/400/400"
+    "image_url": "https://images.unsplash.com/photo-1633113217369-672a07a9e0d7?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Apple AirTag 4-pack",
@@ -453,7 +709,31 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "apple",
-    "image_url": "https://picsum.photos/seed/airtag4pack/400/400"
+    "image_url": "https://images.unsplash.com/photo-1631214540180-be8b5bb2c2b3?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Apple Pencil Pro",
+    "slug": "apple-pencil-pro",
+    "description": "Bút stylus chuyên nghiệp cho iPad Pro M4 với Haptic Feedback",
+    "price": 3290000,
+    "sale_price": null,
+    "stock": 90,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1586953209448-b95a79798f07?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Apple 20W USB-C Adapter",
+    "slug": "apple-20w-usbc-adapter",
+    "description": "Củ sạc nhanh 20W USB-C chính hãng Apple, tương thích iPhone/iPad",
+    "price": 590000,
+    "sale_price": 490000,
+    "stock": 400,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "apple",
+    "image_url": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Samsung 65W Charger",
@@ -465,7 +745,7 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "samsung",
-    "image_url": "https://picsum.photos/seed/samsung65w/400/400"
+    "image_url": "https://images.unsplash.com/photo-1609692814858-f7cd2f0afa4f?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Samsung Galaxy SmartTag 2",
@@ -477,7 +757,19 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "samsung",
-    "image_url": "https://picsum.photos/seed/smarttag2/400/400"
+    "image_url": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Samsung 25W Travel Adapter",
+    "slug": "samsung-25w-travel-adapter",
+    "description": "Củ sạc nhanh 25W PD nhỏ gọn cho Galaxy và mọi thiết bị USB-C",
+    "price": 490000,
+    "sale_price": 390000,
+    "stock": 600,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "samsung",
+    "image_url": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Logitech MX Master 3S",
@@ -489,7 +781,19 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "logitech",
-    "image_url": "https://picsum.photos/seed/mxmaster3s/400/400"
+    "image_url": "https://images.unsplash.com/photo-1527814050087-3793815479db?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Logitech MX Keys S",
+    "slug": "logitech-mx-keys-s",
+    "description": "Bàn phím không dây cao cấp với phím Backlit thông minh, 10 ngày pin",
+    "price": 2790000,
+    "sale_price": 2590000,
+    "stock": 95,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "logitech",
+    "image_url": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Logitech K380 Keyboard",
@@ -501,7 +805,19 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "logitech",
-    "image_url": "https://picsum.photos/seed/logitechk380/400/400"
+    "image_url": "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Logitech G502 X Plus",
+    "slug": "logitech-g502-x-plus",
+    "description": "Chuột gaming không dây với LIGHTFORCE switches và LIGHTSYNC RGB",
+    "price": 4290000,
+    "sale_price": 3790000,
+    "stock": 70,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "logitech",
+    "image_url": "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Xiaomi 67W Charger",
@@ -513,7 +829,19 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "xiaomi",
-    "image_url": "https://picsum.photos/seed/xiaomi67w/400/400"
+    "image_url": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Xiaomi Mi Powerbank 20000mAh",
+    "slug": "xiaomi-mi-powerbank-20000",
+    "description": "Pin dự phòng 20000mAh hỗ trợ sạc nhanh PD 22.5W, 2 cổng USB",
+    "price": 690000,
+    "sale_price": 590000,
+    "stock": 400,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "xiaomi",
+    "image_url": "https://images.unsplash.com/photo-1609692814858-f7cd2f0afa4f?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Sony WF-1000XM5 Case Cover",
@@ -525,7 +853,7 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "sony",
-    "image_url": "https://picsum.photos/seed/sonycasecover/400/400"
+    "image_url": "https://images.unsplash.com/photo-1606400082777-ef05f3c5cde2?w=600&h=600&fit=crop&auto=format&q=80"
   },
   {
     "name": "Dell USB-C Hub DA310",
@@ -537,6 +865,42 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "dell",
-    "image_url": "https://picsum.photos/seed/dellda310/400/400"
+    "image_url": "https://images.unsplash.com/photo-1625948515291-69613efd103f?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Dell Universal Dock D6000S",
+    "slug": "dell-universal-dock-d6000s",
+    "description": "Dock USB-C/USB-A đa năng, 3 màn hình 4K, sạc laptop 65W",
+    "price": 6990000,
+    "sale_price": 6290000,
+    "stock": 35,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "dell",
+    "image_url": "https://images.unsplash.com/photo-1593642634402-b0eb5e2eebc9?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "HP Wireless Mouse 250",
+    "slug": "hp-wireless-mouse-250",
+    "description": "Chuột không dây HP 250 với receiver USB, pin AA 12 tháng",
+    "price": 290000,
+    "sale_price": 250000,
+    "stock": 500,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "hp",
+    "image_url": "https://images.unsplash.com/photo-1629429407759-01cd3d7cfb38?w=600&h=600&fit=crop&auto=format&q=80"
+  },
+  {
+    "name": "Lenovo USB-C Travel Hub",
+    "slug": "lenovo-usbc-travel-hub",
+    "description": "Hub USB-C nhỏ gọn 4-in-1: HDMI 4K, USB-A 3.0, sạc PD 100W",
+    "price": 1290000,
+    "sale_price": 1090000,
+    "stock": 150,
+    "status": "ACTIVE",
+    "category_slug": "phu-kien",
+    "brand_slug": "lenovo",
+    "image_url": "https://images.unsplash.com/photo-1625948515291-69613efd103f?w=600&h=600&fit=crop&auto=format&q=80"
   }
 ]
