@@ -6,6 +6,7 @@ import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, User, LogOut, LayoutDashboard, Menu, X, ChevronDown, Headphones, Heart } from "lucide-react";
 import ScrollToTop from "@/components/common/ScrollToTop";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { useCategories, getCategoryIdBySlug } from "@/hooks/useCategories";
 
 const CATEGORY_NAV = [
@@ -114,6 +115,8 @@ export default function MainLayout() {
                 Tư vấn mua hàng
               </Button>
             </Link>
+
+            <ThemeToggle />
 
             {isAuthenticated ? (
               <>
@@ -268,6 +271,9 @@ export default function MainLayout() {
             <Link to="/chat" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
               Tư vấn mua hàng
             </Link>
+            <div className="py-1">
+              <ThemeToggle variant="full" className="w-full justify-start px-2 text-sm" />
+            </div>
             {isAuthenticated ? (
               <>
                 <Link to="/wishlist" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
