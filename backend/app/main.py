@@ -89,7 +89,8 @@ app.include_router(admin_router)
 
 @app.on_event("startup")
 def on_startup():
-    create_db_and_tables()
+    if settings.ENVIRONMENT == "development":
+        create_db_and_tables()
     get_redis()
 
 

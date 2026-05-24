@@ -81,6 +81,19 @@ def update_user(
                 detail="You cannot change active status",
             )
 
+    # Admin không được tự demote hoặc disable chính mình (tránh khoá hệ thống)
+    if is_admin and is_self:
+        if data.role is not None and data.role != user.role:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Admin cannot change their own role",
+            )
+        if data.is_active is False:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Admin cannot disable their own account",
+            )
+
     # Apply updates
     update_data = data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
