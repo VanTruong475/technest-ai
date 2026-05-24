@@ -85,8 +85,6 @@ def create_order(
     cart_repo = CartRepository(session)
     cart_item_repo = CartItemRepository(session)
     product_repo = ProductRepository(session)
-    order_repo = OrderRepository(session)
-    order_item_repo = OrderItemRepository(session)
 
     cart = cart_repo.find_by_user_id(current_user.id)
     if not cart:
@@ -143,32 +141,45 @@ def create_order(
             "subtotal": subtotal,
         })
 
+    # ── Atomic transaction: all-or-nothing ──
+    # Bypass repo helpers (which auto-commit) and stage everything in one
+    # transaction so a mid-flow failure rolls back order + items + stock + cart.
     order = Order(
         user_id=current_user.id,
         total_amount=total_amount,
         status="PENDING",
         payment_method=data.payment_method if data.payment_method in ("COD", "VNPAY") else "COD",
-        payment_status="UNPAID" if data.payment_method == "VNPAY" else "UNPAID",
+        payment_status="UNPAID",
         shipping_address=data.shipping_address,
         phone=data.phone,
         note=data.note,
     )
-    order = order_repo.create(order)
+    try:
+        session.add(order)
+        session.flush()  # obtain order.id without committing
 
-    created_items = []
-    for item_data in order_items_data:
-        order_item = OrderItem(order_id=order.id, **item_data)
-        order_item = order_item_repo.create(order_item)
-        created_items.append(order_item)
+        created_items: list[OrderItem] = []
+        for item_data in order_items_data:
+            order_item = OrderItem(order_id=order.id, **item_data)
+            session.add(order_item)
+            created_items.append(order_item)
 
-    for cart_item in cart_items:
-        product = product_map.get(cart_item.product_id)
-        if product:
+        for cart_item in cart_items:
+            product = product_map[cart_item.product_id]
             product.stock -= cart_item.quantity
-            product_repo.update(product)
-        cart_item_repo.delete(cart_item)
+            session.add(product)
+            session.delete(cart_item)
 
-    order_response = _build_order_response(order, session)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+    session.refresh(order)
+    for item in created_items:
+        session.refresh(item)
+
+    order_response = _build_order_response(order, session, items=created_items)
 
     try:
         send_order_confirmation(current_user, order, created_items)
@@ -265,20 +276,29 @@ def update_order_status(
                 detail=f"Cannot transition from {old_status} to {data.status}. Allowed: {', '.join(allowed) or 'none'}"
             )
 
+    # ── Atomic: status change + (optional) stock restore in one transaction ──
     order.status = data.status
     order.updated_at = datetime.now(timezone.utc)
-    order_repo.update(order)
 
-    if data.status == "CANCELLED":
-        item_repo = OrderItemRepository(session)
-        product_repo = ProductRepository(session)
-        order_items = item_repo.find_by_order_id(order.id)
-        for item in order_items:
-            product = product_repo.find_by_id(item.product_id)
-            if product:
-                product.stock += item.quantity
-                product_repo.update(product)
+    try:
+        session.add(order)
 
+        if data.status == "CANCELLED" and old_status != "CANCELLED":
+            item_repo = OrderItemRepository(session)
+            product_repo = ProductRepository(session)
+            order_items = item_repo.find_by_order_id(order.id)
+            for item in order_items:
+                product = product_repo.find_by_id(item.product_id)
+                if product:
+                    product.stock += item.quantity
+                    session.add(product)
+
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+    session.refresh(order)
     order_response = _build_order_response(order, session)
 
     if old_status != data.status:

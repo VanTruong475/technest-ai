@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+import pytest
 from sqlmodel import Session
 
 from app.models.product import Product
@@ -348,3 +349,82 @@ def test_user_only_sees_own_orders(client: TestClient, user_token: str, admin_to
     })
     data = response.json()
     assert data["total"] == 2
+
+
+# ─────────────────────────────────────────────
+# Atomic transaction tests (PR #2)
+# ─────────────────────────────────────────────
+
+
+def test_create_order_rolls_back_on_failure(
+    client: TestClient, user_token: str, product: Product, session: Session, monkeypatch
+):
+    """If commit fails mid-flow, order + items + stock + cart must all revert."""
+    from sqlmodel import select
+    from app.models.order import Order, OrderItem
+    from app.models.cart import CartItem
+
+    _add_to_cart(client, user_token, product.id, 2)
+
+    original_stock = product.stock
+    original_order_count = len(session.exec(select(Order)).all())
+    original_item_count = len(session.exec(select(OrderItem)).all())
+    original_cart_item_count = len(session.exec(select(CartItem)).all())
+    assert original_cart_item_count >= 1  # cart has the item we added
+
+    # Fail the next commit (which will be the create_order commit)
+    original_commit = Session.commit
+    fired = {"done": False}
+
+    def failing_commit(self):
+        if not fired["done"]:
+            fired["done"] = True
+            raise RuntimeError("simulated DB failure")
+        return original_commit(self)
+
+    monkeypatch.setattr(Session, "commit", failing_commit)
+
+    # TestClient re-raises unhandled exceptions by default; the route does
+    # `try/except → rollback → raise`, so we must catch it here.
+    with pytest.raises(RuntimeError, match="simulated DB failure"):
+        client.post("/api/orders", headers={
+            "Authorization": f"Bearer {user_token}",
+        }, json={"shipping_address": "Addr", "phone": "0900000000"})
+
+    assert fired["done"], "expected first commit to be intercepted"
+
+    # Restore commit so subsequent reads work normally
+    monkeypatch.setattr(Session, "commit", original_commit)
+
+    session.expire_all()
+    refreshed_product = session.get(Product, product.id)
+    assert refreshed_product.stock == original_stock
+
+    assert len(session.exec(select(Order)).all()) == original_order_count
+    assert len(session.exec(select(OrderItem)).all()) == original_item_count
+    assert len(session.exec(select(CartItem)).all()) == original_cart_item_count
+
+
+def test_cancel_order_restores_stock_atomically(
+    client: TestClient, user_token: str, admin_token: str, product: Product, session: Session
+):
+    """Cancelling an order must restore stock and update status in one transaction."""
+    _add_to_cart(client, user_token, product.id, 3)
+    create_res = client.post("/api/orders", headers={
+        "Authorization": f"Bearer {user_token}",
+    }, json={"shipping_address": "Addr", "phone": "0900000000"})
+    assert create_res.status_code == 201
+    order_id = create_res.json()["id"]
+
+    session.expire_all()
+    stock_after_create = session.get(Product, product.id).stock
+
+    cancel_res = client.put(f"/api/orders/{order_id}/status", headers={
+        "Authorization": f"Bearer {admin_token}",
+    }, json={"status": "CANCELLED"})
+    assert cancel_res.status_code == 200
+    assert cancel_res.json()["status"] == "CANCELLED"
+
+    session.expire_all()
+    stock_after_cancel = session.get(Product, product.id).stock
+    assert stock_after_cancel == stock_after_create + 3
