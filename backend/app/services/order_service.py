@@ -164,13 +164,24 @@ def create_order(
             session.add(order_item)
             created_items.append(order_item)
 
+        # Atomic conditional decrement — guards against oversell when two
+        # concurrent checkouts both pass the read-time stock check.
         for cart_item in cart_items:
             product = product_map[cart_item.product_id]
-            product.stock -= cart_item.quantity
-            session.add(product)
+            ok = product_repo.decrement_stock_if_available(
+                cart_item.product_id, cart_item.quantity
+            )
+            if not ok:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Stock changed for {product.name}, please retry"
+                )
             session.delete(cart_item)
 
         session.commit()
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception:
         session.rollback()
         raise
@@ -288,10 +299,7 @@ def update_order_status(
             product_repo = ProductRepository(session)
             order_items = item_repo.find_by_order_id(order.id)
             for item in order_items:
-                product = product_repo.find_by_id(item.product_id)
-                if product:
-                    product.stock += item.quantity
-                    session.add(product)
+                product_repo.increment_stock(item.product_id, item.quantity)
 
         session.commit()
     except Exception:

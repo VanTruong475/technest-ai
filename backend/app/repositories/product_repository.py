@@ -1,5 +1,6 @@
 from typing import Optional
 
+from sqlalchemy import update
 from sqlmodel import Session, select, func, and_
 
 from app.models.product import Product
@@ -94,3 +95,28 @@ class ProductRepository:
         for product in products:
             self.session.refresh(product)
         return products
+
+    def decrement_stock_if_available(self, product_id: int, quantity: int) -> bool:
+        """Atomic conditional UPDATE: decrement stock only if stock >= quantity.
+
+        Returns True if the row was updated, False if stock was insufficient
+        (race condition: another transaction decremented between our check and update).
+        Does NOT commit — caller controls the transaction boundary.
+        """
+        result = self.session.exec(
+            update(Product)
+            .where(Product.id == product_id)
+            .where(Product.stock >= quantity)
+            .values(stock=Product.stock - quantity)
+        )
+        return result.rowcount == 1
+
+    def increment_stock(self, product_id: int, quantity: int) -> None:
+        """Atomic UPDATE to restore stock (e.g. on order cancellation).
+        Does NOT commit — caller controls the transaction boundary.
+        """
+        self.session.exec(
+            update(Product)
+            .where(Product.id == product_id)
+            .values(stock=Product.stock + quantity)
+        )

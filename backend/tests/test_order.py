@@ -428,3 +428,107 @@ def test_cancel_order_restores_stock_atomically(
     session.expire_all()
     stock_after_cancel = session.get(Product, product.id).stock
     assert stock_after_cancel == stock_after_create + 3
+
+
+# ─────────────────────────────────────────────
+# Stock atomicity tests (PR #3)
+# ─────────────────────────────────────────────
+
+
+def test_decrement_stock_if_available_atomic(session: Session, product: Product):
+    """Conditional UPDATE: succeeds when stock sufficient, fails when not."""
+    from app.repositories.product_repository import ProductRepository
+
+    product.stock = 1
+    session.add(product)
+    session.commit()
+
+    repo = ProductRepository(session)
+
+    # First decrement succeeds
+    assert repo.decrement_stock_if_available(product.id, 1) is True
+    session.commit()
+    session.expire_all()
+    assert session.get(Product, product.id).stock == 0
+
+    # Second decrement fails — stock is 0
+    assert repo.decrement_stock_if_available(product.id, 1) is False
+    session.commit()
+    session.expire_all()
+    assert session.get(Product, product.id).stock == 0  # unchanged
+
+
+def test_decrement_stock_rejects_when_quantity_exceeds(session: Session, product: Product):
+    from app.repositories.product_repository import ProductRepository
+
+    product.stock = 2
+    session.add(product)
+    session.commit()
+
+    repo = ProductRepository(session)
+    assert repo.decrement_stock_if_available(product.id, 5) is False
+    session.commit()
+    session.expire_all()
+    assert session.get(Product, product.id).stock == 2  # unchanged
+
+
+def test_increment_stock_restores_correctly(session: Session, product: Product):
+    from app.repositories.product_repository import ProductRepository
+
+    product.stock = 5
+    session.add(product)
+    session.commit()
+
+    repo = ProductRepository(session)
+    repo.increment_stock(product.id, 3)
+    session.commit()
+    session.expire_all()
+    assert session.get(Product, product.id).stock == 8
+
+
+def test_create_order_rolls_back_when_stock_race_lost(
+    client: TestClient, user_token: str, product: Product, session: Session, monkeypatch
+):
+    """Simulate a concurrent purchase: cart pre-check passes, but between
+    pre-check and conditional UPDATE the stock is gone → must 409 + rollback."""
+    from sqlmodel import select
+    from app.models.order import Order, OrderItem
+    from app.repositories import product_repository as repo_module
+
+    _add_to_cart(client, user_token, product.id, 2)
+
+    # Stock is 50 (fixture). Pre-check will pass. Patch decrement to always fail,
+    # simulating a competing transaction that drained stock first.
+    original_decrement = repo_module.ProductRepository.decrement_stock_if_available
+
+    def always_lose_race(self, product_id, quantity):
+        return False
+
+    monkeypatch.setattr(
+        repo_module.ProductRepository,
+        "decrement_stock_if_available",
+        always_lose_race,
+    )
+
+    original_order_count = len(session.exec(select(Order)).all())
+    original_item_count = len(session.exec(select(OrderItem)).all())
+    original_stock = product.stock
+
+    response = client.post("/api/orders", headers={
+        "Authorization": f"Bearer {user_token}",
+    }, json={"shipping_address": "Addr", "phone": "0900000000"})
+
+    assert response.status_code == 409
+    assert "Stock changed" in response.json()["detail"]
+
+    monkeypatch.setattr(
+        repo_module.ProductRepository,
+        "decrement_stock_if_available",
+        original_decrement,
+    )
+
+    session.expire_all()
+    # No order/item persisted, stock unchanged
+    assert len(session.exec(select(Order)).all()) == original_order_count
+    assert len(session.exec(select(OrderItem)).all()) == original_item_count
+    assert session.get(Product, product.id).stock == original_stock

@@ -35,7 +35,7 @@ class ReviewRepository:
         offset = (page - 1) * limit
         statement = (
             select(Review)
-            .order_by(col(Review.created_at).desc())
+            .order_by(col(Review.created_at).desc(), col(Review.id).desc())
             .offset(offset)
             .limit(limit)
         )
