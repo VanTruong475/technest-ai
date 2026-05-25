@@ -5,11 +5,24 @@ from sqlmodel.pool import StaticPool
 
 from app.main import app
 from app.core.database import get_session
+from app.core.rate_limit import limiter
 from app.models.user import User
 from app.models.category import Category
 from app.models.brand import Brand
 from app.models.product import Product
 from app.services.auth_service import hash_password, create_access_token
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    """slowapi limiter là singleton module-level — share state giữa tests.
+    Reset trước mỗi test để tránh 429 false-positive khi nhiều test hit cùng
+    endpoint (vd: /api/ai/chat có limit 10/minute)."""
+    try:
+        limiter.reset()
+    except Exception:
+        pass
+    yield
 
 
 @pytest.fixture(name="session")

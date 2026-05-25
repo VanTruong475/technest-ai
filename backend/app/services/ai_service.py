@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Optional
 
@@ -16,6 +17,8 @@ from app.schemas.ai import (
     ChatRequest, ChatResponse, ChatProductResult,
 )
 from app.schemas.product import ProductResponse
+
+logger = logging.getLogger("techsphere")
 
 
 def _calculate_score(product: Product, keywords: list[str]) -> tuple[float, str]:
@@ -564,7 +567,89 @@ def _generate_suggestions(
 
 
 def chat_with_ai(request: ChatRequest, session: Session) -> ChatResponse:
-    """Chatbot tư vấn sản phẩm rule-based."""
+    """Chatbot tư vấn sản phẩm.
+
+    Flow: luôn chạy rule-based trước để lấy danh sách sản phẩm THẬT từ DB,
+    sau đó (nếu LLM enabled) gọi provider để rephrase reply tự nhiên hơn.
+    Products/giá/tồn kho luôn từ DB — LLM chỉ chạm vào text reply. Bất kỳ
+    lỗi LLM nào (timeout, API error, parse) → fallback rule_response nguyên xi.
+    """
+    rule_response = _chat_rule_based(request, session)
+
+    from app.services.llm import get_llm_provider, LLMError
+
+    provider = get_llm_provider()
+    if provider is None:
+        return rule_response
+
+    try:
+        llm_reply = _generate_llm_reply(provider, request, rule_response)
+    except LLMError as e:
+        logger.warning("LLM provider failed, using rule-based: %s", e)
+        return rule_response
+    except Exception as e:
+        # Defensive: bất kỳ lỗi unexpected nào cũng không được crash chatbot.
+        logger.exception("Unexpected LLM error, using rule-based: %s", e)
+        return rule_response
+
+    return ChatResponse(
+        message=rule_response.message,
+        reply=llm_reply,
+        products=rule_response.products,
+        total=rule_response.total,
+        suggestions=rule_response.suggestions,
+    )
+
+
+def _generate_llm_reply(
+    provider,
+    request: ChatRequest,
+    rule_response: ChatResponse,
+) -> str:
+    """Build prompt từ rule-based products và gọi LLM. Raise LLMError khi lỗi."""
+    from app.core.config import settings
+
+    if rule_response.products:
+        lines = []
+        for idx, pr in enumerate(rule_response.products[:5], 1):
+            p = pr.product
+            if p.sale_price:
+                price_str = f"{p.sale_price:,.0f}đ (giảm từ {p.price:,.0f}đ)"
+            else:
+                price_str = f"{p.price:,.0f}đ"
+            lines.append(
+                f"{idx}. {p.name} — giá {price_str} — còn {p.stock} sản phẩm"
+            )
+        product_context = "Sản phẩm tìm được trong cửa hàng:\n" + "\n".join(lines)
+    else:
+        product_context = (
+            "Không tìm thấy sản phẩm nào khớp với yêu cầu trong cửa hàng."
+        )
+
+    system_prompt = (
+        "Bạn là trợ lý mua sắm cho TechSphere AI — nền tảng thương mại điện tử "
+        "thiết bị công nghệ (điện thoại, laptop, tablet, tai nghe, phụ kiện). "
+        "Trả lời bằng tiếng Việt, ngắn gọn (2-3 câu), thân thiện, không markdown. "
+        "CHỈ dùng thông tin sản phẩm/giá/tồn kho từ context được cung cấp — "
+        "KHÔNG được bịa, không đoán mò, không nhắc sản phẩm ngoài context. "
+        "Nếu context không có sản phẩm phù hợp, hãy nói thẳng và gợi ý từ khóa khác."
+    )
+
+    user_prompt = (
+        f"Câu hỏi của khách: {request.message}\n\n"
+        f"{product_context}\n\n"
+        "Hãy tư vấn ngắn gọn dựa trên thông tin trên."
+    )
+
+    return provider.generate(
+        system_prompt,
+        user_prompt,
+        timeout=settings.AI_LLM_TIMEOUT_SECONDS,
+    )
+
+
+def _chat_rule_based(request: ChatRequest, session: Session) -> ChatResponse:
+    """Chatbot tư vấn sản phẩm rule-based (legacy logic — dùng làm fallback)."""
     message_lower = request.message.lower()
 
     # Extract entities

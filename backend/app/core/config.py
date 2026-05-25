@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     VNPAY_RETURN_URL: str = "http://localhost:8000/api/payments/vnpay-return"
     REDIS_URL: str = ""
 
+    # AI / LLM (optional — chatbot fallback về rule-based nếu disabled hoặc lỗi)
+    AI_LLM_ENABLED: bool = False
+    AI_PROVIDER: str = "gemini"
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.5-flash-lite"
+    AI_LLM_TIMEOUT_SECONDS: float = 10.0
+
     class Config:
         env_file = ".env"
 
