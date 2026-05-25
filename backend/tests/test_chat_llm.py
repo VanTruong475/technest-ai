@@ -197,8 +197,8 @@ def test_chat_falls_back_when_llm_disabled(client: TestClient, session: Session)
 
     assert response.status_code == 200
     data = response.json()
-    # Rule-based reply có pattern đặc trưng "Tôi tìm thấy ... sản phẩm phù hợp"
-    assert "Tôi tìm thấy" in data["reply"]
+    # Rule-based reply có pattern đặc trưng "Mình tìm thấy ... sản phẩm phù hợp"
+    assert "Mình tìm thấy" in data["reply"]
     assert len(data["products"]) > 0
 
 
@@ -213,7 +213,7 @@ def test_chat_falls_back_when_api_key_missing(client: TestClient, session: Sessi
 
     assert response.status_code == 200
     data = response.json()
-    assert "Tôi tìm thấy" in data["reply"]
+    assert "Mình tìm thấy" in data["reply"]
 
 
 def test_chat_falls_back_when_llm_raises_error(client: TestClient, session: Session):
@@ -231,7 +231,7 @@ def test_chat_falls_back_when_llm_raises_error(client: TestClient, session: Sess
     assert response.status_code == 200
     data = response.json()
     # Reply phải từ rule-based vì LLM lỗi
-    assert "Tôi tìm thấy" in data["reply"]
+    assert "Mình tìm thấy" in data["reply"]
     assert mock_provider.generate.called
 
 
@@ -249,7 +249,7 @@ def test_chat_falls_back_when_llm_raises_unexpected_exception(
 
     assert response.status_code == 200
     data = response.json()
-    assert "Tôi tìm thấy" in data["reply"]
+    assert "Mình tìm thấy" in data["reply"]
 
 
 # ── Chat endpoint integration: LLM success path ─────────────────────────
@@ -280,6 +280,120 @@ def test_chat_uses_llm_reply_when_provider_succeeds(
     # Prompt phải có tên sản phẩm + giá thật từ DB
     assert "Dell XPS 15" in user_prompt
     assert "14,000,000" in user_prompt  # sale_price
+
+
+# ── Prompt-structure smoke tests (polish PR) ────────────────────────────
+
+
+def test_system_prompt_has_anti_hallucination_and_style_guards(
+    client: TestClient, session: Session
+):
+    """System prompt phải chứa các ràng buộc chính: anti-hallucination, brand
+    only-from-context, anti-cliché, format 3-câu. Smoke test để bảo vệ tránh
+    bị "đơn giản hóa" prompt làm mất guard rails về sau."""
+    _seed_laptop(session)
+
+    mock_provider = MagicMock()
+    mock_provider.generate.return_value = "mocked reply"
+
+    with patch("app.services.llm.get_llm_provider", return_value=mock_provider):
+        client.post("/api/ai/chat", json={"message": "tư vấn laptop", "limit": 5})
+
+    assert mock_provider.generate.call_count == 1
+    system_prompt = mock_provider.generate.call_args[0][0]
+
+    # Anti-hallucination
+    assert "CHỈ nhắc" in system_prompt
+    assert "Không bịa" in system_prompt or "không bịa" in system_prompt.lower()
+
+    # Style — phải nêu xưng "mình" và cấm sáo ngữ cụ thể
+    assert "mình" in system_prompt  # xưng hô
+    assert "đó ạ" in system_prompt  # cấm cụ thể
+    assert "siêu phẩm" in system_prompt  # cấm cụ thể
+
+    # No markdown / bullet
+    assert "Không markdown" in system_prompt or "không markdown" in system_prompt.lower()
+
+    # Cấu trúc 3-câu (mở/giữa/kết) + follow-up
+    assert "follow-up" in system_prompt.lower()
+
+
+def test_user_prompt_marks_single_brand_to_avoid_brand_followup(
+    client: TestClient, session: Session
+):
+    """1 brand trong context → user_prompt phải hint "KHÔNG hỏi hãng khác"
+    để Gemini không hỏi "có muốn xem hãng Apple/Samsung" khi chỉ có Dell."""
+    _seed_laptop(session)  # tạo 1 product Dell duy nhất
+
+    mock_provider = MagicMock()
+    mock_provider.generate.return_value = "mocked reply"
+
+    with patch("app.services.llm.get_llm_provider", return_value=mock_provider):
+        client.post("/api/ai/chat", json={"message": "tư vấn laptop", "limit": 5})
+
+    user_prompt = mock_provider.generate.call_args[0][1]
+
+    assert "Hãng duy nhất" in user_prompt
+    assert "Dell" in user_prompt
+    assert "KHÔNG hỏi" in user_prompt
+
+
+def test_user_prompt_lists_brands_when_multiple_in_context(
+    client: TestClient, session: Session
+):
+    """≥2 brands → user_prompt liệt kê các hãng để Gemini có thể hỏi
+    "ưu tiên hãng nào". Bảo đảm chỉ hãng trong DB context được nhắc."""
+    # Seed 2 brands khác nhau
+    category = Category(name="Laptop", slug="laptop", description="Máy tính xách tay")
+    session.add(category)
+    session.commit()
+    session.refresh(category)
+
+    dell = Brand(name="Dell", slug="dell")
+    apple = Brand(name="Apple", slug="apple")
+    session.add(dell)
+    session.add(apple)
+    session.commit()
+    session.refresh(dell)
+    session.refresh(apple)
+
+    dell_product = Product(
+        name="Dell XPS 15",
+        slug="dell-xps-15",
+        description="Laptop cao cấp",
+        price=15_000_000,
+        stock=10,
+        status="ACTIVE",
+        category_id=category.id,
+        brand_id=dell.id,
+    )
+    apple_product = Product(
+        name="MacBook Air M3",
+        slug="macbook-air-m3",
+        description="Laptop Apple",
+        price=28_000_000,
+        stock=5,
+        status="ACTIVE",
+        category_id=category.id,
+        brand_id=apple.id,
+    )
+    session.add(dell_product)
+    session.add(apple_product)
+    session.commit()
+
+    mock_provider = MagicMock()
+    mock_provider.generate.return_value = "mocked reply"
+
+    with patch("app.services.llm.get_llm_provider", return_value=mock_provider):
+        client.post("/api/ai/chat", json={"message": "tư vấn laptop", "limit": 5})
+
+    user_prompt = mock_provider.generate.call_args[0][1]
+
+    assert "Các hãng trong danh sách" in user_prompt
+    assert "Dell" in user_prompt
+    assert "Apple" in user_prompt
+    # Không có cảnh báo "KHÔNG hỏi" — Gemini được phép hỏi hãng
+    assert "Hãng duy nhất" not in user_prompt
 
 
 def test_chat_llm_no_match_passes_empty_context(

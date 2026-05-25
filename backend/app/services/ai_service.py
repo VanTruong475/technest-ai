@@ -561,7 +561,7 @@ def _generate_suggestions(
 
     if not suggestions:
         suggestions.append("Bạn muốn tìm sản phẩm theo danh mục hay thương hiệu nào?")
-        suggestions.append("Tôi có thể giúp bạn so sánh giá hoặc tìm sản phẩm phù hợp ngân sách.")
+        suggestions.append("Mình có thể giúp bạn so sánh giá hoặc tìm sản phẩm phù hợp ngân sách.")
 
     return suggestions[:3]
 
@@ -583,7 +583,7 @@ def chat_with_ai(request: ChatRequest, session: Session) -> ChatResponse:
         return rule_response
 
     try:
-        llm_reply = _generate_llm_reply(provider, request, rule_response)
+        llm_reply = _generate_llm_reply(provider, request, rule_response, session)
     except LLMError as e:
         logger.warning("LLM provider failed, using rule-based: %s", e)
         return rule_response
@@ -605,40 +605,97 @@ def _generate_llm_reply(
     provider,
     request: ChatRequest,
     rule_response: ChatResponse,
+    session: Session,
 ) -> str:
-    """Build prompt từ rule-based products và gọi LLM. Raise LLMError khi lỗi."""
+    """Build prompt từ rule-based products và gọi LLM. Raise LLMError khi lỗi.
+
+    Prompt được thiết kế để Gemini trả lời tự nhiên như nhân viên tư vấn:
+    - Tránh sáo ngữ marketing (siêu phẩm, giá sốc, đó ạ).
+    - Format 3-câu (mở/giá+lý do/follow-up).
+    - Follow-up có điều kiện: chỉ hỏi về hãng khi context có ≥2 hãng (tránh
+      câu "muốn xem hãng khác không" vô nghĩa khi cửa hàng chỉ có 1 hãng).
+    - Brand list được pass tường minh để Gemini không lặp/bịa thương hiệu.
+    """
     from app.core.config import settings
+    from app.models.brand import Brand
 
     if rule_response.products:
         lines = []
         for idx, pr in enumerate(rule_response.products[:5], 1):
             p = pr.product
             if p.sale_price:
-                price_str = f"{p.sale_price:,.0f}đ (giảm từ {p.price:,.0f}đ)"
+                price_str = f"{p.sale_price:,.0f}đ (giá gốc {p.price:,.0f}đ)"
             else:
                 price_str = f"{p.price:,.0f}đ"
             lines.append(
-                f"{idx}. {p.name} — giá {price_str} — còn {p.stock} sản phẩm"
+                f"{idx}. {p.name} — {price_str} — tồn {p.stock}"
             )
-        product_context = "Sản phẩm tìm được trong cửa hàng:\n" + "\n".join(lines)
+        product_block = "Sản phẩm có sẵn trong cửa hàng:\n" + "\n".join(lines)
+
+        # Resolve brand names từ DB để prompt nói rõ "Hãng trong danh sách",
+        # tránh Gemini gợi ý hãng không tồn tại trong context.
+        brand_ids = list({pr.product.brand_id for pr in rule_response.products[:5]})
+        brand_names: list[str] = []
+        if brand_ids:
+            brands = list(session.exec(select(Brand).where(Brand.id.in_(brand_ids))).all())
+            brand_names = sorted({b.name for b in brands if b and b.name})
+        brand_count = len(brand_names)
+        if brand_count == 0:
+            brand_hint = ""
+        elif brand_count == 1:
+            brand_hint = (
+                f"\n\nHãng duy nhất trong danh sách trên: {brand_names[0]}. "
+                f"KHÔNG hỏi khách 'có muốn xem hãng khác không' vì cửa hàng "
+                f"chỉ có hãng này trong kết quả."
+            )
+        else:
+            brand_hint = (
+                f"\n\nCác hãng trong danh sách trên: {', '.join(brand_names)}. "
+                f"Có thể hỏi khách ưu tiên hãng nào nếu phù hợp ngữ cảnh."
+            )
     else:
-        product_context = (
-            "Không tìm thấy sản phẩm nào khớp với yêu cầu trong cửa hàng."
-        )
+        product_block = "Cửa hàng KHÔNG có sản phẩm nào khớp với yêu cầu."
+        brand_hint = ""
 
     system_prompt = (
-        "Bạn là trợ lý mua sắm cho TechSphere AI — nền tảng thương mại điện tử "
-        "thiết bị công nghệ (điện thoại, laptop, tablet, tai nghe, phụ kiện). "
-        "Trả lời bằng tiếng Việt, ngắn gọn (2-3 câu), thân thiện, không markdown. "
-        "CHỈ dùng thông tin sản phẩm/giá/tồn kho từ context được cung cấp — "
-        "KHÔNG được bịa, không đoán mò, không nhắc sản phẩm ngoài context. "
-        "Nếu context không có sản phẩm phù hợp, hãy nói thẳng và gợi ý từ khóa khác."
+        "Bạn là nhân viên tư vấn bán hàng tại cửa hàng TechSphere AI — "
+        "chuyên thiết bị công nghệ (điện thoại, laptop, tablet, tai nghe, phụ kiện).\n\n"
+        "PHONG CÁCH:\n"
+        "- Nói chuyện tự nhiên như người thật đang chat với khách, ấm áp, không sáo rỗng.\n"
+        "- Tổng cộng 2-4 câu. Không markdown, không bullet list, không emoji.\n"
+        "- Xưng \"mình\", gọi khách bằng \"bạn\".\n"
+        "- TRÁNH các cụm sáo ngữ: \"siêu phẩm\", \"giá cực sốc\", \"đang có ưu đãi cực hot\", "
+        "\"đó ạ\", \"nhé ạ\", \"hàng chính hãng giá tốt\".\n"
+        "- Dùng \"ạ\" tối đa 1 lần trong cả câu trả lời, hoặc không dùng.\n\n"
+        "QUY TẮC NGHIÊM (không được vi phạm):\n"
+        "1. CHỈ nhắc sản phẩm, giá, tồn kho có trong CONTEXT phía dưới. "
+        "Không bịa, không đoán, không thêm sản phẩm khác.\n"
+        "2. Không lặp tên thương hiệu kiểu \"Apple Inc, Apple\" hay "
+        "\"Samsung Electronics, Samsung\" — mỗi hãng nhắc một lần với tên ngắn gọn.\n"
+        "3. CHỈ đề cập tới các thương hiệu xuất hiện trong dòng \"Hãng trong danh sách\" "
+        "(nếu có). Không gợi ý hãng khác không có trong cửa hàng.\n\n"
+        "CẤU TRÚC TRẢ LỜI khi có sản phẩm trong context:\n"
+        "- Câu mở: \"Mình tìm thấy [tên sản phẩm] với giá [giá hiện tại]\" "
+        "(nếu có nhiều, nêu 1-2 cái nổi bật, không liệt kê hết).\n"
+        "- Câu giữa: 1 câu ngắn về điểm phù hợp với câu hỏi của khách.\n"
+        "- Câu kết: 1 câu hỏi follow-up CỤ THỂ. Chọn 1 trong các hướng:\n"
+        "    * Ngân sách: \"Bạn dự tính tầm giá khoảng bao nhiêu?\"\n"
+        "    * Hãng ưu tiên (CHỈ hỏi khi danh sách có ≥2 hãng khác nhau).\n"
+        "    * Nhu cầu cụ thể: chống ồn, pin lâu, gaming, làm việc, học tập, chụp ảnh.\n"
+        "    * \"Bạn có muốn xem thêm vài lựa chọn cùng tầm giá không?\"\n"
+        "  KHÔNG hỏi 2 follow-up cùng lúc.\n\n"
+        "CẤU TRÚC TRẢ LỜI khi context KHÔNG có sản phẩm:\n"
+        "- Nói thẳng: \"Mình chưa tìm thấy sản phẩm phù hợp...\".\n"
+        "- Gợi ý 1-2 từ khóa cụ thể khách có thể thử lại "
+        "(vd: tên danh mục đang có trong cửa hàng).\n"
+        "- Không khuyên xem hãng/danh mục không tồn tại trong cửa hàng."
     )
 
     user_prompt = (
-        f"Câu hỏi của khách: {request.message}\n\n"
-        f"{product_context}\n\n"
-        "Hãy tư vấn ngắn gọn dựa trên thông tin trên."
+        f"Khách hỏi: {request.message}\n\n"
+        f"{product_block}"
+        f"{brand_hint}\n\n"
+        "Hãy tư vấn theo đúng phong cách và cấu trúc đã quy định."
     )
 
     return provider.generate(
@@ -822,7 +879,7 @@ def _generate_reply(
     session: Session,
 ) -> str:
     """Generate natural language reply."""
-    parts = ["Tôi tìm thấy"]
+    parts = ["Mình tìm thấy"]
 
     if count == 1:
         parts.append("1 sản phẩm phù hợp:")

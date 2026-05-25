@@ -25,6 +25,20 @@ def _reset_rate_limiter():
     yield
 
 
+@pytest.fixture(autouse=True)
+def _disable_llm_in_tests(monkeypatch):
+    """Force-disable LLM cho mọi test, kể cả khi dev local có .env bật Gemini.
+    Tests cần test LLM enabled path phải explicit mock get_llm_provider hoặc
+    patch settings — autouse này KHÔNG ngăn override trong context manager
+    riêng của từng test (monkeypatch tự revert sau test).
+
+    Không có guard này, pytest sẽ gọi Gemini API THẬT khi dev local đã set
+    GEMINI_API_KEY trong .env → chậm + tốn quota + flaky.
+    """
+    monkeypatch.setattr("app.core.config.settings.AI_LLM_ENABLED", False)
+    monkeypatch.setattr("app.core.config.settings.GEMINI_API_KEY", "")
+
+
 @pytest.fixture(name="session")
 def session_fixture():
     engine = create_engine(
