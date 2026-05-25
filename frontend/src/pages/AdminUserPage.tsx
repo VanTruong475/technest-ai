@@ -223,7 +223,7 @@ export default function AdminUserPage() {
                       </td>
                       <td className="p-3 text-muted-foreground">{formatDate(user.created_at)}</td>
                       <td className="p-3 text-center">
-                        <Button variant="ghost" size="icon" onClick={() => openEditForm(user)} aria-label={`Chỉnh sửa ${user.full_name}`}>
+                        <Button variant="ghost" size="icon" onClick={() => openEditForm(user)} aria-label={`Chỉnh sửa ${user.full_name}`} className="h-8 w-8 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </td>

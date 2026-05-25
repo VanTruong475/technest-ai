@@ -232,7 +232,7 @@ export default function AdminOrderPage() {
                           <td className="p-3 text-center">
                             <div className="flex items-center justify-center gap-1">
                               <Link to={`/orders/${order.id}`}>
-                                <Button variant="ghost" size="icon" aria-label={`Xem chi tiết đơn hàng #${order.id}`}>
+                                <Button variant="ghost" size="icon" aria-label={`Xem chi tiết đơn hàng #${order.id}`} className="h-8 w-8 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               </Link>

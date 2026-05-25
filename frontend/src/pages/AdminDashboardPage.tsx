@@ -13,6 +13,8 @@ import {
   XCircle,
   Star,
   RefreshCw,
+  BarChart3,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import {
   BarChart,
@@ -131,56 +133,68 @@ export default function AdminDashboardPage() {
 
   const { summary, charts, recent_orders, top_products } = data;
 
+  // Stats cards với color identity riêng cho mỗi metric. iconBg + ring +
+  // gradient subtle. Critical metrics (Chờ xử lý/Sắp hết/Hết hàng) dùng tone
+  // cảnh báo để admin chú ý ngay.
   const statsCards = [
     {
       label: "Tổng doanh thu",
       value: formatPrice(summary.total_revenue),
       icon: DollarSign,
-      color: "text-green-600",
+      iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      gradient: "from-emerald-500/5 to-transparent",
     },
     {
       label: "Tổng đơn hàng",
       value: summary.total_orders.toLocaleString(),
       icon: ShoppingCart,
-      color: "text-blue-600",
+      iconBg: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+      gradient: "from-sky-500/5 to-transparent",
     },
     {
       label: "Tổng người dùng",
       value: summary.total_users.toLocaleString(),
       icon: Users,
-      color: "text-purple-600",
+      iconBg: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+      gradient: "from-violet-500/5 to-transparent",
     },
     {
       label: "Tổng sản phẩm",
       value: summary.total_products.toLocaleString(),
       icon: Package,
-      color: "text-orange-600",
+      iconBg: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+      gradient: "from-indigo-500/5 to-transparent",
     },
     {
       label: "Chờ xử lý",
       value: summary.pending_orders.toLocaleString(),
       icon: Clock,
-      color: "text-yellow-600",
+      iconBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      gradient: "from-amber-500/5 to-transparent",
     },
     {
       label: "Sắp hết hàng",
       value: summary.low_stock_products.toLocaleString(),
       icon: AlertTriangle,
-      color: "text-amber-600",
+      iconBg: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+      gradient: "from-orange-500/5 to-transparent",
     },
     {
       label: "Hết hàng",
       value: summary.out_of_stock_products.toLocaleString(),
       icon: XCircle,
-      color: "text-red-600",
+      iconBg: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+      gradient: "from-rose-500/5 to-transparent",
     },
     {
       label: "Đánh giá TB",
       value: summary.total_reviews > 0
-        ? `${summary.average_rating.toFixed(1)} / 5 (${summary.total_reviews})`
+        ? `${summary.average_rating.toFixed(1)} / 5`
         : "Chưa có",
+      hint: summary.total_reviews > 0 ? `${summary.total_reviews} đánh giá` : undefined,
       icon: Star,
-      color: "text-yellow-500",
+      iconBg: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+      gradient: "from-yellow-500/5 to-transparent",
     },
   ];
 
@@ -189,18 +203,28 @@ export default function AdminDashboardPage() {
       <AdminNav />
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Cards — color identity riêng + gradient subtle + hover lift */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {statsCards.map((card) => {
           const Icon = card.icon;
           return (
-            <Card key={card.label}>
+            <Card
+              key={card.label}
+              className={`relative overflow-hidden bg-gradient-to-br ${card.gradient} hover:shadow-md hover:-translate-y-0.5 transition-all border-border/60`}
+            >
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">{card.label}</p>
-                  <Icon className={`h-5 w-5 ${card.color}`} />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{card.label}</p>
+                    <p className="text-2xl font-bold mt-2 truncate">{card.value}</p>
+                    {card.hint && (
+                      <p className="text-xs text-muted-foreground mt-1">{card.hint}</p>
+                    )}
+                  </div>
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
                 </div>
-                <p className="text-2xl font-bold mt-1">{card.value}</p>
               </CardContent>
             </Card>
           );
@@ -216,9 +240,18 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             {charts.revenue_by_day.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">
-                Chưa có dữ liệu doanh thu.
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-br from-sky-400/20 to-blue-500/20 blur-2xl rounded-full" aria-hidden="true" />
+                  <div className="h-14 w-14 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                    <BarChart3 className="h-7 w-7" />
+                  </div>
+                </div>
+                <p className="text-sm font-medium mb-0.5">Chưa có dữ liệu doanh thu</p>
+                <p className="text-xs text-muted-foreground max-w-xs">
+                  Biểu đồ sẽ hiển thị khi có đơn hàng hoàn thành trong 7 ngày gần nhất.
+                </p>
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={charts.revenue_by_day}>
@@ -250,9 +283,18 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             {charts.orders_by_status.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">
-                Chưa có đơn hàng nào.
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-br from-violet-400/20 to-purple-500/20 blur-2xl rounded-full" aria-hidden="true" />
+                  <div className="h-14 w-14 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                    <PieChartIcon className="h-7 w-7" />
+                  </div>
+                </div>
+                <p className="text-sm font-medium mb-0.5">Chưa có đơn hàng nào</p>
+                <p className="text-xs text-muted-foreground max-w-xs">
+                  Khi có đơn hàng, biểu đồ sẽ phân bổ theo trạng thái (Chờ/Đã xác nhận/Hoàn thành...).
+                </p>
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>

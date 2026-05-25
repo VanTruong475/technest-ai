@@ -8,6 +8,7 @@ import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatDate } from "@/utils/format";
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
+import { ScrollText } from "lucide-react";
 
 interface AuditLogItem {
   id: number;
@@ -65,46 +66,60 @@ export default function AdminAuditPage() {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={actionFilter === "" ? "default" : "outline"}
-          size="sm"
-          onClick={() => { setActionFilter(""); setPage(1); }}
-        >
-          Tất cả
-        </Button>
-        {["CREATE", "UPDATE", "DELETE", "EXPORT"].map((action) => (
-          <Button
-            key={action}
-            variant={actionFilter === action ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setActionFilter(action); setPage(1); }}
-          >
-            {action}
-          </Button>
-        ))}
-      </div>
+      {/* Filters — chip groups với label + visual hierarchy */}
+      <Card className="border-border/60">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide w-20 shrink-0">
+              Hành động
+            </span>
+            <Button
+              variant={actionFilter === "" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setActionFilter(""); setPage(1); }}
+              className="h-7 rounded-full text-xs"
+            >
+              Tất cả
+            </Button>
+            {["CREATE", "UPDATE", "DELETE", "EXPORT"].map((action) => (
+              <Button
+                key={action}
+                variant={actionFilter === action ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setActionFilter(action); setPage(1); }}
+                className="h-7 rounded-full text-xs"
+              >
+                {action}
+              </Button>
+            ))}
+          </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={targetFilter === "" ? "default" : "outline"}
-          size="sm"
-          onClick={() => { setTargetFilter(""); setPage(1); }}
-        >
-          Mọi đối tượng
-        </Button>
-        {["PRODUCT", "ORDER", "USER", "REVIEW", "INVENTORY"].map((target) => (
-          <Button
-            key={target}
-            variant={targetFilter === target ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setTargetFilter(target); setPage(1); }}
-          >
-            {target}
-          </Button>
-        ))}
-      </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide w-20 shrink-0">
+              Đối tượng
+            </span>
+            <Button
+              variant={targetFilter === "" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setTargetFilter(""); setPage(1); }}
+              className="h-7 rounded-full text-xs"
+            >
+              Tất cả
+            </Button>
+            {["PRODUCT", "ORDER", "USER", "REVIEW", "INVENTORY"].map((target) => (
+              <Button
+                key={target}
+                variant={targetFilter === target ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setTargetFilter(target); setPage(1); }}
+                className="h-7 rounded-full text-xs"
+              >
+                {target}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Loading */}
       {isLoading && <TableSkeleton columns={7} rows={8} />}
@@ -118,9 +133,21 @@ export default function AdminAuditPage() {
 
       {/* Table */}
       {!isLoading && !error && logs.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          Chưa có nhật ký nào.
-        </div>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="relative mb-5">
+              <div className="absolute inset-0 -z-10 bg-gradient-to-br from-violet-400/20 to-indigo-500/20 blur-2xl rounded-full" />
+              <div className="h-16 w-16 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
+                <ScrollText className="h-8 w-8" />
+              </div>
+            </div>
+            <h3 className="font-semibold text-base mb-1.5">Chưa có nhật ký nào</h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Mọi thao tác CRUD/EXPORT của admin sẽ được ghi log tự động và
+              hiển thị ở đây để truy vết.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         !isLoading && !error && (
           <Card>

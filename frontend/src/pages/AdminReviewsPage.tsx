@@ -88,9 +88,21 @@ export default function AdminReviewsPage() {
 
       {/* Reviews table */}
       {!isLoading && !error && reviews.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          Chưa có đánh giá nào.
-        </div>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="relative mb-5">
+              <div className="absolute inset-0 -z-10 bg-gradient-to-br from-yellow-400/20 to-amber-500/20 blur-2xl rounded-full" />
+              <div className="h-16 w-16 rounded-2xl bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 flex items-center justify-center">
+                <Star className="h-8 w-8" />
+              </div>
+            </div>
+            <h3 className="font-semibold text-base mb-1.5">Chưa có đánh giá nào</h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Khi khách hàng đánh giá sản phẩm, đánh giá sẽ xuất hiện ở đây
+              để bạn quản lý.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         !isLoading && !error && (
           <Card>
@@ -135,6 +147,7 @@ export default function AdminReviewsPage() {
                             onClick={() => handleDelete(review.id)}
                             disabled={deleteMutation.isPending}
                             aria-label={`Xóa đánh giá #${review.id}`}
+                            className="h-8 w-8 hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
