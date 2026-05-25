@@ -106,20 +106,18 @@ def create_order(
 
     total_amount = 0.0
     order_items_data = []
+    valid_cart_items: list = []
+    stale_cart_items: list = []
 
+    # Partition cart items: skip stale ones (product missing/inactive) — these
+    # get atomically deleted inside the order transaction below to keep the
+    # cart consistent. Without this, GET cart filters them out (PR #5 H5) but
+    # they would block checkout forever.
     for cart_item in cart_items:
         product = product_map.get(cart_item.product_id)
-        if not product:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Product {cart_item.product_id} not found"
-            )
-
-        if product.status != "ACTIVE":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Product {product.name} is not available"
-            )
+        if not product or product.status != "ACTIVE":
+            stale_cart_items.append(cart_item)
+            continue
 
         if product.stock < cart_item.quantity:
             raise HTTPException(
@@ -130,6 +128,7 @@ def create_order(
         price = product.sale_price if product.sale_price else product.price
         subtotal = price * cart_item.quantity
         total_amount += subtotal
+        valid_cart_items.append(cart_item)
 
         order_items_data.append({
             "product_id": product.id,
@@ -140,6 +139,12 @@ def create_order(
             "quantity": cart_item.quantity,
             "subtotal": subtotal,
         })
+
+    if not valid_cart_items:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Không có sản phẩm khả dụng trong giỏ hàng. Vui lòng làm mới và thử lại."
+        )
 
     # ── Atomic transaction: all-or-nothing ──
     # Bypass repo helpers (which auto-commit) and stage everything in one
@@ -166,7 +171,7 @@ def create_order(
 
         # Atomic conditional decrement — guards against oversell when two
         # concurrent checkouts both pass the read-time stock check.
-        for cart_item in cart_items:
+        for cart_item in valid_cart_items:
             product = product_map[cart_item.product_id]
             ok = product_repo.decrement_stock_if_available(
                 cart_item.product_id, cart_item.quantity
@@ -177,6 +182,11 @@ def create_order(
                     detail=f"Stock changed for {product.name}, please retry"
                 )
             session.delete(cart_item)
+
+        # Cleanup stale items atomically — fails together with the order if
+        # anything else in this transaction goes wrong.
+        for stale in stale_cart_items:
+            session.delete(stale)
 
         session.commit()
     except HTTPException:

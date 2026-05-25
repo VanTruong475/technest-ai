@@ -24,10 +24,12 @@ def _build_cart_response(cart: Cart, session: Session) -> CartResponse:
     total_items = 0
     total_amount = 0.0
 
+    # Pure read: skip stale items (product missing or INACTIVE) without
+    # mutating DB. Cleanup of orphaned cart rows happens at checkout time
+    # inside the order transaction — see create_order.
     for item in items:
         product = product_map.get(item.product_id)
         if not product or product.status != "ACTIVE":
-            item_repo.delete(item)
             continue
         price = product.sale_price if product.sale_price else product.price
         subtotal = price * item.quantity

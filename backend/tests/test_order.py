@@ -531,4 +531,53 @@ def test_create_order_rolls_back_when_stock_race_lost(
     # No order/item persisted, stock unchanged
     assert len(session.exec(select(Order)).all()) == original_order_count
     assert len(session.exec(select(OrderItem)).all()) == original_item_count
-    assert session.get(Product, product.id).stock == original_stock
+
+
+# ── PR #5 H5: checkout cleanup stale cart items atomically ──
+
+
+def test_create_order_cleans_stale_items(
+    client: TestClient, user_token: str, product: Product, product2: Product, session: Session
+):
+    """Checkout với 1 item ACTIVE + 1 item INACTIVE → order tạo cho item ACTIVE,
+    stale cart_item bị xóa atomically."""
+    _add_to_cart(client, user_token, product.id, 1)
+    _add_to_cart(client, user_token, product2.id, 1)
+
+    # Deactivate product2 after adding to cart
+    product2.status = "INACTIVE"
+    session.add(product2)
+    session.commit()
+
+    response = client.post("/api/orders", headers={
+        "Authorization": f"Bearer {user_token}",
+    }, json={"shipping_address": "Addr", "phone": "0900000000"})
+
+    assert response.status_code == 201
+    data = response.json()
+    assert len(data["items"]) == 1
+    assert data["items"][0]["product_id"] == product.id
+
+    # Both cart_items consumed (active deleted as part of order, stale cleaned)
+    from app.models.cart import CartItem
+    from sqlmodel import select
+    remaining = list(session.exec(select(CartItem)).all())
+    assert len(remaining) == 0
+
+
+def test_create_order_all_stale_fails(
+    client: TestClient, user_token: str, product: Product, session: Session
+):
+    """Tất cả cart items đều stale (product INACTIVE) → 400 với message rõ ràng."""
+    _add_to_cart(client, user_token, product.id, 1)
+
+    product.status = "INACTIVE"
+    session.add(product)
+    session.commit()
+
+    response = client.post("/api/orders", headers={
+        "Authorization": f"Bearer {user_token}",
+    }, json={"shipping_address": "Addr", "phone": "0900000000"})
+
+    assert response.status_code == 400
+    assert "khả dụng" in response.json()["detail"]

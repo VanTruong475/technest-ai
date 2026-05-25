@@ -10,7 +10,6 @@ from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.repositories.cart_repository import CartRepository, CartItemRepository
 from app.repositories.order_repository import OrderRepository, OrderItemRepository
-from app.repositories.product_repository import ProductRepository
 from app.schemas.ai import (
     AISearchRequest, AISearchResponse, AISearchResult,
     AIRecommendResponse, AIRecommendResult,
@@ -81,16 +80,12 @@ def smart_search(
     request: AISearchRequest,
     session: Session,
 ) -> AISearchResponse:
-    """Tìm kiếm thông minh rule-based."""
-    repo = ProductRepository(session)
+    """Tìm kiếm thông minh rule-based.
 
-    # Lấy tất cả sản phẩm ACTIVE
-    all_products, _ = repo.find_all(
-        page=1,
-        limit=10000,  # Lấy tất cả để search
-        status="ACTIVE",
-    )
-
+    SQL pre-filter chuyển ILIKE %keyword% xuống DB (any keyword khớp name hoặc
+    description), cap 200 candidates trước khi scoring Python. Tránh load toàn
+    bộ catalog vào memory khi danh sách sản phẩm lớn.
+    """
     # Tách query thành keywords
     query_lower = request.query.lower()
     keywords = query_lower.split()
@@ -102,9 +97,26 @@ def smart_search(
             total=0,
         )
 
-    # Tính score cho mỗi product
+    # Đẩy filter xuống SQL: bất kỳ keyword nào khớp name HOẶC description
+    keyword_clauses = [
+        or_(
+            Product.name.ilike(f"%{kw}%"),
+            Product.description.ilike(f"%{kw}%"),
+        )
+        for kw in keywords
+    ]
+    statement = (
+        select(Product)
+        .where(Product.status == "ACTIVE")
+        .where(or_(*keyword_clauses))
+        .order_by(Product.created_at.desc())
+        .limit(200)
+    )
+    candidates = list(session.exec(statement).all())
+
+    # Tính score cho mỗi candidate
     scored_products = []
-    for product in all_products:
+    for product in candidates:
         score, reason = _calculate_score(product, keywords)
         if score > 0:
             scored_products.append((product, score, reason))
