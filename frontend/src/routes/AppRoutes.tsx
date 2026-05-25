@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import MainLayout from "@/layouts/MainLayout";
+import ScrollToTopOnNavigate from "@/components/common/ScrollToTopOnNavigate";
 
 // Lazy-loaded page components — each becomes its own chunk
 const HomePage = lazy(() => import("@/pages/HomePage"));
@@ -61,6 +62,7 @@ function RouteFallback() {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
+      <ScrollToTopOnNavigate />
       <Routes>
         <Route element={<MainLayout />}>
           {/* Public */}
