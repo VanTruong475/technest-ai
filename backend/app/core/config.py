@@ -34,10 +34,18 @@ class Settings(BaseSettings):
 
     # AI / LLM (optional — chatbot fallback về rule-based nếu disabled hoặc lỗi)
     AI_LLM_ENABLED: bool = False
+    # AI_PROVIDERS: comma-list theo thứ tự ưu tiên (vd "gemini,groq"). Mỗi
+    # provider lỗi → thử provider kế tiếp; hết → fallback rule-based.
+    # Nếu rỗng, hệ thống dùng [AI_PROVIDER] làm singleton chain (backwards compat).
+    AI_PROVIDERS: str = ""
     AI_PROVIDER: str = "gemini"
+    AI_LLM_TIMEOUT_SECONDS: float = 10.0
+    # Cache TTL cho LLM response (Redis) — 0 để disable cache. Default 1h.
+    AI_LLM_CACHE_TTL_SECONDS: int = 3600
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash-lite"
-    AI_LLM_TIMEOUT_SECONDS: float = 10.0
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.1-8b-instant"
 
     class Config:
         env_file = ".env"

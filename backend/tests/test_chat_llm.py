@@ -176,13 +176,21 @@ def test_factory_returns_none_for_unknown_provider():
 
 
 def test_factory_returns_gemini_when_enabled_and_keyed():
+    """Factory hiện wrap provider với CachedProvider (PR quick wins).
+    Single-provider singleton → Cached(Gemini), không có ChainProvider middle."""
+    from app.services.llm.cache import CachedProvider
+
     with patch("app.core.config.settings.AI_LLM_ENABLED", True), \
+         patch("app.core.config.settings.AI_PROVIDERS", ""), \
          patch("app.core.config.settings.AI_PROVIDER", "gemini"), \
          patch("app.core.config.settings.GEMINI_API_KEY", "fake_key"), \
-         patch("app.core.config.settings.GEMINI_MODEL", "gemini-2.5-flash-lite"):
+         patch("app.core.config.settings.GEMINI_MODEL", "gemini-2.5-flash-lite"), \
+         patch("app.core.config.settings.GROQ_API_KEY", ""):
         provider = get_llm_provider()
-        assert provider is not None
-        assert isinstance(provider, GeminiProvider)
+
+    assert provider is not None
+    assert isinstance(provider, CachedProvider)
+    assert isinstance(provider._inner, GeminiProvider)
 
 
 # ── Chat endpoint integration: fallback paths ───────────────────────────
