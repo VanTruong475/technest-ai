@@ -15,10 +15,12 @@ from app.schemas.ai import (
     AIRecommendResponse,
     ChatRequest, ChatResponse,
 )
+from app.repositories.product_repository import ProductRepository
 from app.services.ai_service import (
     smart_search,
     recommend_by_cart,
     recommend_by_history,
+    recommend_co_occurrence,
     recommend_popular,
     chat_with_ai,
 )
@@ -71,23 +73,29 @@ def search(
 @limiter.limit("20/minute")
 def recommend(
     request: Request,
-    strategy: str = Query(default="cart", description="Strategy: cart, history, popular"),
+    strategy: str = Query(default="cart", description="Strategy: cart, history, popular, co_occurrence"),
     limit: int = Query(default=10, ge=1, le=20, description="Số lượng kết quả (1-20)"),
+    product_id: Optional[int] = Query(
+        default=None,
+        description="Required khi strategy=co_occurrence: anchor product để tìm mua chung",
+    ),
     user: Optional[User] = Depends(_get_optional_user),
     session: Session = Depends(get_session),
 ):
     """
-    Gợi ý sản phẩm thông minh (rule-based).
+    Gợi ý sản phẩm thông minh.
 
     - **cart**: Dựa trên sản phẩm trong giỏ hàng (cần JWT)
     - **history**: Dựa trên lịch sử mua hàng (cần JWT)
-    - **popular**: Sản phẩm phổ biến nhất (public, không cần JWT)
+    - **popular**: Sản phẩm phổ biến nhất (public)
+    - **co_occurrence**: "Khách mua sản phẩm này cũng mua...". Cần `product_id`.
+      Public. Fallback: cùng category → popular nếu chưa đủ dữ liệu mua chung.
     """
-    allowed_strategies = {"cart", "history", "popular"}
+    allowed_strategies = {"cart", "history", "popular", "co_occurrence"}
     if strategy not in allowed_strategies:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Strategy must be one of: {', '.join(allowed_strategies)}",
+            detail=f"Strategy must be one of: {', '.join(sorted(allowed_strategies))}",
         )
 
     if strategy in ("cart", "history") and user is None:
@@ -95,6 +103,20 @@ def recommend(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required for this strategy",
         )
+
+    if strategy == "co_occurrence":
+        if product_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="product_id query param is required for strategy=co_occurrence",
+            )
+        product = ProductRepository(session).find_by_id(product_id)
+        if product is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found",
+            )
+        return recommend_co_occurrence(product_id, limit, session)
 
     if strategy == "cart":
         return recommend_by_cart(user.id, limit, session)

@@ -43,9 +43,9 @@ class AIRecommendRequest(BaseModel):
     @field_validator("strategy")
     @classmethod
     def validate_strategy(cls, v: str) -> str:
-        allowed = {"cart", "history", "popular"}
+        allowed = {"cart", "history", "popular", "co_occurrence"}
         if v not in allowed:
-            raise ValueError(f"Strategy must be one of: {', '.join(allowed)}")
+            raise ValueError(f"Strategy must be one of: {', '.join(sorted(allowed))}")
         return v
 
     @field_validator("limit")

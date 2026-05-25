@@ -246,3 +246,250 @@ def test_chat_response_structure(client: TestClient, session: Session):
         assert "score" in product
         assert "reason" in product
         assert isinstance(product["score"], float)
+
+
+# ─────────────────────────────────────────────
+# Co-occurrence Recommendation Tests
+# ─────────────────────────────────────────────
+
+
+def _make_product(session: Session, category_id: int, brand_id: int, name: str, stock: int = 10) -> Product:
+    p = Product(
+        name=name,
+        slug=name.lower().replace(" ", "-"),
+        description=name,
+        price=10_000_000,
+        stock=stock,
+        status="ACTIVE",
+        category_id=category_id,
+        brand_id=brand_id,
+    )
+    session.add(p)
+    session.commit()
+    session.refresh(p)
+    return p
+
+
+def _create_order_with_items(session: Session, user_id: int, product_ids: list[int]) -> None:
+    """Tạo 1 order COMPLETED chứa các product_ids — bypass cart/checkout flow
+    để tests chạy nhanh và focus vào co-occurrence logic."""
+    from app.models.order import Order, OrderItem
+
+    order = Order(
+        user_id=user_id,
+        total_amount=0,
+        status="COMPLETED",
+        shipping_address="test",
+        phone="0900000000",
+    )
+    session.add(order)
+    session.flush()
+    for pid in product_ids:
+        session.add(OrderItem(
+            order_id=order.id,
+            product_id=pid,
+            product_name="x",
+            price=0,
+            quantity=1,
+            subtotal=0,
+        ))
+    session.commit()
+
+
+def test_co_occurrence_returns_top_co_purchased_products(
+    client: TestClient, session: Session, test_user
+):
+    """Anchor P1 + 3 đơn [P1,P2], [P1,P2], [P1,P3] → P2 (count=2) đầu, P3 (count=1) sau."""
+    category = Category(name="C", slug="c", description="x")
+    brand = Brand(name="B", slug="b")
+    session.add(category)
+    session.add(brand)
+    session.commit()
+    session.refresh(category)
+    session.refresh(brand)
+
+    p1 = _make_product(session, category.id, brand.id, "Anchor")
+    p2 = _make_product(session, category.id, brand.id, "Co P2")
+    p3 = _make_product(session, category.id, brand.id, "Co P3")
+
+    _create_order_with_items(session, test_user.id, [p1.id, p2.id])
+    _create_order_with_items(session, test_user.id, [p1.id, p2.id])
+    _create_order_with_items(session, test_user.id, [p1.id, p3.id])
+
+    response = client.get(f"/api/ai/recommend?strategy=co_occurrence&product_id={p1.id}&limit=5")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["strategy"] == "co_occurrence"
+    assert len(data["results"]) == 2
+    assert data["results"][0]["product"]["id"] == p2.id
+    assert data["results"][1]["product"]["id"] == p3.id
+    # Score normalized: P2 cao nhất (1.0), P3 thấp hơn
+    assert data["results"][0]["score"] == 1.0
+    assert data["results"][1]["score"] < 1.0
+    # Reason hợp lý
+    assert "mua sản phẩm này cũng mua" in data["results"][0]["reason"]
+
+
+def test_co_occurrence_excludes_anchor_itself(
+    client: TestClient, session: Session, test_user
+):
+    """Anchor không bao giờ tự gợi ý chính nó dù có trong đơn."""
+    category = Category(name="C", slug="c", description="x")
+    brand = Brand(name="B", slug="b")
+    session.add(category)
+    session.add(brand)
+    session.commit()
+    session.refresh(category)
+    session.refresh(brand)
+
+    p1 = _make_product(session, category.id, brand.id, "Anchor")
+    p2 = _make_product(session, category.id, brand.id, "Co")
+
+    _create_order_with_items(session, test_user.id, [p1.id, p2.id])
+
+    response = client.get(f"/api/ai/recommend?strategy=co_occurrence&product_id={p1.id}&limit=5")
+
+    assert response.status_code == 200
+    product_ids = [r["product"]["id"] for r in response.json()["results"]]
+    assert p1.id not in product_ids
+
+
+def test_co_occurrence_skips_inactive_products(
+    client: TestClient, session: Session, test_user
+):
+    """Co-product INACTIVE → không xuất hiện trong kết quả."""
+    category = Category(name="C", slug="c", description="x")
+    brand = Brand(name="B", slug="b")
+    session.add(category)
+    session.add(brand)
+    session.commit()
+    session.refresh(category)
+    session.refresh(brand)
+
+    p1 = _make_product(session, category.id, brand.id, "Anchor")
+    p2 = _make_product(session, category.id, brand.id, "Inactive co")
+    p3 = _make_product(session, category.id, brand.id, "Active co")
+
+    _create_order_with_items(session, test_user.id, [p1.id, p2.id, p3.id])
+
+    # Deactivate p2
+    p2.status = "INACTIVE"
+    session.add(p2)
+    session.commit()
+
+    response = client.get(f"/api/ai/recommend?strategy=co_occurrence&product_id={p1.id}&limit=5")
+
+    product_ids = [r["product"]["id"] for r in response.json()["results"]]
+    assert p3.id in product_ids
+    assert p2.id not in product_ids
+
+
+def test_co_occurrence_falls_back_to_category(
+    client: TestClient, session: Session
+):
+    """Anchor chưa có đơn nào → fallback sản phẩm cùng category."""
+    category = Category(name="C", slug="c", description="x")
+    brand = Brand(name="B", slug="b")
+    session.add(category)
+    session.add(brand)
+    session.commit()
+    session.refresh(category)
+    session.refresh(brand)
+
+    p1 = _make_product(session, category.id, brand.id, "Anchor")
+    p2 = _make_product(session, category.id, brand.id, "Same cat")
+    # Không tạo order nào với p1
+
+    response = client.get(f"/api/ai/recommend?strategy=co_occurrence&product_id={p1.id}&limit=5")
+
+    assert response.status_code == 200
+    data = response.json()
+    product_ids = [r["product"]["id"] for r in data["results"]]
+    assert p2.id in product_ids
+    assert p1.id not in product_ids
+    # Reason chỉ rõ đây là fallback category
+    assert "danh mục" in data["results"][0]["reason"].lower() or "category" in data["results"][0]["reason"].lower()
+
+
+def test_co_occurrence_falls_back_to_popular_when_no_category_match(
+    client: TestClient, session: Session, test_user
+):
+    """Anchor cô đơn trong category + có sản phẩm khác có đơn → fallback popular."""
+    cat1 = Category(name="C1", slug="c1", description="x")
+    cat2 = Category(name="C2", slug="c2", description="x")
+    brand = Brand(name="B", slug="b")
+    session.add(cat1)
+    session.add(cat2)
+    session.add(brand)
+    session.commit()
+    session.refresh(cat1)
+    session.refresh(cat2)
+    session.refresh(brand)
+
+    p_anchor = _make_product(session, cat1.id, brand.id, "Anchor alone")
+    p_other = _make_product(session, cat2.id, brand.id, "Popular elsewhere")
+    # Tạo đơn cho p_other (không có anchor)
+    _create_order_with_items(session, test_user.id, [p_other.id])
+
+    response = client.get(f"/api/ai/recommend?strategy=co_occurrence&product_id={p_anchor.id}&limit=5")
+
+    assert response.status_code == 200
+    data = response.json()
+    product_ids = [r["product"]["id"] for r in data["results"]]
+    assert p_other.id in product_ids
+    assert p_anchor.id not in product_ids
+
+
+def test_co_occurrence_requires_product_id(client: TestClient):
+    """strategy=co_occurrence mà thiếu product_id → 400."""
+    response = client.get("/api/ai/recommend?strategy=co_occurrence&limit=5")
+    assert response.status_code == 400
+    assert "product_id" in response.json()["detail"]
+
+
+def test_co_occurrence_returns_404_when_product_not_found(client: TestClient):
+    """product_id không tồn tại → 404."""
+    response = client.get("/api/ai/recommend?strategy=co_occurrence&product_id=99999&limit=5")
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
+
+
+def test_co_occurrence_is_public(client: TestClient, session: Session, product: Product):
+    """Endpoint không yêu cầu JWT (giống strategy=popular)."""
+    response = client.get(f"/api/ai/recommend?strategy=co_occurrence&product_id={product.id}&limit=5")
+    # Có thể trả empty/fallback nhưng phải 200, không 401
+    assert response.status_code == 200
+
+
+def test_co_occurrence_respects_limit(
+    client: TestClient, session: Session, test_user
+):
+    """limit=2 → trả tối đa 2 kết quả dù có nhiều co-occurrence."""
+    category = Category(name="C", slug="c", description="x")
+    brand = Brand(name="B", slug="b")
+    session.add(category)
+    session.add(brand)
+    session.commit()
+    session.refresh(category)
+    session.refresh(brand)
+
+    p_anchor = _make_product(session, category.id, brand.id, "Anchor")
+    co_products = [
+        _make_product(session, category.id, brand.id, f"Co {i}")
+        for i in range(5)
+    ]
+    for co in co_products:
+        _create_order_with_items(session, test_user.id, [p_anchor.id, co.id])
+
+    response = client.get(f"/api/ai/recommend?strategy=co_occurrence&product_id={p_anchor.id}&limit=2")
+
+    assert response.status_code == 200
+    assert len(response.json()["results"]) == 2
+
+
+def test_co_occurrence_invalid_strategy_listed_in_error(client: TestClient):
+    """Strategy không hợp lệ → 400 và message liệt kê co_occurrence trong danh sách."""
+    response = client.get("/api/ai/recommend?strategy=invalid&limit=5")
+    assert response.status_code == 400
+    assert "co_occurrence" in response.json()["detail"]

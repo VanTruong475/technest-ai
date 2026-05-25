@@ -335,6 +335,102 @@ def recommend_by_history(user_id: int, limit: int, session: Session) -> AIRecomm
     return AIRecommendResponse(strategy="history", results=results, total=len(scored))
 
 
+def recommend_co_occurrence(product_id: int, limit: int, session: Session) -> AIRecommendResponse:
+    """Gợi ý kiểu "khách mua sản phẩm này cũng mua...".
+
+    SQL self-join trên order_items: với mỗi đơn chứa product_id (anchor), đếm
+    các sản phẩm khác xuất hiện cùng → top N. Score chuẩn hóa theo max_count
+    để 1.0 = co-occurrence cao nhất trong tập trả về.
+
+    Fallback chain (nếu anchor chưa đủ dữ liệu mua chung):
+      1. Co-occurrence (chính)
+      2. Cùng category với anchor (chỉ ACTIVE + còn stock)
+      3. Popular (toàn shop)
+    """
+    from sqlalchemy.orm import aliased
+
+    # Self-join trên order_items: oi_anchor = đơn chứa product_id, oi_co =
+    # các product khác trong cùng đơn. Filter loại anchor + INACTIVE + hết stock.
+    oi_anchor = aliased(OrderItem)
+    oi_co = aliased(OrderItem)
+
+    statement = (
+        select(Product, func.count(oi_co.id).label("co_count"))
+        .join(oi_co, oi_co.product_id == Product.id)
+        .join(oi_anchor, oi_anchor.order_id == oi_co.order_id)
+        .where(oi_anchor.product_id == product_id)
+        .where(oi_co.product_id != product_id)
+        .where(Product.status == "ACTIVE", Product.stock > 0)
+        .group_by(Product.id)
+        .order_by(func.count(oi_co.id).desc())
+        .limit(limit)
+    )
+    rows = list(session.exec(statement).all())
+
+    if rows:
+        max_count = rows[0][1]
+        results = []
+        for product, count in rows:
+            score = round(min(count / max_count, 1.0), 2) if max_count > 0 else 0.5
+            reason = (
+                f"Khách mua sản phẩm này cũng mua (xuất hiện cùng {count} lần)"
+                if count > 1
+                else "Khách mua sản phẩm này cũng mua"
+            )
+            results.append(
+                AIRecommendResult(product=_product_to_response(product), score=score, reason=reason)
+            )
+        return AIRecommendResponse(strategy="co_occurrence", results=results, total=len(results))
+
+    # Fallback 1: cùng category với anchor (nếu anchor tồn tại + có category).
+    anchor = session.get(Product, product_id)
+    if anchor and anchor.category_id is not None:
+        cat_statement = (
+            select(Product)
+            .where(Product.status == "ACTIVE", Product.stock > 0)
+            .where(Product.category_id == anchor.category_id)
+            .where(Product.id != product_id)
+            .order_by(Product.id.desc())
+            .limit(limit)
+        )
+        cat_products = list(session.exec(cat_statement).all())
+        if cat_products:
+            results = [
+                AIRecommendResult(
+                    product=_product_to_response(p),
+                    score=0.5,
+                    reason="Cùng danh mục (chưa có dữ liệu mua chung)",
+                )
+                for p in cat_products
+            ]
+            return AIRecommendResponse(strategy="co_occurrence", results=results, total=len(results))
+
+    # Fallback 2: popular toàn shop, loại anchor để không tự gợi ý chính nó.
+    popular = _get_popular_products(session, {product_id}, limit)
+    if popular:
+        results = [
+            AIRecommendResult(
+                product=_product_to_response(p),
+                score=s,
+                reason=f"Sản phẩm phổ biến (fallback vì sản phẩm này chưa có dữ liệu mua chung)",
+            )
+            for p, s, r in popular
+        ]
+        return AIRecommendResponse(strategy="co_occurrence", results=results, total=len(results))
+
+    # Fallback 3: latest products (DB chưa có đơn nào).
+    latest = _get_latest_products(session, {product_id}, limit)
+    results = [
+        AIRecommendResult(
+            product=_product_to_response(p),
+            score=s,
+            reason="Sản phẩm mới (chưa có dữ liệu mua chung)",
+        )
+        for p, s, r in latest
+    ]
+    return AIRecommendResponse(strategy="co_occurrence", results=results, total=len(results))
+
+
 def recommend_popular(limit: int, session: Session) -> AIRecommendResponse:
     """Gợi ý sản phẩm phổ biến nhất (public)."""
     # Ưu tiên 1: popular theo order_items
