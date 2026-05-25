@@ -15,6 +15,7 @@ import { SaleBadge } from "@/components/common/SaleBadge";
 import { ReviewSection } from "@/components/common/ReviewSection";
 import HeartButton from "@/components/common/HeartButton";
 import RecentlyViewed from "@/components/common/RecentlyViewed";
+import CustomersAlsoBought from "@/components/common/CustomersAlsoBought";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 
 interface Product {
@@ -60,18 +61,6 @@ export default function ProductDetailPage() {
       });
     }
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Fetch related products
-  const { data: relatedData } = useQuery<{ items: Product[] }>({
-    queryKey: ["related-products", product?.category_id, id],
-    queryFn: async () => {
-      const res = await axiosClient.get("/api/products", {
-        params: { category_id: product!.category_id, page: 1, limit: 5 },
-      });
-      return res.data;
-    },
-    enabled: !!product?.category_id,
-  });
 
   // Add to cart mutation
   const addToCartMutation = useMutation({
@@ -237,46 +226,10 @@ export default function ProductDetailPage() {
       {/* Reviews */}
       <ReviewSection productId={Number(id)} />
 
-      {/* Related Products */}
-      {relatedData && relatedData.items && relatedData.items.filter((p) => p.id !== Number(id)).length > 0 && (
-        <section>
-          <h2 className="text-xl font-bold mb-4">Sản phẩm liên quan</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {relatedData.items
-              .filter((p) => p.id !== Number(id))
-              .slice(0, 4)
-              .map((p) => (
-                <Link key={p.id} to={`/products/${p.id}`}>
-                  <Card className="h-full hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer relative overflow-hidden border-border/60 shadow-sm rounded-2xl group">
-                    {p.sale_price && p.sale_price < p.price && (
-                      <SaleBadge price={p.price} salePrice={p.sale_price} />
-                    )}
-                    <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
-                      {p.image_url ? (
-                        <OptimizedImage src={p.image_url} alt={p.name} width={400} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      ) : (
-                        <span className="text-4xl" aria-hidden="true">📦</span>
-                      )}
-                    </div>
-                    <CardContent className="space-y-2">
-                      <h3 className="font-medium line-clamp-2 text-sm">{p.name}</h3>
-                      <div className="flex items-center gap-2">
-                        {p.sale_price ? (
-                          <>
-                            <span className="text-base font-bold text-destructive">{formatPrice(p.sale_price)}</span>
-                            <span className="text-xs text-muted-foreground line-through">{formatPrice(p.price)}</span>
-                          </>
-                        ) : (
-                          <span className="text-base font-bold">{formatPrice(p.price)}</span>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-          </div>
-        </section>
-      )}
+      {/* "Có thể bạn cũng thích" — backend dùng co-occurrence (khách mua A
+          cũng mua B), tự fallback về cùng category → popular nếu chưa đủ
+          dữ liệu order. Strict upgrade so với phiên bản chỉ filter category. */}
+      <CustomersAlsoBought productId={Number(id)} limit={4} />
 
       {/* Recently Viewed */}
       <RecentlyViewed currentProductId={Number(id)} />
