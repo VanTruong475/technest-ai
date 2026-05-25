@@ -13,6 +13,7 @@ class Order(SQLModel, table=True):
     status: str = Field(default="PENDING", max_length=20)
     payment_method: str = Field(default="COD", max_length=20)
     payment_status: str = Field(default="UNPAID", max_length=20)
+    payment_txn_ref: Optional[str] = Field(default=None, max_length=100, unique=True, index=True)
     shipping_address: str
     phone: str
     note: Optional[str] = None

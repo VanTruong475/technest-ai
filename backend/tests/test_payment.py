@@ -24,7 +24,13 @@ def _create_order(client: TestClient, token: str, product: Product) -> int:
     return res.json()["id"]
 
 
-def _build_vnpay_return_url(order_id: int, response_code: str = "00", secret: str = "test_secret") -> str:
+def _build_vnpay_return_url(
+    order_id: int,
+    response_code: str = "00",
+    secret: str = "test_secret",
+    amount: str = "2749000000",
+    txn_ref: str | None = None,
+) -> str:
     """Build a valid VNPay return URL with proper HMAC-SHA512 hash.
     Uses urlencode (quote_plus) for hash data — same logic as vnpay_service."""
     timestamp = int(datetime.now(timezone.utc).timestamp())
@@ -32,9 +38,9 @@ def _build_vnpay_return_url(order_id: int, response_code: str = "00", secret: st
         "vnp_Version": "2.1.0",
         "vnp_Command": "pay",
         "vnp_TmnCode": "test_tmn",
-        "vnp_Amount": "2749000000",
+        "vnp_Amount": amount,
         "vnp_CurrCode": "VND",
-        "vnp_TxnRef": f"order_{order_id}_{timestamp}",
+        "vnp_TxnRef": txn_ref if txn_ref is not None else f"order_{order_id}_{timestamp}",
         "vnp_OrderInfo": f"Thanh toan don hang #{order_id}",
         "vnp_OrderType": "other",
         "vnp_Locale": "vn",
@@ -192,3 +198,159 @@ def test_vnpay_return_invalid_hash(client: TestClient, user_token: str, product:
     # Payment status should remain PENDING (not updated)
     session.refresh(order)
     assert order.payment_status == "PENDING"
+
+
+# ── PR #4: VNPay hardening — amount tampering, replay, terminal-state guards ──
+
+
+def _set_order_pending_vnpay(session: Session, order_id: int):
+    from app.models.order import Order
+    order = session.get(Order, order_id)
+    order.payment_method = "VNPAY"
+    order.payment_status = "PENDING"
+    session.add(order)
+    session.commit()
+    return order
+
+
+@patch("app.core.config.settings.VNPAY_HASH_SECRET", "test_secret")
+@patch("app.core.config.settings.FRONTEND_URL", "http://localhost:5173")
+def test_vnpay_return_amount_mismatch(
+    client: TestClient, user_token: str, product: Product, session: Session
+):
+    """Amount tampering → reject, status stays PENDING."""
+    order_id = _create_order(client, user_token, product)
+    order = _set_order_pending_vnpay(session, order_id)
+
+    # Send wrong amount (1 VND instead of 27,490,000 VND)
+    return_url = _build_vnpay_return_url(
+        order_id, response_code="00", secret="test_secret", amount="100"
+    )
+    response = client.get(f"/api/payments/vnpay-return{return_url}", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "status=failed" in response.headers["location"]
+    assert "reason=amount_mismatch" in response.headers["location"]
+
+    session.refresh(order)
+    assert order.payment_status == "PENDING"
+    assert order.payment_txn_ref is None
+
+
+@patch("app.core.config.settings.VNPAY_HASH_SECRET", "test_secret")
+@patch("app.core.config.settings.FRONTEND_URL", "http://localhost:5173")
+def test_vnpay_return_cancelled_order_not_flipped(
+    client: TestClient, user_token: str, product: Product, session: Session
+):
+    """Order đã CANCELLED → callback success không được flip về PAID."""
+    order_id = _create_order(client, user_token, product)
+    order = _set_order_pending_vnpay(session, order_id)
+    order.status = "CANCELLED"
+    session.add(order)
+    session.commit()
+
+    return_url = _build_vnpay_return_url(order_id, response_code="00", secret="test_secret")
+    response = client.get(f"/api/payments/vnpay-return{return_url}", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "status=failed" in response.headers["location"]
+    assert "reason=cancelled" in response.headers["location"]
+
+    session.refresh(order)
+    assert order.status == "CANCELLED"
+    assert order.payment_status != "PAID"
+
+
+@patch("app.core.config.settings.VNPAY_HASH_SECRET", "test_secret")
+@patch("app.core.config.settings.FRONTEND_URL", "http://localhost:5173")
+def test_vnpay_return_replay_blocked(
+    client: TestClient, user_token: str, product: Product, session: Session
+):
+    """Cùng vnp_TxnRef không được xử lý 2 lần (replay attack)."""
+    order_id = _create_order(client, user_token, product)
+    order = _set_order_pending_vnpay(session, order_id)
+
+    txn_ref = f"order_{order_id}_111111"
+    return_url = _build_vnpay_return_url(
+        order_id, response_code="00", secret="test_secret", txn_ref=txn_ref
+    )
+
+    # First callback — success
+    response1 = client.get(f"/api/payments/vnpay-return{return_url}", follow_redirects=False)
+    assert response1.status_code == 302
+    assert "status=success" in response1.headers["location"]
+
+    session.refresh(order)
+    assert order.payment_status == "PAID"
+    assert order.payment_txn_ref == txn_ref
+
+    # Replay: reset PENDING to simulate attacker who somehow reset state, then replay same URL.
+    # Even with PENDING, txn_ref is already consumed → blocked.
+    order.payment_status = "PENDING"
+    session.add(order)
+    session.commit()
+
+    response2 = client.get(f"/api/payments/vnpay-return{return_url}", follow_redirects=False)
+    assert response2.status_code == 302
+    assert "status=failed" in response2.headers["location"]
+    assert "reason=replay" in response2.headers["location"]
+
+
+@patch("app.core.config.settings.VNPAY_HASH_SECRET", "test_secret")
+@patch("app.core.config.settings.FRONTEND_URL", "http://localhost:5173")
+def test_vnpay_return_already_processed_blocked(
+    client: TestClient, user_token: str, product: Product, session: Session
+):
+    """Order đã PAID → callback thứ 2 không được xử lý lại."""
+    order_id = _create_order(client, user_token, product)
+    order = _set_order_pending_vnpay(session, order_id)
+    order.payment_status = "PAID"
+    session.add(order)
+    session.commit()
+
+    return_url = _build_vnpay_return_url(order_id, response_code="00", secret="test_secret")
+    response = client.get(f"/api/payments/vnpay-return{return_url}", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "reason=already_processed" in response.headers["location"]
+
+    session.refresh(order)
+    assert order.payment_status == "PAID"
+
+
+@patch("app.core.config.settings.VNPAY_HASH_SECRET", "test_secret")
+@patch("app.core.config.settings.FRONTEND_URL", "http://localhost:5173")
+def test_vnpay_return_saves_txn_ref(
+    client: TestClient, user_token: str, product: Product, session: Session
+):
+    """vnp_TxnRef được lưu vào order sau khi thanh toán thành công."""
+    order_id = _create_order(client, user_token, product)
+    order = _set_order_pending_vnpay(session, order_id)
+    assert order.payment_txn_ref is None
+
+    txn_ref = f"order_{order_id}_999999"
+    return_url = _build_vnpay_return_url(
+        order_id, response_code="00", secret="test_secret", txn_ref=txn_ref
+    )
+    response = client.get(f"/api/payments/vnpay-return{return_url}", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "status=success" in response.headers["location"]
+
+    session.refresh(order)
+    assert order.payment_txn_ref == txn_ref
+
+
+def test_create_order_invalid_payment_method(
+    client: TestClient, user_token: str, product: Product
+):
+    """OrderCreate.payment_method là Literal["COD","VNPAY"] → giá trị khác → 422."""
+    _add_to_cart(client, user_token, product.id, 1)
+    response = client.post("/api/orders", headers={
+        "Authorization": f"Bearer {user_token}",
+    }, json={
+        "shipping_address": "Addr",
+        "phone": "0900000000",
+        "payment_method": "BITCOIN",
+    })
+    assert response.status_code == 422

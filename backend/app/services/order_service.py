@@ -148,7 +148,7 @@ def create_order(
         user_id=current_user.id,
         total_amount=total_amount,
         status="PENDING",
-        payment_method=data.payment_method if data.payment_method in ("COD", "VNPAY") else "COD",
+        payment_method=data.payment_method,
         payment_status="UNPAID",
         shipping_address=data.shipping_address,
         phone=data.phone,

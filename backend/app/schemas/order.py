@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -8,7 +8,7 @@ class OrderCreate(BaseModel):
     shipping_address: str
     phone: str
     note: Optional[str] = None
-    payment_method: str = "COD"
+    payment_method: Literal["COD", "VNPAY"] = "COD"
 
 
 class OrderStatusUpdate(BaseModel):

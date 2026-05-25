@@ -70,21 +70,60 @@ def vnpay_return(
     order_id = extract_order_id(params)
     frontend_url = settings.FRONTEND_URL
 
+    def _redirect_fail(reason: str) -> RedirectResponse:
+        url = f"{frontend_url}/payment/result?status=failed&reason={reason}"
+        if order_id is not None:
+            url += f"&order_id={order_id}"
+        return RedirectResponse(url=url, status_code=302)
+
     if not is_valid or order_id is None:
-        return RedirectResponse(
-            url=f"{frontend_url}/payment/result?status=failed&reason=invalid",
-            status_code=302,
-        )
+        return _redirect_fail("invalid")
 
     order_repo = OrderRepository(session)
     order = order_repo.find_by_id(order_id)
 
     if not order:
-        return RedirectResponse(
-            url=f"{frontend_url}/payment/result?status=failed&reason=not_found",
-            status_code=302,
-        )
+        return _redirect_fail("not_found")
 
+    # Terminal states must never be flipped back. Blocks replay of an old
+    # callback after the order has been cancelled or already settled.
+    if order.status == "CANCELLED":
+        logger.warning(f"VNPay return ignored: order #{order_id} is CANCELLED")
+        return _redirect_fail("cancelled")
+
+    if order.payment_status != "PENDING":
+        logger.warning(
+            f"VNPay return ignored: order #{order_id} payment_status={order.payment_status} (expected PENDING)"
+        )
+        return _redirect_fail("already_processed")
+
+    # Amount tampering check: VNPay sends amount * 100 (no fractional VND).
+    try:
+        vnp_amount = int(params.get("vnp_Amount", ""))
+    except ValueError:
+        return _redirect_fail("invalid")
+
+    expected_amount = round(order.total_amount * 100)
+    if vnp_amount != expected_amount:
+        logger.warning(
+            f"VNPay return amount mismatch for order #{order_id}: "
+            f"vnp_Amount={vnp_amount}, expected={expected_amount}"
+        )
+        return _redirect_fail("amount_mismatch")
+
+    # Replay guard — same txn_ref already consumed by any prior callback
+    # (this order or another). UNIQUE constraint on payment_txn_ref also
+    # protects at the DB level.
+    txn_ref = params.get("vnp_TxnRef", "")
+    if txn_ref:
+        existing = order_repo.find_by_payment_txn_ref(txn_ref)
+        if existing:
+            logger.warning(
+                f"VNPay return replay detected: txn_ref={txn_ref} already used by order #{existing.id}"
+            )
+            return _redirect_fail("replay")
+
+    order.payment_txn_ref = txn_ref or None
     if response_code == "00":
         order.payment_status = "PAID"
         order.status = "CONFIRMED"

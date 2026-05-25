@@ -45,6 +45,10 @@ class OrderRepository:
         statement = select(Order).where(Order.id == order_id)
         return self.session.exec(statement).first()
 
+    def find_by_payment_txn_ref(self, txn_ref: str) -> Optional[Order]:
+        statement = select(Order).where(Order.payment_txn_ref == txn_ref)
+        return self.session.exec(statement).first()
+
     def create(self, order: Order) -> Order:
         self.session.add(order)
         self.session.commit()
