@@ -157,7 +157,8 @@ export default function ChatPage() {
           messages.map((msg, index) => (
             <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[80%] ${msg.role === "user" ? "order-1" : ""}`}>
-                {/* Message bubble */}
+                {/* Message bubble — no-underline defensive vì <p> trong
+                    rounded bubble đôi khi inherit text-decoration từ cascade */}
                 <div
                   className={`rounded-2xl px-4 py-2 ${
                     msg.role === "user"
@@ -165,7 +166,7 @@ export default function ChatPage() {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm">{msg.content}</p>
+                  <p className="text-sm no-underline whitespace-pre-wrap break-words">{msg.content}</p>
                 </div>
 
                 {/* Products */}
@@ -211,7 +212,7 @@ export default function ChatPage() {
                         key={i}
                         variant="ghost"
                         size="sm"
-                        className="text-xs h-7 text-muted-foreground"
+                        className="text-xs h-7 text-muted-foreground no-underline hover:no-underline"
                         onClick={() => handleSend(suggestion)}
                       >
                         {suggestion}

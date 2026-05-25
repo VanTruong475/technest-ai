@@ -4,7 +4,27 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, LogOut, LayoutDashboard, Menu, X, ChevronDown, Headphones, Heart } from "lucide-react";
+import {
+  ShoppingCart, User, LogOut, LayoutDashboard, Menu, X, ChevronDown,
+  Headphones, Heart, Mail, MapPin, Phone, Sparkles, ShieldCheck, Truck,
+  RotateCcw, CreditCard,
+} from "lucide-react";
+
+// Brand icons không có trong lucide-react v1.16 → dùng inline SVG.
+function GithubIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
+    </svg>
+  );
+}
+function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M22 12.07C22 6.51 17.52 2 12 2S2 6.51 2 12.07c0 5.02 3.66 9.18 8.44 9.93v-7.02H7.9v-2.91h2.54V9.85c0-2.52 1.49-3.91 3.77-3.91 1.09 0 2.24.2 2.24.2v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.77l-.44 2.91h-2.33V22c4.78-.75 8.44-4.91 8.44-9.93z" />
+    </svg>
+  );
+}
 import ScrollToTop from "@/components/common/ScrollToTop";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { useCategories, getCategoryIdBySlug } from "@/hooks/useCategories";
@@ -90,12 +110,17 @@ export default function MainLayout() {
             <Link to="/" className="text-lg font-bold tracking-tight" onClick={closeMobile}>
               TechSphere
             </Link>
-            <nav className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => (
+            {/* Nav: 2 link chính (Trang chủ, Sản phẩm) hiển thị từ md+,
+                các category links hiện ở lg+ để tránh overflow viewport
+                trung bình. Index 0,1 = primary; còn lại = category. */}
+            <nav className="hidden md:flex items-center gap-1" aria-label="Điều hướng chính">
+              {navLinks.map((link, idx) => (
                 <Link
                   key={link.to}
                   to={link.to}
                   className={`text-sm px-3 py-1.5 rounded-md transition-colors ${
+                    idx >= 2 ? "hidden lg:inline-block" : ""
+                  } ${
                     location.pathname === link.to || (link.to !== "/" && location.pathname + location.search === link.to)
                       ? "text-foreground bg-accent"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -334,47 +359,122 @@ export default function MainLayout() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30 mt-12">
-        <div className="container mx-auto px-4 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="col-span-2 md:col-span-1">
-              <h3 className="font-bold text-lg mb-3">TechSphere</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Cửa hàng thiết bị công nghệ chính hãng. Laptop, điện thoại, phụ kiện với giá tốt nhất.
+      <footer className="relative border-t bg-gradient-to-b from-muted/20 via-muted/30 to-muted/40 mt-16">
+        {/* Trust bar — 4 commitments inline, đậm hơn ở footer */}
+        <div className="border-b border-border/60">
+          <div className="container mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: ShieldCheck, label: "Bảo hành chính hãng", color: "text-emerald-600 dark:text-emerald-400" },
+              { icon: Truck, label: "Giao nhanh 1-2 ngày", color: "text-sky-600 dark:text-sky-400" },
+              { icon: RotateCcw, label: "Đổi trả 30 ngày", color: "text-amber-600 dark:text-amber-400" },
+              { icon: CreditCard, label: "Thanh toán an toàn", color: "text-violet-600 dark:text-violet-400" },
+            ].map(({ icon: Icon, label, color }) => (
+              <div key={label} className="flex items-center gap-2 text-xs md:text-sm">
+                <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+                <span className="font-medium">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-2 md:grid-cols-12 gap-8">
+            {/* Brand — cột rộng nhất */}
+            <div className="col-span-2 md:col-span-4">
+              <Link to="/" className="inline-flex items-center gap-2 mb-4">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-violet-600 text-primary-foreground shadow-md">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <span className="font-bold text-xl tracking-tight">TechSphere</span>
+              </Link>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-sm">
+                Thiết bị công nghệ chính hãng — laptop, điện thoại, tablet, tai nghe.
+                Trợ lý AI giúp bạn chọn đúng nhu cầu trong vài giây.
               </p>
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://github.com/VanTruong475/techsphere-ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub repository"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                >
+                  <GithubIcon className="h-4 w-4" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="Facebook"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                >
+                  <FacebookIcon className="h-4 w-4" />
+                </a>
+                <a
+                  href="mailto:support@techsphere.vn"
+                  aria-label="Email"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                >
+                  <Mail className="h-4 w-4" />
+                </a>
+              </div>
             </div>
-            <div>
-              <h4 className="font-semibold mb-3 text-sm">Sản phẩm</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                {categories.map((cat) => (
+
+            {/* Sản phẩm — categories */}
+            <div className="md:col-span-3">
+              <h4 className="font-semibold mb-4 text-sm">Sản phẩm</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                {categories.slice(0, 5).map((cat) => (
                   <li key={cat.id}>
-                    <Link to={`/products?category_id=${cat.id}`} className="hover:text-foreground">{cat.name}</Link>
+                    <Link to={`/products?category_id=${cat.id}`} className="hover:text-foreground transition-colors">{cat.name}</Link>
                   </li>
                 ))}
                 {categories.length === 0 && (
-                  <li><Link to="/products" className="hover:text-foreground">Tất cả sản phẩm</Link></li>
+                  <li><Link to="/products" className="hover:text-foreground transition-colors">Tất cả sản phẩm</Link></li>
                 )}
               </ul>
             </div>
-            <div>
-              <h4 className="font-semibold mb-3 text-sm">Hỗ trợ</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/orders" className="hover:text-foreground">Theo dõi đơn hàng</Link></li>
-                <li><span>Chính sách bảo hành</span></li>
-                <li><span>Đổi trả dễ dàng</span></li>
-                <li><span>Hotline: 1900 xxxx</span></li>
+
+            {/* Hỗ trợ */}
+            <div className="md:col-span-2">
+              <h4 className="font-semibold mb-4 text-sm">Hỗ trợ</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li><Link to="/orders" className="hover:text-foreground transition-colors">Theo dõi đơn</Link></li>
+                <li><Link to="/chat" className="hover:text-foreground transition-colors">Tư vấn AI</Link></li>
+                <li><span>Bảo hành</span></li>
+                <li><span>Đổi trả</span></li>
               </ul>
             </div>
-            <div>
-              <h4 className="font-semibold mb-3 text-sm">Liên hệ</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Email: support@techsphere.vn</li>
-                <li>Địa chỉ: Hà Nội, Việt Nam</li>
+
+            {/* Liên hệ */}
+            <div className="col-span-2 md:col-span-3">
+              <h4 className="font-semibold mb-4 text-sm">Liên hệ</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <Mail className="h-4 w-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+                  <a href="mailto:support@techsphere.vn" className="hover:text-foreground transition-colors break-all">support@techsphere.vn</a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Phone className="h-4 w-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+                  <span>1900 xxxx</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+                  <span>Hà Nội, Việt Nam</span>
+                </li>
               </ul>
             </div>
           </div>
-          <div className="border-t mt-8 pt-6 text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} TechSphere. All rights reserved.
+
+          {/* Bottom bar: copyright + payment methods */}
+          <div className="border-t mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+            <p>
+              © {new Date().getFullYear()} <span className="font-semibold text-foreground">TechSphere</span>. All rights reserved.
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline">Phương thức:</span>
+              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">VNPay</span>
+              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-semibold">COD</span>
+              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">SSL</span>
+            </div>
           </div>
         </div>
       </footer>

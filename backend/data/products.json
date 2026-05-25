@@ -69,7 +69,7 @@
     "status": "ACTIVE",
     "category_slug": "dien-thoai",
     "brand_slug": "samsung",
-    "image_url": "https://images.unsplash.com/photo-1583573636446-7860ec9b6c25?w=600&h=600&fit=crop&auto=format&q=80"
+    "image_url": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&h=600&fit=crop&auto=format"
   },
   {
     "name": "Samsung Galaxy Z Fold 5",
@@ -167,7 +167,6 @@
     "brand_slug": "asus",
     "image_url": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=600&h=600&fit=crop&auto=format&q=80"
   },
-
   {
     "name": "MacBook Pro 14 inch M3",
     "slug": "macbook-pro-14-m3",
@@ -360,7 +359,6 @@
     "brand_slug": "hp",
     "image_url": "https://images.unsplash.com/photo-1629131726692-1accd0c53ce0?w=600&h=600&fit=crop&auto=format&q=80"
   },
-
   {
     "name": "iPad Pro M2 11 inch",
     "slug": "ipad-pro-m2-11",
@@ -431,7 +429,7 @@
     "status": "ACTIVE",
     "category_slug": "tablet",
     "brand_slug": "samsung",
-    "image_url": "https://images.unsplash.com/photo-1632634571833-3b04b41be0f6?w=600&h=600&fit=crop&auto=format&q=80"
+    "image_url": "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=600&h=600&fit=crop&auto=format"
   },
   {
     "name": "Samsung Galaxy Tab S9 Ultra",
@@ -479,7 +477,7 @@
     "status": "ACTIVE",
     "category_slug": "tablet",
     "brand_slug": "xiaomi",
-    "image_url": "https://images.unsplash.com/photo-1632634571833-3b04b41be0f6?w=600&h=600&fit=crop&auto=format&q=80"
+    "image_url": "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=600&h=600&fit=crop&auto=format"
   },
   {
     "name": "Lenovo Tab P12",
@@ -517,7 +515,6 @@
     "brand_slug": "asus",
     "image_url": "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=600&h=600&fit=crop&auto=format&q=80"
   },
-
   {
     "name": "AirPods Pro 2",
     "slug": "airpods-pro-2",
@@ -684,9 +681,8 @@
     "status": "ACTIVE",
     "category_slug": "tai-nghe",
     "brand_slug": "logitech",
-    "image_url": "https://images.unsplash.com/photo-1591105575633-922c8897af9a?w=600&h=600&fit=crop&auto=format&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&h=600&fit=crop&auto=format"
   },
-
   {
     "name": "Apple MagSafe Charger",
     "slug": "apple-magsafe-charger",
@@ -697,7 +693,7 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "apple",
-    "image_url": "https://images.unsplash.com/photo-1633113217369-672a07a9e0d7?w=600&h=600&fit=crop&auto=format&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&h=600&fit=crop&auto=format"
   },
   {
     "name": "Apple AirTag 4-pack",
@@ -709,7 +705,7 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "apple",
-    "image_url": "https://images.unsplash.com/photo-1631214540180-be8b5bb2c2b3?w=600&h=600&fit=crop&auto=format&q=80"
+    "image_url": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=600&h=600&fit=crop&auto=format"
   },
   {
     "name": "Apple Pencil Pro",
@@ -721,7 +717,7 @@
     "status": "ACTIVE",
     "category_slug": "phu-kien",
     "brand_slug": "apple",
-    "image_url": "https://images.unsplash.com/photo-1586953209448-b95a79798f07?w=600&h=600&fit=crop&auto=format&q=80"
+    "image_url": "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=600&h=600&fit=crop&auto=format"
   },
   {
     "name": "Apple 20W USB-C Adapter",

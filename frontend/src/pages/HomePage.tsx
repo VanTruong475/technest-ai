@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Search, Smartphone, Laptop, Tablet, Headphones, Cable,
+  Search, Laptop,
   MessageSquare, ShieldCheck, Truck, RotateCcw, ArrowRight,
   Sparkles, Star, CreditCard, Package,
 } from "lucide-react";
@@ -33,25 +33,65 @@ interface RecommendResult {
   reason: string;
 }
 
-interface Category {
+interface Brand {
   id: number;
   name: string;
   slug: string;
 }
 
-const CATEGORY_SHOWCASE = [
-  { slug: "laptop", label: "Laptop", icon: Laptop, color: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
-  { slug: "dien-thoai", label: "Điện thoại", icon: Smartphone, color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
-  { slug: "tablet", label: "Tablet", icon: Tablet, color: "bg-violet-500/10 text-violet-600 dark:text-violet-400" },
-  { slug: "tai-nghe", label: "Tai nghe", icon: Headphones, color: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-  { slug: "phu-kien", label: "Phụ kiện", icon: Cable, color: "bg-pink-500/10 text-pink-600 dark:text-pink-400" },
+// Brand/product-line showcase — 12 cards (2 rows × 6 cols on desktop).
+// brandSlug → link `/products?brand_id=<id>` (chỉ khi brand tồn tại trong DB).
+// search → link `/products?search=<text>` cho Apple product lines + brands
+// chưa có trong DB (Oppo/Vivo/Huawei/Realme).
+//
+// logoClass cố tình dùng colors hard-coded để khớp với brand identity thật
+// (Samsung blue, Oppo green, Realme yellow, etc.) — không phụ thuộc theme.
+const BRAND_SHOWCASE = [
+  { key: "iphone",  label: "iPhone",  search: "iPhone",        logoText: "iPhone",  logoClass: "bg-muted text-foreground text-[10px] font-medium border border-border/60" },
+  { key: "samsung", label: "Samsung", brandSlug: "samsung",    logoText: "SAMSUNG", logoClass: "bg-background text-blue-700 dark:text-blue-400 text-[7px] font-extrabold tracking-tight border border-border/60" },
+  { key: "oppo",    label: "Oppo",    search: "Oppo",          logoText: "OPPO",    logoClass: "bg-emerald-500 text-white text-[9px] font-extrabold" },
+  { key: "xiaomi",  label: "Xiaomi",  brandSlug: "xiaomi",     logoText: "mi",      logoClass: "bg-orange-500 text-white text-base font-bold" },
+  { key: "vivo",    label: "Vivo",    search: "Vivo",          logoText: "vivo",    logoClass: "bg-background text-blue-600 dark:text-blue-400 text-[10px] font-semibold border border-border/60" },
+  { key: "huawei",  label: "Huawei",  search: "Huawei",        logoText: "❀",      logoClass: "bg-background text-red-500 text-lg border border-border/60" },
+  { key: "realme",  label: "Realme",  search: "Realme",        logoText: "realme",  logoClass: "bg-yellow-400 text-zinc-900 text-[9px] font-bold" },
+  { key: "dell",    label: "Dell",    brandSlug: "dell",       logoText: "DELL",    logoClass: "bg-blue-700 text-white text-xs font-bold" },
+  { key: "hp",      label: "HP",      brandSlug: "hp",         logoText: "HP",      logoClass: "bg-blue-600 text-white text-xs font-bold !rounded-full" },
+  { key: "macbook", label: "Macbook", search: "MacBook",       logoText: "Macbook", logoClass: "bg-muted text-foreground text-[9px] font-medium border border-border/60" },
+  { key: "ipad",    label: "iPad",    search: "iPad",          logoText: "iPad",    logoClass: "bg-muted text-foreground text-[10px] font-medium border border-border/60" },
+  { key: "airpods", label: "AirPods", search: "AirPods",       logoText: "AirPods", logoClass: "bg-muted text-foreground text-[9px] font-medium border border-border/60" },
 ];
 
+// Trust strip — mỗi box có color identity riêng (matching brand mood) +
+// title chính + subtitle phụ để add depth. Hover lift + shadow subtle.
 const TRUST_STRIP = [
-  { icon: ShieldCheck, label: "Bảo hành chính hãng" },
-  { icon: Truck, label: "Giao hàng nhanh 1-2 ngày" },
-  { icon: RotateCcw, label: "Đổi trả trong 30 ngày" },
-  { icon: CreditCard, label: "Thanh toán VNPay an toàn" },
+  {
+    icon: ShieldCheck,
+    title: "Bảo hành chính hãng",
+    sub: "Đầy đủ giấy tờ · hỗ trợ 24/7",
+    iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    ring: "ring-emerald-500/20 dark:ring-emerald-400/20",
+  },
+  {
+    icon: Truck,
+    title: "Giao hàng nhanh",
+    sub: "1-2 ngày tận nơi toàn quốc",
+    iconBg: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+    ring: "ring-sky-500/20 dark:ring-sky-400/20",
+  },
+  {
+    icon: RotateCcw,
+    title: "Đổi trả dễ dàng",
+    sub: "Trong 30 ngày không lý do",
+    iconBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    ring: "ring-amber-500/20 dark:ring-amber-400/20",
+  },
+  {
+    icon: CreditCard,
+    title: "Thanh toán an toàn",
+    sub: "VNPay · COD · bảo mật SSL",
+    iconBg: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+    ring: "ring-violet-500/20 dark:ring-violet-400/20",
+  },
 ];
 
 function ProductCard({ product }: { product: Product }) {
@@ -103,10 +143,10 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
 
-  const { data: categoriesData } = useQuery<{ items: Category[] }>({
-    queryKey: ["categories"],
+  const { data: brandsData } = useQuery<{ items: Brand[] }>({
+    queryKey: ["brands"],
     queryFn: async () => {
-      const res = await axiosClient.get("/api/categories", { params: { limit: 100 } });
+      const res = await axiosClient.get("/api/brands", { params: { limit: 100 } });
       return res.data;
     },
   });
@@ -136,16 +176,27 @@ export default function HomePage() {
 
   const products = productsData?.items || [];
   const recommendations = recommendData?.results || [];
-  const categories = categoriesData?.items || [];
+  const brands = brandsData?.items || [];
 
-  const getCategoryIdBySlug = (slug: string) => categories.find((c) => c.slug === slug)?.id;
+  const getBrandIdBySlug = (slug: string) => brands.find((b) => b.slug === slug)?.id;
+
+  // Resolve brand card → product list URL. Ưu tiên brand_id (chính xác hơn)
+  // khi brand tồn tại DB; fallback search keyword cho Apple product lines
+  // và brands chưa seed (Oppo/Vivo/Huawei/Realme).
+  const getBrandHref = (item: typeof BRAND_SHOWCASE[number]) => {
+    if (item.brandSlug) {
+      const id = getBrandIdBySlug(item.brandSlug);
+      if (id) return `/products?brand_id=${id}`;
+    }
+    return `/products?search=${encodeURIComponent(item.search || item.label)}`;
+  };
   const heroProduct = products[0];
   const heroAccentProduct = products[1];
 
   return (
     <div className="space-y-16 md:space-y-20">
       {/* ── Hero Section ── */}
-      <section className="relative -mx-4 px-4 pt-4 pb-12 md:pt-8 md:pb-16 overflow-hidden">
+      <section className="relative -mx-4 px-4 pt-6 pb-12 md:pt-12 md:pb-16 lg:pt-16 overflow-hidden">
         {/* Soft gradient backdrop */}
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-background dark:from-primary/10" aria-hidden="true" />
         <div className="absolute top-0 right-0 -z-10 w-[40rem] h-[40rem] rounded-full bg-primary/5 blur-3xl translate-x-1/3 -translate-y-1/3" aria-hidden="true" />
@@ -285,10 +336,14 @@ export default function HomePage() {
                 </div>
               )}
 
-              {/* Floating AI badge */}
+              {/* Floating AI badge — pulse dot xanh để show AI "đang hoạt động" */}
               <div className="absolute -right-4 top-8 rounded-2xl bg-card border border-border shadow-xl px-4 py-3 flex items-center gap-2.5 hidden xl:flex">
-                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="relative h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
                   <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  </span>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground leading-tight">Gợi ý bởi</p>
@@ -331,46 +386,47 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Trust strip */}
-        <div className="mt-10 md:mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          {TRUST_STRIP.map((item) => (
-            <div
-              key={item.label}
-              className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-card/50 backdrop-blur px-3 py-3 text-xs md:text-sm"
-            >
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <item.icon className="h-4 w-4 text-primary" />
+        {/* Trust strip — 4 cards với color identity riêng cho mỗi commitment */}
+        <div className="mt-12 md:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {TRUST_STRIP.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className={`group flex items-start gap-3 rounded-2xl border border-border/60 bg-card/70 backdrop-blur px-4 py-4 ring-1 ring-transparent hover:${item.ring} hover:shadow-md hover:-translate-y-0.5 transition-all`}
+              >
+                <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${item.iconBg} transition-transform group-hover:scale-110`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm leading-tight">{item.title}</div>
+                  <div className="text-xs text-muted-foreground mt-1 leading-snug">{item.sub}</div>
+                </div>
               </div>
-              <span className="font-medium leading-tight">{item.label}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* ── Category Shortcuts ── */}
+      {/* ── Brand Showcase ── */}
       <section>
         <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Khám phá theo danh mục</h2>
-          <p className="text-sm text-muted-foreground mt-1.5">Chọn nhanh sản phẩm bạn quan tâm</p>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Khám phá theo thương hiệu</h2>
+          <p className="text-sm text-muted-foreground mt-1.5">Mua sắm theo thương hiệu yêu thích</p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-          {CATEGORY_SHOWCASE.map((cat) => {
-            const catId = getCategoryIdBySlug(cat.slug);
-            const href = catId ? `/products?category_id=${catId}` : "/products";
-            const Icon = cat.icon;
-            return (
-              <Link key={cat.slug} to={href}>
-                <Card className="hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group border-border/60 rounded-2xl">
-                  <CardContent className="flex flex-col items-center gap-3 py-6">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${cat.color} transition-transform group-hover:scale-110`}>
-                      <Icon className="h-7 w-7" />
-                    </div>
-                    <span className="text-sm font-medium">{cat.label}</span>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-3">
+          {BRAND_SHOWCASE.map((item) => (
+            <Link key={item.key} to={getBrandHref(item)}>
+              <Card className="h-full hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group border-border/60 rounded-xl">
+                <CardContent className="flex items-center gap-3 py-3 px-3">
+                  <div className={`w-11 h-11 rounded-md flex items-center justify-center shrink-0 ${item.logoClass}`}>
+                    <span aria-hidden="true">{item.logoText}</span>
+                  </div>
+                  <span className="text-sm font-medium truncate">{item.label}</span>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </section>
 

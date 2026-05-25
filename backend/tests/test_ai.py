@@ -80,6 +80,61 @@ def test_ai_recommend_popular(client: TestClient, session: Session):
     assert data["strategy"] == "popular"
 
 
+def test_ai_response_includes_image_url(client: TestClient, session: Session):
+    """Regression test: _product_to_response trước đây quên truyền image_url
+    → FE hiển thị 📦 fallback ở Home "Phổ biến nhất", chat results, search,
+    "Có thể bạn cũng thích". Phải đảm bảo mọi AI response trả product có
+    field image_url khớp DB."""
+    from app.models.category import Category
+    from app.models.brand import Brand
+    from app.models.product import Product
+
+    category = Category(name="Laptop", slug="laptop-img", description="x")
+    brand = Brand(name="Dell", slug="dell-img")
+    session.add(category)
+    session.add(brand)
+    session.commit()
+    session.refresh(category)
+    session.refresh(brand)
+
+    product = Product(
+        name="Dell XPS Test",
+        slug="dell-xps-img-test",
+        description="Test laptop with image",
+        price=20_000_000,
+        stock=10,
+        status="ACTIVE",
+        category_id=category.id,
+        brand_id=brand.id,
+        image_url="https://example.com/dell-xps.jpg",
+    )
+    session.add(product)
+    session.commit()
+
+    # 1. Smart search response phải có image_url
+    res = client.post("/api/ai/search", json={"query": "Dell XPS", "limit": 5})
+    assert res.status_code == 200
+    results = res.json()["results"]
+    assert len(results) > 0
+    assert results[0]["product"]["image_url"] == "https://example.com/dell-xps.jpg"
+
+    # 2. Recommend popular cũng phải có image_url
+    res = client.get("/api/ai/recommend?strategy=popular&limit=5")
+    assert res.status_code == 200
+    # Có thể empty nếu chưa có order_items — chỉ check shape khi có results
+    for r in res.json()["results"]:
+        assert "image_url" in r["product"]
+
+    # 3. Chat response cũng phải có image_url
+    res = client.post("/api/ai/chat", json={"message": "Dell XPS", "limit": 3})
+    assert res.status_code == 200
+    for r in res.json()["products"]:
+        assert "image_url" in r["product"]
+        # Sản phẩm vừa tạo phải xuất hiện và có URL chính xác
+        if r["product"]["id"] == product.id:
+            assert r["product"]["image_url"] == "https://example.com/dell-xps.jpg"
+
+
 def test_ai_recommend_cart_requires_auth(client: TestClient):
     response = client.get("/api/ai/recommend?strategy=cart&limit=5")
     assert response.status_code == 401

@@ -62,21 +62,13 @@ def _calculate_score(product: Product, keywords: list[str]) -> tuple[float, str]
 
 
 def _product_to_response(product: Product) -> ProductResponse:
-    """Convert Product model sang ProductResponse."""
-    return ProductResponse(
-        id=product.id,
-        category_id=product.category_id,
-        brand_id=product.brand_id,
-        name=product.name,
-        slug=product.slug,
-        description=product.description,
-        price=product.price,
-        sale_price=product.sale_price,
-        stock=product.stock,
-        status=product.status,
-        created_at=product.created_at,
-        updated_at=product.updated_at,
-    )
+    """Convert Product model sang ProductResponse.
+
+    Dùng model_validate (from_attributes=True đã enabled trong schema) thay
+    vì list từng field — tránh bug bỏ sót field như đã từng xảy ra với
+    image_url (làm mọi AI feature mất ảnh trên FE).
+    """
+    return ProductResponse.model_validate(product)
 
 
 def smart_search(
