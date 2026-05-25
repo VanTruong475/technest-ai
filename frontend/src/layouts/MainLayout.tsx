@@ -39,6 +39,9 @@ export default function MainLayout() {
   const { isAuthenticated, isAdmin, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  // Chat page có layout đặc biệt: full viewport, ẩn footer, không scroll page.
+  // Chat content tự manage scroll trong container của nó.
+  const isChatPage = location.pathname === "/chat";
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: categories = [] } = useCategories();
   const { data: cartData } = useQuery<{ total_items: number }>({
@@ -353,12 +356,20 @@ export default function MainLayout() {
         )}
       </header>
 
-      {/* Main content */}
-      <main className="container mx-auto px-4 py-6">
-        <Outlet />
-      </main>
+      {/* Main content — chat page dùng full-bleed layout (không container/padding)
+          để fill viewport bên dưới header, tránh page scroll khi chat dài. */}
+      {isChatPage ? (
+        <main className="h-[calc(100vh-3.5rem)] overflow-hidden">
+          <Outlet />
+        </main>
+      ) : (
+        <main className="container mx-auto px-4 py-6">
+          <Outlet />
+        </main>
+      )}
 
-      {/* Footer */}
+      {/* Footer — ẩn ở /chat để chat full-height không có scroll page */}
+      {!isChatPage && (
       <footer className="relative border-t bg-gradient-to-b from-muted/20 via-muted/30 to-muted/40 mt-16">
         {/* Trust bar — 4 commitments inline, đậm hơn ở footer */}
         <div className="border-b border-border/60">
@@ -478,8 +489,9 @@ export default function MainLayout() {
           </div>
         </div>
       </footer>
+      )}
 
-      <ScrollToTop />
+      {!isChatPage && <ScrollToTop />}
     </div>
   );
 }
