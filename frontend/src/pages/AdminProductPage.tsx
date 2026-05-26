@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -251,12 +252,6 @@ export default function AdminProductPage() {
       updateMutation.mutate({ id: editingProduct.id, data: form });
     } else {
       createMutation.mutate(form);
-    }
-  };
-
-  const handleDelete = (id: number, name: string) => {
-    if (confirm(`Xác nhận xóa sản phẩm "${name}"?`)) {
-      deleteMutation.mutate(id);
     }
   };
 
@@ -562,9 +557,18 @@ export default function AdminProductPage() {
                           <Button variant="ghost" size="icon" onClick={() => openEditForm(product)} aria-label={`Chỉnh sửa ${product.name}`} className="h-8 w-8 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id, product.name)} aria-label={`Xóa ${product.name}`} className="h-8 w-8 hover:bg-destructive/10">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <ConfirmDialog
+                            title="Xóa sản phẩm?"
+                            description={`Hành động này không thể hoàn tác. Sản phẩm "${product.name}" sẽ bị xóa khỏi hệ thống.`}
+                            confirmText="Xóa"
+                            cancelText="Hủy"
+                            variant="destructive"
+                            onConfirm={() => deleteMutation.mutate(product.id)}
+                          >
+                            <Button variant="ghost" size="icon" aria-label={`Xóa ${product.name}`} className="h-8 w-8 hover:bg-destructive/10">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </ConfirmDialog>
                         </div>
                       </td>
                     </tr>

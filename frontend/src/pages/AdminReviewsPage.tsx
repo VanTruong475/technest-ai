@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Star } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
@@ -58,12 +59,6 @@ export default function AdminReviewsPage() {
       toast.error(getErrorMessage(err, "Xóa đánh giá thất bại"));
     },
   });
-
-  const handleDelete = (id: number) => {
-    if (confirm("Xác nhận xóa đánh giá này?")) {
-      deleteMutation.mutate(id);
-    }
-  };
 
   const reviews = data?.items || [];
 
@@ -142,16 +137,24 @@ export default function AdminReviewsPage() {
                           {formatDate(review.created_at)}
                         </td>
                         <td className="p-3 text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(review.id)}
-                            disabled={deleteMutation.isPending}
-                            aria-label={`Xóa đánh giá #${review.id}`}
-                            className="h-8 w-8 hover:bg-destructive/10"
+                          <ConfirmDialog
+                            title="Xóa đánh giá?"
+                            description="Hành động này không thể hoàn tác. Đánh giá sẽ bị xóa khỏi hệ thống."
+                            confirmText="Xóa"
+                            cancelText="Hủy"
+                            variant="destructive"
+                            onConfirm={() => deleteMutation.mutate(review.id)}
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={deleteMutation.isPending}
+                              aria-label={`Xóa đánh giá #${review.id}`}
+                              className="h-8 w-8 hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </ConfirmDialog>
                         </td>
                       </tr>
                     ))}
