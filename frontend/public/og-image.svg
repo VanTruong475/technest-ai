@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" />
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="200" fill="#10b981" opacity="0.05" />
+  <circle cx="1100" cy="530" r="250" fill="#06b6d4" opacity="0.05" />
+  <circle cx="600" cy="315" r="300" fill="#8b5cf6" opacity="0.03" />
+
+  <!-- Accent line top -->
+  <rect x="0" y="0" width="1200" height="4" fill="url(#accent)" />
+
+  <!-- AI badge -->
+  <rect x="440" y="140" width="320" height="40" rx="20" fill="url(#accent)" opacity="0.15" />
+  <text x="600" y="166" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#10b981" letter-spacing="2">AI-POWERED SHOPPING</text>
+
+  <!-- Main title -->
+  <text x="600" y="260" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="800" fill="url(#titleGrad)">TechSphere AI</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="320" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="400" fill="#94a3b8">AI-powered E-commerce Platform</text>
+
+  <!-- Divider -->
+  <rect x="450" y="360" width="300" height="2" rx="1" fill="#334155" />
+
+  <!-- Tech stack -->
+  <text x="600" y="410" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="500" fill="#64748b">React  •  FastAPI  •  PostgreSQL  •  Redis  •  VNPay  •  Gemini/Groq</text>
+
+  <!-- Features -->
+  <text x="600" y="470" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#475569">Smart Search  •  AI Chatbot  •  Co-occurrence Recommendations  •  356 Tests</text>
+
+  <!-- Bottom accent -->
+  <rect x="0" y="626" width="1200" height="4" fill="url(#accent)" />
+</svg>
