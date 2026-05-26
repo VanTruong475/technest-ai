@@ -20,6 +20,78 @@ from app.schemas.product import ProductResponse
 
 logger = logging.getLogger("techsphere")
 
+# Từ điển đồng nghĩa cho AI search — mở rộng query của user trước khi match DB
+SYNONYM_DICT: dict[str, list[str]] = {
+    "đt": ["điện thoại", "phone"],
+    "đt": ["điện thoại"],
+    "dienthoai": ["điện thoại"],
+    "phone": ["điện thoại"],
+    "mac": ["macbook"],
+    "macbook": ["mac", "macbook"],
+    "ipad": ["ipad", "tablet"],
+    "tablet": ["tablet", "ipad"],
+    "lap": ["laptop"],
+    "laptop": ["laptop"],
+    "tai nghe": ["tai nghe", "headphone", "earphone"],
+    "headphone": ["tai nghe", "headphone"],
+    "earphone": ["tai nghe", "earphone"],
+    "tivi": ["tivi", "tv"],
+    "tv": ["tivi", "tv"],
+    "đồng hồ": ["đồng hồ", "watch", "smartwatch"],
+    "watch": ["đồng hồ", "watch"],
+    "smartwatch": ["đồng hồ", "smartwatch"],
+    "loa": ["loa", "speaker"],
+    "speaker": ["loa", "speaker"],
+    "sạc": ["sạc", "charger", "cáp sạc"],
+    "charger": ["sạc", "charger"],
+    "ốp": ["ốp", "case", "ốp lưng"],
+    "case": ["ốp", "case"],
+    "rẻ": ["giảm giá", "sale", "khuyến mãi"],
+    "sale": ["giảm giá", "sale", "khuyến mãi"],
+    "giảm giá": ["giảm giá", "sale", "khuyến mãi"],
+    "khuyến mãi": ["giảm giá", "sale", "khuyến mãi"],
+    "apple": ["apple", "iphone", "ipad", "macbook", "airpods"],
+    "samsung": ["samsung", "galaxy"],
+    "galaxy": ["samsung", "galaxy"],
+    "oppo": ["oppo"],
+    "xiaomi": ["xiaomi", "redmi"],
+    "redmi": ["xiaomi", "redmi"],
+    "vivo": ["vivo"],
+    "huawei": ["huawei"],
+    "realme": ["realme"],
+    "asus": ["asus", "rog"],
+    "rog": ["asus", "rog"],
+    "dell": ["dell"],
+    "hp": ["hp"],
+    "lenovo": ["lenovo", "thinkpad"],
+    "thinkpad": ["lenovo", "thinkpad"],
+    "sony": ["sony"],
+    "jbl": ["jbl"],
+    "airpods": ["airpods", "tai nghe"],
+}
+
+
+def _expand_synonyms(keywords: list[str]) -> list[str]:
+    """Mở rộng keywords bằng từ điển đồng nghĩa.
+
+    Mỗi keyword được tra trong SYNONYM_DICT. Nếu khớp, các synonym được thêm
+    vào kết quả. Từ trùng lặp được loại bỏ (giữ thứ tự xuất hiện).
+    """
+    expanded: list[str] = []
+    seen: set[str] = set()
+    for kw in keywords:
+        kw_lower = kw.lower()
+        if kw_lower not in seen:
+            expanded.append(kw_lower)
+            seen.add(kw_lower)
+        synonyms = SYNONYM_DICT.get(kw_lower, [])
+        for syn in synonyms:
+            syn_lower = syn.lower()
+            if syn_lower not in seen:
+                expanded.append(syn_lower)
+                seen.add(syn_lower)
+    return expanded
+
 
 def _calculate_score(product: Product, keywords: list[str]) -> tuple[float, str]:
     """Tính relevance score cho product dựa trên keywords."""
@@ -81,9 +153,9 @@ def smart_search(
     description), cap 200 candidates trước khi scoring Python. Tránh load toàn
     bộ catalog vào memory khi danh sách sản phẩm lớn.
     """
-    # Tách query thành keywords
+    # Tách query thành keywords và mở rộng bằng từ điển đồng nghĩa
     query_lower = request.query.lower()
-    keywords = query_lower.split()
+    keywords = _expand_synonyms(query_lower.split())
 
     if not keywords:
         return AISearchResponse(

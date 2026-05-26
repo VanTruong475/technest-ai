@@ -548,3 +548,85 @@ def test_co_occurrence_invalid_strategy_listed_in_error(client: TestClient):
     response = client.get("/api/ai/recommend?strategy=invalid&limit=5")
     assert response.status_code == 400
     assert "co_occurrence" in response.json()["detail"]
+
+
+# ─────────────────────────────────────────────
+# Synonym dictionary tests
+# ─────────────────────────────────────────────
+
+def test_expand_synonyms_basic():
+    """Từ viết tắt được mở rộng đúng."""
+    from app.services.ai_service import _expand_synonyms
+    result = _expand_synonyms(["đt"])
+    assert "đt" in result
+    assert "điện thoại" in result
+
+
+def test_expand_synonyms_no_match():
+    """Từ không có synonym → giữ nguyên."""
+    from app.services.ai_service import _expand_synonyms
+    result = _expand_synonyms(["iphone"])
+    assert result == ["iphone"]
+
+
+def test_expand_synonyms_dedup():
+    """Từ trùng lặp bị loại bỏ."""
+    from app.services.ai_service import _expand_synonyms
+    result = _expand_synonyms(["mac", "macbook"])
+    # mac → macbook, macbook → mac + macbook → dedup
+    assert len(result) == len(set(result))
+    assert "mac" in result
+    assert "macbook" in result
+
+
+def test_expand_synonyms_brand():
+    """Brand name mở rộng đúng."""
+    from app.services.ai_service import _expand_synonyms
+    result = _expand_synonyms(["apple"])
+    assert "apple" in result
+    assert "iphone" in result
+    assert "macbook" in result
+
+
+def test_expand_synonyms_sale_keyword():
+    """Từ khóa sale mở rộng đúng."""
+    from app.services.ai_service import _expand_synonyms
+    result = _expand_synonyms(["rẻ"])
+    assert "giảm giá" in result
+    assert "sale" in result
+
+
+def test_smart_search_synonym_integration(client: TestClient, session: Session):
+    """Tìm 'mac' vẫn ra sản phẩm Macbook nhờ synonym expansion."""
+    category = Category(name="Laptop", slug="laptop-synonym", description="Laptop computers")
+    session.add(category)
+    session.commit()
+    session.refresh(category)
+
+    brand = Brand(name="Apple", slug="apple-synonym")
+    session.add(brand)
+    session.commit()
+    session.refresh(brand)
+
+    product = Product(
+        name="MacBook Pro 14 inch",
+        slug="macbook-pro-14-synonym-test",
+        description="Laptop Apple MacBook Pro",
+        price=39990000,
+        stock=5,
+        status="ACTIVE",
+        category_id=category.id,
+        brand_id=brand.id,
+    )
+    session.add(product)
+    session.commit()
+
+    # Tìm bằng từ viết tắt "mac" — synonym sẽ mở rộng thành "macbook"
+    response = client.post("/api/ai/search", json={
+        "query": "mac",
+        "limit": 10,
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] > 0
+    assert any("MacBook" in r["product"]["name"] for r in data["results"])
