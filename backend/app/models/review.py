@@ -8,8 +8,8 @@ class Review(SQLModel, table=True):
     __tablename__ = "reviews"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="users.id")
-    product_id: int = Field(foreign_key="products.id")
+    user_id: int = Field(foreign_key="users.id", index=True)
+    product_id: int = Field(foreign_key="products.id", index=True)
     rating: int = Field(ge=1, le=5)
     comment: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

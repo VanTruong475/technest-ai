@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 class UserCreate(BaseModel):
     full_name: str
-    email: str
+    email: EmailStr
     password: str
     phone: Optional[str] = None
 

@@ -75,22 +75,22 @@ def test_set_cached_success(mock_get_redis):
 @patch("app.core.cache.get_redis")
 def test_invalidate_prefix_success(mock_get_redis):
     mock_redis = MagicMock()
-    mock_redis.keys.return_value = [
+    mock_redis.scan.return_value = (0, [
         "techsphere:products:aaa",
         "techsphere:products:bbb",
-    ]
+    ])
     mock_redis.delete.return_value = 2
     mock_get_redis.return_value = mock_redis
 
     count = invalidate_prefix("products")
     assert count == 2
-    mock_redis.keys.assert_called_once_with("techsphere:products:*")
+    mock_redis.scan.assert_called_once_with(cursor=0, match="techsphere:products:*", count=100)
 
 
 @patch("app.core.cache.get_redis")
 def test_invalidate_prefix_no_keys(mock_get_redis):
     mock_redis = MagicMock()
-    mock_redis.keys.return_value = []
+    mock_redis.scan.return_value = (0, [])
     mock_get_redis.return_value = mock_redis
 
     count = invalidate_prefix("products")

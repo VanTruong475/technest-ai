@@ -53,7 +53,9 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 
 @router.put("/change-password")
+@limiter.limit("10/minute")
 def update_password(
+    request: Request,
     data: ChangePassword,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
@@ -79,6 +81,7 @@ def forgot_password(request: Request, data: ForgotPasswordRequest, session: Sess
 
 
 @router.post("/reset-password")
-def reset_password_endpoint(data: ResetPasswordRequest, session: Session = Depends(get_session)):
+@limiter.limit("10/minute")
+def reset_password_endpoint(request: Request, data: ResetPasswordRequest, session: Session = Depends(get_session)):
     reset_password(data.token, data.new_password, session)
     return {"message": "Password reset successfully"}

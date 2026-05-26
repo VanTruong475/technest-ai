@@ -59,6 +59,7 @@ def create_vnpay_payment(
 
 
 @router.get("/api/payments/vnpay-return")
+@limiter.limit("30/minute")
 def vnpay_return(
     request: Request,
     session: Session = Depends(get_session),

@@ -65,11 +65,17 @@ def invalidate_prefix(prefix: str) -> int:
         return 0
     try:
         pattern = f"techsphere:{prefix}:*"
-        keys = r.keys(pattern)
-        if keys:
-            count = r.delete(*keys)
-            logger.info(f"Invalidated {count} cache keys with prefix '{prefix}'")
-            return count
+        total = 0
+        cursor = 0
+        while True:
+            cursor, keys = r.scan(cursor=cursor, match=pattern, count=100)
+            if keys:
+                total += r.delete(*keys)
+            if cursor == 0:
+                break
+        if total:
+            logger.info(f"Invalidated {total} cache keys with prefix '{prefix}'")
+        return total
     except Exception as e:
         logger.warning(f"Cache invalidate error for prefix '{prefix}': {e}")
     return 0
