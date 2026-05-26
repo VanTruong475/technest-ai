@@ -17,6 +17,7 @@ import HeartButton from "@/components/common/HeartButton";
 import RecentlyViewed from "@/components/common/RecentlyViewed";
 import CustomersAlsoBought from "@/components/common/CustomersAlsoBought";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { getErrorMessage } from "@/utils/api";
 
 interface Product {
   id: number;
@@ -74,9 +75,8 @@ export default function ProductDetailPage() {
       toast.success("Đã thêm vào giỏ hàng!");
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
-    onError: (err: any) => {
-      const detail = err.response?.data?.detail || "Không thể thêm vào giỏ hàng";
-      toast.error(detail);
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Không thể thêm vào giỏ hàng"));
     },
   });
 

@@ -11,6 +11,7 @@ import AdminNav from "@/components/common/AdminNav";
 import ImageUpload from "@/components/common/ImageUpload";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatPrice } from "@/utils/format";
+import { getErrorMessage } from "@/utils/api";
 import { PRODUCT_STATUS_LABELS } from "@/constants/orderStatus";
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 
@@ -140,8 +141,8 @@ export default function AdminProductPage() {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       closeForm();
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Tạo sản phẩm thất bại");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Tạo sản phẩm thất bại"));
     },
   });
 
@@ -156,8 +157,8 @@ export default function AdminProductPage() {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       closeForm();
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Cập nhật sản phẩm thất bại");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Cập nhật sản phẩm thất bại"));
     },
   });
 
@@ -171,8 +172,8 @@ export default function AdminProductPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Xóa sản phẩm thất bại");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Xóa sản phẩm thất bại"));
     },
   });
 
@@ -189,8 +190,8 @@ export default function AdminProductPage() {
       setSelectedIds(new Set());
       setEditingStock({});
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Cập nhật tồn kho thất bại");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Cập nhật tồn kho thất bại"));
     },
   });
 

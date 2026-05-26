@@ -11,6 +11,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { getErrorMessage } from "@/utils/api";
 import { SaleBadge } from "@/components/common/SaleBadge";
 
 const CHAT_STORAGE_KEY = "techsphere-chat-messages";
@@ -93,8 +94,8 @@ export default function ChatPage() {
         },
       ]);
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Không thể kết nối AI");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Không thể kết nối AI"));
     },
   });
 

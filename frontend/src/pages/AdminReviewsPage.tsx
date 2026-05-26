@@ -10,6 +10,7 @@ import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import { formatDate } from "@/utils/format";
+import { getErrorMessage } from "@/utils/api";
 
 interface ReviewItem {
   id: number;
@@ -53,8 +54,8 @@ export default function AdminReviewsPage() {
       toast.success("Đã xóa đánh giá!");
       queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Xóa đánh giá thất bại");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Xóa đánh giá thất bại"));
     },
   });
 

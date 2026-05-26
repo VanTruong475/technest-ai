@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/utils/api";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
@@ -36,9 +37,8 @@ export default function RegisterPage() {
       await register({ full_name: fullName, email, password });
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
       navigate("/login");
-    } catch (err: any) {
-      const detail = err.response?.data?.detail || "Đăng ký thất bại";
-      toast.error(detail);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Đăng ký thất bại"));
     } finally {
       setLoading(false);
     }

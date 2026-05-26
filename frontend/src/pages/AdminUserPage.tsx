@@ -10,6 +10,7 @@ import { Pencil, X, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminNav from "@/components/common/AdminNav";
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import { TableSkeleton } from "@/components/common/Skeleton";
+import { getErrorMessage } from "@/utils/api";
 
 interface User {
   id: number;
@@ -70,8 +71,8 @@ export default function AdminUserPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       closeForm();
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Cập nhật thất bại");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Cập nhật thất bại"));
     },
   });
 

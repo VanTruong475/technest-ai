@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import axiosClient from "@/api/axiosClient";
+import { getErrorMessage } from "@/utils/api";
 
 interface HeartButtonProps {
   productId: number;
@@ -37,11 +38,11 @@ export default function HeartButton({ productId, className = "", showLabel = fal
       queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       toast.success("Đã thêm vào yêu thích");
     },
-    onError: (err: any) => {
-      if (err.response?.status === 409) {
+    onError: (err: unknown) => {
+      if (err instanceof Error && "response" in err && (err as any).response?.status === 409) {
         toast.info("Sản phẩm đã có trong yêu thích");
       } else {
-        toast.error("Không thể thêm vào yêu thích");
+        toast.error(getErrorMessage(err, "Không thể thêm vào yêu thích"));
       }
     },
   });

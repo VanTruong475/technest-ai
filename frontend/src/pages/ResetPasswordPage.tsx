@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/utils/api";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
@@ -45,9 +46,8 @@ export default function ResetPasswordPage() {
       });
       setSuccess(true);
       toast.success("Đặt lại mật khẩu thành công!");
-    } catch (err: any) {
-      const detail = err.response?.data?.detail || "Có lỗi xảy ra";
-      toast.error(detail);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

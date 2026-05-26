@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, ShieldCheck } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { getErrorMessage } from "@/utils/api";
 import { Skeleton } from "@/components/common/Skeleton";
 
 interface CartItem {
@@ -61,7 +62,7 @@ export default function CartPage() {
       await axiosClient.put(`/api/cart/items/${itemId}`, { quantity });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
-    onError: (err: any) => toast.error(err.response?.data?.detail || "Không thể cập nhật số lượng"),
+    onError: (err: unknown) => toast.error(getErrorMessage(err, "Không thể cập nhật số lượng")),
   });
 
   const deleteMutation = useMutation({
@@ -72,7 +73,7 @@ export default function CartPage() {
       toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
-    onError: (err: any) => toast.error(err.response?.data?.detail || "Không thể xóa sản phẩm"),
+    onError: (err: unknown) => toast.error(getErrorMessage(err, "Không thể xóa sản phẩm")),
   });
 
   const handleQuantityChange = (itemId: number, newQty: number) => {

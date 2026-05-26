@@ -13,6 +13,7 @@ import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS } from "@/constants/orderStatus";
+import { getErrorMessage } from "@/utils/api";
 
 interface OrderItem {
   id: number;
@@ -73,8 +74,8 @@ export default function AdminOrderPage() {
       toast.success("Cập nhật trạng thái thành công!");
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Cập nhật thất bại");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Cập nhật thất bại"));
     },
   });
 
@@ -106,8 +107,8 @@ export default function AdminOrderPage() {
       window.URL.revokeObjectURL(url);
 
       toast.success("Xuất file CSV thành công!");
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Xuất file thất bại");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Xuất file thất bại"));
     } finally {
       setIsExporting(false);
     }

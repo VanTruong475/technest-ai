@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/utils/api";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
@@ -27,9 +28,8 @@ export default function LoginPage() {
       await login(email, password);
       toast.success("Đăng nhập thành công!");
       navigate("/");
-    } catch (err: any) {
-      const detail = err.response?.data?.detail || "Đăng nhập thất bại";
-      toast.error(detail);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Đăng nhập thất bại"));
     } finally {
       setLoading(false);
     }

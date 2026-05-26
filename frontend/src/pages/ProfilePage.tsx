@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { User, Shield, Mail, Phone, CheckCircle, XCircle, Lock } from "lucide-react";
 import { ProfileSkeleton } from "@/components/common/Skeleton";
+import { getErrorMessage } from "@/utils/api";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuthStore();
@@ -37,8 +38,8 @@ export default function ProfilePage() {
       setUser(data);
       toast.success("Cập nhật thông tin thành công!");
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Cập nhật thất bại");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Cập nhật thất bại"));
     },
   });
 
@@ -57,12 +58,14 @@ export default function ProfilePage() {
       setNewPassword("");
       setConfirmPassword("");
     },
-    onError: (err: any) => {
-      const detail = err.response?.data?.detail;
+    onError: (err: unknown) => {
+      const detail = err instanceof Error && "response" in err
+        ? (err as any).response?.data?.detail
+        : undefined;
       if (Array.isArray(detail)) {
         toast.error(detail.map((d: any) => d.msg).join(", "));
       } else {
-        toast.error(detail || "Đổi mật khẩu thất bại");
+        toast.error(getErrorMessage(err, "Đổi mật khẩu thất bại"));
       }
     },
   });

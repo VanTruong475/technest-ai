@@ -14,6 +14,7 @@ import {
   ShieldCheck, Truck, Clock,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import { getErrorMessage } from "@/utils/api";
 
 interface CartItem {
   id: number;
@@ -82,15 +83,15 @@ export default function CheckoutPage() {
         try {
           const payRes = await axiosClient.post(`/api/orders/${data.id}/payment/vnpay`);
           window.location.href = payRes.data.payment_url;
-        } catch (err: any) {
-          toast.error(err.response?.data?.detail || "Không thể tạo thanh toán VNPay");
+        } catch (err: unknown) {
+          toast.error(getErrorMessage(err, "Không thể tạo thanh toán VNPay"));
         }
       } else {
         toast.success("Đặt hàng thành công!");
         navigate(`/orders/${data.id}`);
       }
     },
-    onError: (err: any) => toast.error(err.response?.data?.detail || "Đặt hàng thất bại"),
+    onError: (err: unknown) => toast.error(getErrorMessage(err, "Đặt hàng thất bại")),
   });
 
   const handleSubmit = (e: React.FormEvent) => {

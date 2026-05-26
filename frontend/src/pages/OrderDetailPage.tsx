@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/common/Skeleton";
 import { ArrowLeft, Package, Home, ChevronRight } from "lucide-react";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS, PAYMENT_STATUS_MAP, PAYMENT_METHOD_MAP } from "@/constants/orderStatus";
+import { getErrorMessage } from "@/utils/api";
 
 interface OrderItem {
   id: number;
@@ -60,7 +61,7 @@ export default function OrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["order", id] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
-    onError: (err: any) => toast.error(err.response?.data?.detail || "Cập nhật thất bại"),
+    onError: (err: unknown) => toast.error(getErrorMessage(err, "Cập nhật thất bại")),
   });
 
   // Loading

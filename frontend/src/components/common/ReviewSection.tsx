@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { StarRating } from "./StarRating";
+import { getErrorMessage } from "@/utils/api";
 import { MessageSquare, Trash2, Edit2 } from "lucide-react";
 
 interface Review {
@@ -57,8 +58,8 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       setComment("");
       queryClient.invalidateQueries({ queryKey: ["reviews", productId] });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Không thể gửi đánh giá");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Không thể gửi đánh giá"));
     },
   });
 
@@ -75,8 +76,8 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       setEditingId(null);
       queryClient.invalidateQueries({ queryKey: ["reviews", productId] });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Không thể cập nhật đánh giá");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Không thể cập nhật đánh giá"));
     },
   });
 
@@ -89,8 +90,8 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       toast.success("Đã xóa đánh giá!");
       queryClient.invalidateQueries({ queryKey: ["reviews", productId] });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Không thể xóa đánh giá");
+    onError: (err: unknown) => {
+      toast.error(getErrorMessage(err, "Không thể xóa đánh giá"));
     },
   });
 
