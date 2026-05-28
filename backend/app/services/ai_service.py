@@ -736,6 +736,20 @@ def chat_with_ai(request: ChatRequest, session: Session) -> ChatResponse:
     """
     rule_response = _chat_rule_based(request, session)
 
+    # Nếu rule-based trả fallback (không match) mà có history → extract sản phẩm
+    # đã discuss từ history để LLM có context đúng, thay vì show sản phẩm random.
+    _is_fallback = rule_response.reply.startswith("Không tìm thấy")
+    if _is_fallback and request.history:
+        prev_products = _extract_products_from_history(request.history, session)
+        if prev_products:
+            rule_response = ChatResponse(
+                message=rule_response.message,
+                reply=rule_response.reply,
+                products=prev_products,
+                total=len(prev_products),
+                suggestions=rule_response.suggestions,
+            )
+
     from app.services.llm import get_llm_provider, LLMError
 
     provider = get_llm_provider()
@@ -759,6 +773,53 @@ def chat_with_ai(request: ChatRequest, session: Session) -> ChatResponse:
         total=rule_response.total,
         suggestions=rule_response.suggestions,
     )
+
+
+def _extract_products_from_history(
+    history: list, session: Session
+) -> list[ChatProductResult]:
+    """Extract sản phẩm từ assistant messages trong history.
+
+    Parse product info từ reply text (tên + giá) và query DB để lấy Product objects.
+    Trả về tối đa 5 sản phẩm gần nhất được nhắc đến.
+    """
+    mentioned_names: list[str] = []
+    for item in reversed(history):
+        if item.role != "assistant":
+            continue
+        # Tìm tên sản phẩm trong reply — pattern: tên sản phẩm + giá
+        # Gemini thường mention tên sản phẩm, query DB theo name ILIKE
+        text = item.content.lower()
+        # Tìm tất cả sản phẩm trong DB mà tên xuất hiện trong reply
+        products = list(
+            session.exec(
+                select(Product).where(Product.status == "ACTIVE")
+            ).all()
+        )
+        for p in products:
+            if p.name.lower() in text and p.name not in mentioned_names:
+                mentioned_names.append(p.name)
+        if len(mentioned_names) >= 5:
+            break
+
+    if not mentioned_names:
+        return []
+
+    # Query lại để lấy full product objects
+    results: list[ChatProductResult] = []
+    for name in mentioned_names[:5]:
+        product = session.exec(
+            select(Product).where(Product.name == name, Product.status == "ACTIVE")
+        ).first()
+        if product:
+            results.append(
+                ChatProductResult(
+                    product=_product_to_response(product),
+                    score=0.8,
+                    reason="Sản phẩm từ cuộc trò chuyện trước",
+                )
+            )
+    return results
 
 
 def _generate_llm_reply(
@@ -818,44 +879,52 @@ def _generate_llm_reply(
         brand_hint = ""
 
     system_prompt = (
-        "Bạn là nhân viên tư vấn bán hàng tại cửa hàng TechSphere AI — "
-        "chuyên thiết bị công nghệ (điện thoại, laptop, tablet, tai nghe, phụ kiện).\n\n"
+        "Bạn là nhân viên tư vấn tại TechSphere AI, cửa hàng thiết bị công nghệ. "
+        "Nói chuyện như người thật đang nhắn tin với bạn bè — thoải mái, ngắn gọn, tự nhiên.\n\n"
         "PHONG CÁCH:\n"
-        "- Nói chuyện tự nhiên như người thật đang chat với khách, ấm áp, không sáo rỗng.\n"
-        "- Tổng cộng 2-4 câu. Không markdown, không bullet list, không emoji.\n"
-        "- Xưng \"mình\", gọi khách bằng \"bạn\".\n"
-        "- TRÁNH các cụm sáo ngữ: \"siêu phẩm\", \"giá cực sốc\", \"đang có ưu đãi cực hot\", "
-        "\"đó ạ\", \"nhé ạ\", \"hàng chính hãng giá tốt\".\n"
-        "- Dùng \"ạ\" tối đa 1 lần trong cả câu trả lời, hoặc không dùng.\n\n"
-        "QUY TẮC NGHIÊM (không được vi phạm):\n"
-        "1. CHỈ nhắc sản phẩm, giá, tồn kho có trong CONTEXT phía dưới. "
-        "Không bịa, không đoán, không thêm sản phẩm khác.\n"
-        "2. Không lặp tên thương hiệu kiểu \"Apple Inc, Apple\" hay "
-        "\"Samsung Electronics, Samsung\" — mỗi hãng nhắc một lần với tên ngắn gọn.\n"
-        "3. CHỈ đề cập tới các thương hiệu xuất hiện trong dòng \"Hãng trong danh sách\" "
-        "(nếu có). Không gợi ý hãng khác không có trong cửa hàng.\n\n"
-        "CẤU TRÚC TRẢ LỜI khi có sản phẩm trong context:\n"
-        "- Câu mở: \"Mình tìm thấy [tên sản phẩm] với giá [giá hiện tại]\" "
-        "(nếu có nhiều, nêu 1-2 cái nổi bật, không liệt kê hết).\n"
-        "- Câu giữa: 1 câu ngắn về điểm phù hợp với câu hỏi của khách.\n"
-        "- Câu kết: 1 câu hỏi follow-up CỤ THỂ. Chọn 1 trong các hướng:\n"
-        "    * Ngân sách: \"Bạn dự tính tầm giá khoảng bao nhiêu?\"\n"
-        "    * Hãng ưu tiên (CHỈ hỏi khi danh sách có ≥2 hãng khác nhau).\n"
-        "    * Nhu cầu cụ thể: chống ồn, pin lâu, gaming, làm việc, học tập, chụp ảnh.\n"
-        "    * \"Bạn có muốn xem thêm vài lựa chọn cùng tầm giá không?\"\n"
-        "  KHÔNG hỏi 2 follow-up cùng lúc.\n\n"
-        "CẤU TRÚC TRẢ LỜI khi context KHÔNG có sản phẩm:\n"
-        "- Nói thẳng: \"Mình chưa tìm thấy sản phẩm phù hợp...\".\n"
-        "- Gợi ý 1-2 từ khóa cụ thể khách có thể thử lại "
-        "(vd: tên danh mục đang có trong cửa hàng).\n"
-        "- Không khuyên xem hãng/danh mục không tồn tại trong cửa hàng."
+        "- Viết như đang chat Zalo/messenger, không phải viết email hay bài văn.\n"
+        "- Ngắn gọn, 2-4 câu là đủ. Nhiều khi 1-2 câu cũng được nếu câu hỏi đơn giản.\n"
+        "- Xưng \"mình\" hoặc \"bên mình\", gọi khách bằng \"bạn\".\n"
+        "- Tự nhiên: có thể dùng \"ồ\", \"à\", \"hmm\", \"okie\", \"nè\", \"nhé\" tuỳ ngữ cảnh.\n"
+        "- KHÔNG dùng: \"siêu phẩm\", \"giá cực sốc\", \"đó ạ\", \"nhé ạ\", "
+        "\"hàng chính hãng giá tốt\", \"ưu đãi cực hot\".\n"
+        "- KHÔNG mở đầu bằng \"Mình tìm thấy\" — nghe như robot. "
+        "Thay vào đó nói thẳng vào vấn đề, vd: \"Bên mình có Dell Inspiron nè, giá 15tr — "
+        "máy này chạy học tập ok lắm\".\n"
+        "- KHÔNG liệt kê hết sản phẩm như catalogue. Chọn 1-2 cái phù hợp nhất, nói như đang gợi ý.\n\n"
+        "QUY TẮC:\n"
+        "1. CHỈ nhắc sản phẩm, giá, tồn kho có trong CONTEXT. Không bịa.\n"
+        "2. Mỗi thương hiệu chỉ nhắc 1 lần, tên ngắn gọn (Apple, Samsung...).\n"
+        "3. Không gợi ý hãng không có trong danh sách.\n"
+        "4. Hỏi follow-up 1 câu thôi, tự nhiên — "
+        "vd: \"bạn thích hãng nào hơn?\", \"budget tầm bao nhiêu vậy?\", "
+        "\"cần gaming hay làm việc chủ yếu?\".\n"
+        "5. Nếu không có sản phẩm phù hợp: nói thẳng, gợi ý thử từ khoá khác.\n\n"
+        "VÍ DỤ trả lời tự nhiên:\n"
+        "\"À laptop học tập budget 15tr thì Dell Inspiron nè, giá ~15tr4, "
+        "mỏng nhẹ pin trâu, chạy Word Excel mượt. Bạn cần thêm SSD lớn hay RAM nhiều không?\"\n\n"
+        "\"Bên mình có AirPods Pro với Sony WF-1000XM5 đều chống ồn tốt. "
+        "AirPods hợp bạn nào dùng iPhone, Sony thì pin trâu hơn. Bạn đang dùng điện thoại gì?\""
     )
 
+    # Build conversation history context (10 tin nhắn gần nhất)
+    history_block = ""
+    if request.history:
+        recent = request.history[-10:]
+        lines = []
+        for item in recent:
+            role_label = "Khách" if item.role == "user" else "Tư vấn viên"
+            lines.append(f"{role_label}: {item.content}")
+        history_block = "Lịch sử trò chuyện:\n" + "\n".join(lines) + "\n\n"
+
     user_prompt = (
+        f"{history_block}"
         f"Khách hỏi: {request.message}\n\n"
         f"{product_block}"
         f"{brand_hint}\n\n"
-        "Hãy tư vấn theo đúng phong cách và cấu trúc đã quy định."
+        "Hãy tư vấn theo đúng phong cách và cấu trúc đã quy định. "
+        "Nếu lịch sử trò chuyện có context trước đó, hãy trả lời liền mạch "
+        "với cuộc trò chuyện — không giới thiệu lại từ đầu."
     )
 
     return provider.generate(

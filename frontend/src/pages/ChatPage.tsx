@@ -79,7 +79,12 @@ export default function ChatPage() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const res = await axiosClient.post("/api/ai/chat", { message, limit: 5 });
+      // Gửi 10 tin nhắn gần nhất làm context
+      const history = messages.slice(-10).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+      const res = await axiosClient.post("/api/ai/chat", { message, limit: 5, history });
       return res.data as ChatResponse;
     },
     onSuccess: (data, variables) => {

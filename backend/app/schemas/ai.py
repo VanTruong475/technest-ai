@@ -72,9 +72,22 @@ class AIRecommendResponse(BaseModel):
 # AI Chat
 # ─────────────────────────────────────────────
 
+class ChatHistoryItem(BaseModel):
+    role: str  # "user" hoặc "assistant"
+    content: str
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        if v not in ("user", "assistant"):
+            raise ValueError("Role must be 'user' or 'assistant'")
+        return v
+
+
 class ChatRequest(BaseModel):
     message: str
     limit: int = 5
+    history: list[ChatHistoryItem] = []
 
     @field_validator("message")
     @classmethod
@@ -89,6 +102,11 @@ class ChatRequest(BaseModel):
         if v < 1 or v > 10:
             raise ValueError("Limit must be between 1 and 10")
         return v
+
+    @field_validator("history")
+    @classmethod
+    def validate_history(cls, v: list) -> list:
+        return v[-20:]  # Giới hạn 20 tin nhắn gần nhất
 
 
 class ChatProductResult(BaseModel):
