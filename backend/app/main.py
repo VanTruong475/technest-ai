@@ -20,7 +20,7 @@ from app.api.upload import router as upload_router
 from app.api.wishlist import router as wishlist_router
 from app.api.payment import router as payment_router
 from app.api.admin import router as admin_router
-from app.core.cache import get_redis
+from app.core.cache import get_redis, close_redis
 from app.core.config import settings
 from app.core.database import create_db_and_tables
 from app.core.exceptions import AppException
@@ -48,8 +48,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in settings.CORS_ORIGINS.split(",")],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
@@ -92,6 +92,11 @@ def on_startup():
     if settings.ENVIRONMENT == "development":
         create_db_and_tables()
     get_redis()
+
+
+@app.on_event("shutdown")
+def on_shutdown():
+    close_redis()
 
 
 @app.get("/")

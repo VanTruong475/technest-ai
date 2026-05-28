@@ -69,22 +69,36 @@ class AdminService:
 
     def get_all_reviews(self, page: int = 1, limit: int = 10) -> AdminReviewsResponse:
         review_repo = ReviewRepository(self.repo.session)
-        user_repo = UserRepository(self.repo.session)
-        product_repo = ProductRepository(self.repo.session)
 
         reviews, total = review_repo.find_all(page=page, limit=limit)
 
+        # Batch lookup users và products thay vì N+1
+        user_ids = list({r.user_id for r in reviews})
+        product_ids = list({r.product_id for r in reviews})
+
+        from app.models.user import User
+        from app.models.product import Product
+        from sqlmodel import select
+
+        user_map: dict[int, str] = {}
+        if user_ids:
+            users = list(self.repo.session.exec(select(User).where(User.id.in_(user_ids))).all())
+            user_map = {u.id: u.full_name for u in users}
+
+        product_map: dict[int, str] = {}
+        if product_ids:
+            products = list(self.repo.session.exec(select(Product).where(Product.id.in_(product_ids))).all())
+            product_map = {p.id: p.name for p in products}
+
         items = []
         for r in reviews:
-            user = user_repo.find_by_id(r.user_id)
-            product = product_repo.find_by_id(r.product_id)
             items.append(
                 AdminReviewItem(
                     id=r.id,
                     user_id=r.user_id,
-                    user_name=user.full_name if user else "Unknown",
+                    user_name=user_map.get(r.user_id, "Unknown"),
                     product_id=r.product_id,
-                    product_name=product.name if product else "Unknown",
+                    product_name=product_map.get(r.product_id, "Unknown"),
                     rating=r.rating,
                     comment=r.comment,
                     created_at=r.created_at,

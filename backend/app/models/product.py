@@ -1,11 +1,21 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
+from sqlalchemy import CheckConstraint, Column, Numeric
 from sqlmodel import SQLModel, Field
 
 
 class Product(SQLModel, table=True):
     __tablename__ = "products"
+    __table_args__ = (
+        CheckConstraint("price > 0", name="ck_product_price_positive"),
+        CheckConstraint("stock >= 0", name="ck_product_stock_non_negative"),
+        CheckConstraint(
+            "sale_price IS NULL OR sale_price < price",
+            name="ck_product_sale_price_lt_price",
+        ),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
 
@@ -18,8 +28,8 @@ class Product(SQLModel, table=True):
 
     image_url: Optional[str] = None
 
-    price: float
-    sale_price: Optional[float] = None
+    price: Decimal = Field(sa_column=Column(Numeric(10, 2), nullable=False))
+    sale_price: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(10, 2)))
     stock: int = Field(default=0)
 
     status: str = Field(default="ACTIVE", max_length=20, index=True)

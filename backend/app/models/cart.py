@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
+from sqlalchemy import Column, UniqueConstraint
 from sqlmodel import SQLModel, Field
 
 
@@ -15,6 +16,9 @@ class Cart(SQLModel, table=True):
 
 class CartItem(SQLModel, table=True):
     __tablename__ = "cart_items"
+    __table_args__ = (
+        UniqueConstraint("cart_id", "product_id", name="uq_cart_product"),
+    )
 
     id: Optional[int] = Field(default=None, primary_key=True)
     cart_id: int = Field(foreign_key="carts.id", index=True)

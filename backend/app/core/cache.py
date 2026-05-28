@@ -1,7 +1,7 @@
-import json
 import hashlib
+import json
 import logging
-from functools import wraps
+import threading
 from typing import Any, Optional
 
 import redis
@@ -11,6 +11,7 @@ from app.core.config import settings
 logger = logging.getLogger("techsphere")
 
 _redis_client: Optional[redis.Redis] = None
+_lock = threading.Lock()
 
 
 def get_redis() -> Optional[redis.Redis]:
@@ -19,20 +20,31 @@ def get_redis() -> Optional[redis.Redis]:
         return _redis_client
     if not settings.REDIS_URL:
         return None
-    try:
-        _redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
-        _redis_client.ping()
-        logger.info("Redis connected successfully")
-        return _redis_client
-    except Exception as e:
-        logger.warning(f"Redis connection failed: {e}. Caching disabled.")
+    with _lock:
+        if _redis_client is not None:
+            return _redis_client
+        try:
+            _redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            _redis_client.ping()
+            logger.info("Redis connected successfully")
+            return _redis_client
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}. Caching disabled.")
+            _redis_client = None
+            return None
+
+
+def close_redis() -> None:
+    global _redis_client
+    if _redis_client is not None:
+        _redis_client.close()
         _redis_client = None
-        return None
+        logger.info("Redis connection closed")
 
 
 def cache_key(prefix: str, **kwargs) -> str:
     raw = json.dumps(kwargs, sort_keys=True, default=str)
-    short_hash = hashlib.md5(raw.encode()).hexdigest()[:12]
+    short_hash = hashlib.sha256(raw.encode()).hexdigest()[:16]
     return f"techsphere:{prefix}:{short_hash}"
 
 

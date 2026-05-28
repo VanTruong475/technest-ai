@@ -9,7 +9,7 @@ from app.core.config import settings
 logger = logging.getLogger("techsphere")
 
 
-def build_payment_url(order_id: int, amount: float, ip_addr: str) -> str:
+def build_payment_url(order_id: int, amount: float | int, ip_addr: str) -> str:
     """Build VNPay payment URL for an order.
 
     Hash data is built from URL-encoded values (quote_plus) per VNPay spec:

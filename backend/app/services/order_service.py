@@ -2,12 +2,15 @@ import json
 import logging
 import math
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
 from fastapi import HTTPException, status
+from sqlalchemy import update
 from sqlmodel import Session
 
 from app.models.order import Order, OrderItem
+from app.models.product import Product
 from app.models.user import User
 from app.repositories.cart_repository import CartItemRepository, CartRepository
 from app.repositories.order_repository import OrderItemRepository, OrderRepository
@@ -104,7 +107,7 @@ def create_order(
     products = product_repo.find_by_ids(product_ids)
     product_map = {p.id: p for p in products}
 
-    total_amount = 0.0
+    total_amount = Decimal("0")
     order_items_data = []
     valid_cart_items: list = []
     stale_cart_items: list = []
@@ -306,10 +309,18 @@ def update_order_status(
 
         if data.status == "CANCELLED" and old_status != "CANCELLED":
             item_repo = OrderItemRepository(session)
-            product_repo = ProductRepository(session)
             order_items = item_repo.find_by_order_id(order.id)
-            for item in order_items:
-                product_repo.increment_stock(item.product_id, item.quantity)
+            if order_items:
+                # Bulk stock restore: aggregate quantities per product
+                agg_qty: dict[int, int] = {}
+                for item in order_items:
+                    agg_qty[item.product_id] = agg_qty.get(item.product_id, 0) + item.quantity
+                for pid, qty in agg_qty.items():
+                    session.exec(
+                        update(Product)
+                        .where(Product.id == pid)
+                        .values(stock=Product.stock + qty)
+                    )
 
         session.commit()
     except Exception:

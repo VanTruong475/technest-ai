@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
+OrderStatus = Literal["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED"]
+PaymentStatus = Literal["UNPAID", "PAID", "REFUNDED"]
 
 
 class OrderCreate(BaseModel):
@@ -10,9 +13,23 @@ class OrderCreate(BaseModel):
     note: Optional[str] = None
     payment_method: Literal["COD", "VNPAY"] = "COD"
 
+    @field_validator("shipping_address")
+    @classmethod
+    def validate_address(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Shipping address cannot be empty")
+        return v.strip()
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Phone cannot be empty")
+        return v.strip()
+
 
 class OrderStatusUpdate(BaseModel):
-    status: str
+    status: OrderStatus
 
 
 class OrderItemResponse(BaseModel):

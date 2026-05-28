@@ -219,8 +219,8 @@ def test_export_csv_format(
     assert row["order_status"] == "PENDING"
     assert row["product_name"] == f"Test Product {admin_user.id}"
     assert row["quantity"] == "2"
-    assert row["subtotal"] == "2000000.0"
-    assert row["total_amount"] == "2000000.0"
+    assert row["subtotal"] == "2000000.00"
+    assert row["total_amount"] == "2000000.00"
     assert row["note"] == "Test note"
 
 

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from fastapi import HTTPException, status
 from sqlmodel import Session
@@ -22,7 +23,7 @@ def _build_cart_response(cart: Cart, session: Session) -> CartResponse:
 
     cart_items = []
     total_items = 0
-    total_amount = 0.0
+    total_amount = Decimal("0")
 
     # Pure read: skip stale items (product missing or INACTIVE) without
     # mutating DB. Cleanup of orphaned cart rows happens at checkout time

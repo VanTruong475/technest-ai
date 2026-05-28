@@ -170,8 +170,7 @@ def test_update_order_status_invalid(client: TestClient, user_token: str, admin_
     response = client.put(f"/api/orders/{order_id}/status", headers={
         "Authorization": f"Bearer {admin_token}",
     }, json={"status": "INVALID_STATUS"})
-    assert response.status_code == 400
-    assert "Invalid status" in response.json()["detail"]
+    assert response.status_code == 422  # Pydantic Literal validation
 
 
 def test_user_cannot_update_order_status(

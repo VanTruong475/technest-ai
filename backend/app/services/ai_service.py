@@ -23,7 +23,6 @@ logger = logging.getLogger("techsphere")
 # Từ điển đồng nghĩa cho AI search — mở rộng query của user trước khi match DB
 SYNONYM_DICT: dict[str, list[str]] = {
     "đt": ["điện thoại", "phone"],
-    "đt": ["điện thoại"],
     "dienthoai": ["điện thoại"],
     "phone": ["điện thoại"],
     "mac": ["macbook"],
@@ -336,12 +335,10 @@ def recommend_by_history(user_id: int, limit: int, session: Session) -> AIRecomm
     if total_orders == 0:
         return _fallback_popular("history", limit, session, set())
 
-    # Lấy tất cả sản phẩm đã mua
-    purchased_product_ids: set[int] = set()
-    for order in orders:
-        items = order_item_repo.find_by_order_id(order.id)
-        for item in items:
-            purchased_product_ids.add(item.product_id)
+    # Lấy tất cả sản phẩm đã mua (bulk query thay vì N+1)
+    order_ids = [o.id for o in orders]
+    all_items = order_item_repo.find_by_order_ids(order_ids)
+    purchased_product_ids = {item.product_id for item in all_items}
 
     if not purchased_product_ids:
         return _fallback_popular("history", limit, session, set())
@@ -896,6 +893,7 @@ def _generate_llm_reply(
         "1. CHỈ nhắc sản phẩm, giá, tồn kho có trong CONTEXT. Không bịa.\n"
         "2. Mỗi thương hiệu chỉ nhắc 1 lần, tên ngắn gọn (Apple, Samsung...).\n"
         "3. Không gợi ý hãng không có trong danh sách.\n"
+        "Không markdown, không bullet list, không in đậm. Viết như tin nhắn thường.\n"
         "4. Hỏi follow-up 1 câu thôi, tự nhiên — "
         "vd: \"bạn thích hãng nào hơn?\", \"budget tầm bao nhiêu vậy?\", "
         "\"cần gaming hay làm việc chủ yếu?\".\n"
@@ -970,23 +968,23 @@ def _chat_rule_based(request: ChatRequest, session: Session) -> ChatResponse:
     statement = select(Product).where(*conditions).limit(request.limit * 2)
     candidates = list(session.exec(statement).all())
 
+    # Resolve brand/category once before scoring loop
+    brand_obj = session.exec(select(Brand).where(Brand.slug == brand_slug)).first() if brand_slug else None
+    category_obj = session.exec(select(Category).where(Category.slug == category_slug)).first() if category_slug else None
+
     # Score and rank
     scored: list[tuple[Product, float, str]] = []
     for product in candidates:
         score = 0.5
         reasons = []
 
-        if brand_slug:
-            brand = session.exec(select(Brand).where(Brand.slug == brand_slug)).first()
-            if brand and product.brand_id == brand.id:
-                score += 0.3
-                reasons.append(f"thương hiệu {brand.name}")
+        if brand_obj and product.brand_id == brand_obj.id:
+            score += 0.3
+            reasons.append(f"thương hiệu {brand_obj.name}")
 
-        if category_slug:
-            category = session.exec(select(Category).where(Category.slug == category_slug)).first()
-            if category and product.category_id == category.id:
-                score += 0.2
-                reasons.append(f"danh mục {category.name}")
+        if category_obj and product.category_id == category_obj.id:
+            score += 0.2
+            reasons.append(f"danh mục {category_obj.name}")
 
         if max_price and product.price <= max_price:
             score += 0.2

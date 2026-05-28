@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
+from sqlalchemy import Column, Numeric
 from sqlmodel import SQLModel, Field
 
 
@@ -9,7 +11,7 @@ class Order(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", index=True)
-    total_amount: float
+    total_amount: Decimal = Field(sa_column=Column(Numeric(10, 2), nullable=False))
     status: str = Field(default="PENDING", max_length=20, index=True)
     payment_method: str = Field(default="COD", max_length=20)
     payment_status: str = Field(default="UNPAID", max_length=20)
@@ -29,8 +31,8 @@ class OrderItem(SQLModel, table=True):
     product_id: int = Field(index=True)
     product_name: str
     image_url: Optional[str] = None
-    price: float
-    sale_price: Optional[float] = None
+    price: Decimal = Field(sa_column=Column(Numeric(10, 2), nullable=False))
+    sale_price: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(10, 2)))
     quantity: int
-    subtotal: float
+    subtotal: Decimal = Field(sa_column=Column(Numeric(10, 2), nullable=False))
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

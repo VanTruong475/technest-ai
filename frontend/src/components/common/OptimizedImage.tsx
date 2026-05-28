@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getOptimizedImageUrl } from "@/utils/cloudinary";
 
 const PLACEHOLDER =
@@ -24,6 +24,10 @@ export function OptimizedImage({
   priority = false,
 }: OptimizedImageProps) {
   const [imgSrc, setImgSrc] = useState(() => getOptimizedImageUrl(src, width));
+
+  useEffect(() => {
+    setImgSrc(getOptimizedImageUrl(src, width));
+  }, [src, width]);
 
   return (
     <img

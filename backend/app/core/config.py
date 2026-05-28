@@ -1,5 +1,10 @@
+import logging
+import warnings
+
 from pydantic import model_validator
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger("techsphere")
 
 
 _DEFAULT_SECRET_KEY = "change_me"
@@ -52,29 +57,41 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _validate_production_secrets(self) -> "Settings":
-        if self.ENVIRONMENT != "production":
-            return self
-
-        if self.SECRET_KEY == _DEFAULT_SECRET_KEY:
-            raise ValueError(
-                "SECRET_KEY must be set to a strong random value in production "
-                "(must not equal the default placeholder)."
-            )
-        if len(self.SECRET_KEY) < _MIN_SECRET_KEY_LENGTH:
-            raise ValueError(
-                f"SECRET_KEY must be at least {_MIN_SECRET_KEY_LENGTH} characters in production."
-            )
-        if self.ADMIN_PASSWORD == _DEFAULT_ADMIN_PASSWORD:
-            raise ValueError(
-                "ADMIN_PASSWORD must be changed from the default in production."
-            )
-
-        cors = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
-        if any(o == "*" for o in cors):
-            raise ValueError(
-                "CORS_ORIGINS cannot contain '*' in production "
-                "(incompatible with allow_credentials=True)."
-            )
+        # Production: hard fail
+        if self.ENVIRONMENT == "production":
+            if self.SECRET_KEY == _DEFAULT_SECRET_KEY:
+                raise ValueError(
+                    "SECRET_KEY must be set to a strong random value in production "
+                    "(must not equal the default placeholder)."
+                )
+            if len(self.SECRET_KEY) < _MIN_SECRET_KEY_LENGTH:
+                raise ValueError(
+                    f"SECRET_KEY must be at least {_MIN_SECRET_KEY_LENGTH} characters in production."
+                )
+            if self.ADMIN_PASSWORD == _DEFAULT_ADMIN_PASSWORD:
+                raise ValueError(
+                    "ADMIN_PASSWORD must be changed from the default in production."
+                )
+            cors = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+            if any(o == "*" for o in cors):
+                raise ValueError(
+                    "CORS_ORIGINS cannot contain '*' in production "
+                    "(incompatible with allow_credentials=True)."
+                )
+        else:
+            # Non-production: loud warnings
+            if self.SECRET_KEY == _DEFAULT_SECRET_KEY:
+                warnings.warn(
+                    "SECRET_KEY is using the default value 'change_me'. "
+                    "Set a strong SECRET_KEY in .env for security.",
+                    stacklevel=1,
+                )
+            if self.ADMIN_PASSWORD == _DEFAULT_ADMIN_PASSWORD:
+                warnings.warn(
+                    "ADMIN_PASSWORD is using the default value 'admin123'. "
+                    "Change it in .env for security.",
+                    stacklevel=1,
+                )
 
         return self
 

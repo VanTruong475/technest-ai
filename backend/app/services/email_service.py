@@ -1,3 +1,4 @@
+import html as html_lib
 import logging
 
 import resend
@@ -49,9 +50,10 @@ def _build_items_html(items: list[OrderItem]) -> str:
     rows = ""
     for item in items:
         price = item.sale_price if item.sale_price else item.price
+        safe_name = html_lib.escape(item.product_name)
         rows += f"""
         <tr>
-            <td style="padding:8px;border-bottom:1px solid #eee">{item.product_name}</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">{safe_name}</td>
             <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">{item.quantity}</td>
             <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">{_format_price(price)}</td>
             <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">{_format_price(item.subtotal)}</td>
@@ -73,20 +75,24 @@ def _build_items_html(items: list[OrderItem]) -> str:
 
 def send_order_confirmation(user: User, order: Order, items: list[OrderItem]) -> bool:
     items_html = _build_items_html(items)
+    safe_name = html_lib.escape(user.full_name)
+    safe_address = html_lib.escape(order.shipping_address)
+    safe_phone = html_lib.escape(order.phone)
+    safe_note = html_lib.escape(order.note) if order.note else ""
 
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <h2 style="color:#2563eb">Xác nhận đơn hàng #{order.id}</h2>
-        <p>Xin chào <strong>{user.full_name}</strong>,</p>
+        <p>Xin chào <strong>{safe_name}</strong>,</p>
         <p>Cảm ơn bạn đã đặt hàng tại <strong>TechSphere AI</strong>!</p>
 
         {items_html}
 
         <div style="background:#f8f9fa;padding:16px;border-radius:8px;margin:16px 0">
             <p style="margin:4px 0"><strong>Tổng cộng:</strong> {_format_price(order.total_amount)}</p>
-            <p style="margin:4px 0"><strong>Địa chỉ:</strong> {order.shipping_address}</p>
-            <p style="margin:4px 0"><strong>Điện thoại:</strong> {order.phone}</p>
-            {"<p style='margin:4px 0'><strong>Ghi chú:</strong> " + order.note + "</p>" if order.note else ""}
+            <p style="margin:4px 0"><strong>Địa chỉ:</strong> {safe_address}</p>
+            <p style="margin:4px 0"><strong>Điện thoại:</strong> {safe_phone}</p>
+            {"<p style='margin:4px 0'><strong>Ghi chú:</strong> " + safe_note + "</p>" if safe_note else ""}
         </div>
 
         <p style="color:#6b7280;font-size:14px">
@@ -103,11 +109,12 @@ def send_order_confirmation(user: User, order: Order, items: list[OrderItem]) ->
 
 def send_password_reset_email(user: User, token: str) -> bool:
     reset_link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+    safe_name = html_lib.escape(user.full_name)
 
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <h2 style="color:#2563eb">Đặt lại mật khẩu</h2>
-        <p>Xin chào <strong>{user.full_name}</strong>,</p>
+        <p>Xin chào <strong>{safe_name}</strong>,</p>
         <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>
         <p>Nhấn vào nút bên dưới để đặt lại mật khẩu:</p>
         <div style="text-align:center;margin:24px 0">
@@ -134,11 +141,12 @@ def send_password_reset_email(user: User, token: str) -> bool:
 def send_status_update(user: User, order: Order, old_status: str, new_status: str) -> bool:
     old_label = STATUS_LABELS.get(old_status, old_status)
     new_label = STATUS_LABELS.get(new_status, new_status)
+    safe_name = html_lib.escape(user.full_name)
 
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <h2 style="color:#2563eb">Cập nhật đơn hàng #{order.id}</h2>
-        <p>Xin chào <strong>{user.full_name}</strong>,</p>
+        <p>Xin chào <strong>{safe_name}</strong>,</p>
         <p>Đơn hàng <strong>#{order.id}</strong> của bạn đã được cập nhật:</p>
 
         <div style="background:#f8f9fa;padding:16px;border-radius:8px;margin:16px 0">

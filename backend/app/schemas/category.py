@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class CategoryCreate(BaseModel):
@@ -9,12 +9,52 @@ class CategoryCreate(BaseModel):
     slug: str
     description: Optional[str] = None
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Name cannot be empty")
+        if len(v) > 100:
+            raise ValueError("Name must be at most 100 characters")
+        return v.strip()
+
+    @field_validator("slug")
+    @classmethod
+    def validate_slug(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Slug cannot be empty")
+        if len(v) > 100:
+            raise ValueError("Slug must be at most 100 characters")
+        return v.strip().lower()
+
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     slug: Optional[str] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            if not v.strip():
+                raise ValueError("Name cannot be empty")
+            if len(v) > 100:
+                raise ValueError("Name must be at most 100 characters")
+            return v.strip()
+        return v
+
+    @field_validator("slug")
+    @classmethod
+    def validate_slug(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            if not v.strip():
+                raise ValueError("Slug cannot be empty")
+            if len(v) > 100:
+                raise ValueError("Slug must be at most 100 characters")
+            return v.strip().lower()
+        return v
 
 
 class CategoryResponse(BaseModel):

@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, field_validator
+
+ProductStatus = Literal["ACTIVE", "INACTIVE", "OUT_OF_STOCK"]
 
 
 class ProductCreate(BaseModel):
@@ -14,7 +16,28 @@ class ProductCreate(BaseModel):
     price: float
     sale_price: Optional[float] = None
     stock: int = 0
-    status: str = "ACTIVE"
+    status: ProductStatus = "ACTIVE"
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Name cannot be empty")
+        if len(v) > 255:
+            raise ValueError("Name must be at most 255 characters")
+        return v.strip()
+
+    @field_validator("slug")
+    @classmethod
+    def validate_slug(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Slug cannot be empty")
+        if len(v) > 255:
+            raise ValueError("Slug must be at most 255 characters")
+        import re
+        if not re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", v.strip()):
+            raise ValueError("Slug must be lowercase alphanumeric with hyphens")
+        return v.strip()
 
     @field_validator("price")
     @classmethod
