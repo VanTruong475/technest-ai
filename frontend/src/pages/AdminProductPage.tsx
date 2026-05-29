@@ -7,7 +7,8 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Plus, X, ChevronLeft, ChevronRight, Package } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Package } from "lucide-react";
+import Pagination from "@/components/common/Pagination";
 import AdminNav from "@/components/common/AdminNav";
 import ImageUpload from "@/components/common/ImageUpload";
 import { TableSkeleton } from "@/components/common/Skeleton";
@@ -550,26 +551,8 @@ export default function AdminProductPage() {
 
       {/* Pagination */}
       {productsData && productsData.total_pages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Trang {page} / {productsData.total_pages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= productsData.total_pages}
-            onClick={() => setPage(page + 1)}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        <div className="mt-6">
+          <Pagination page={page} totalPages={productsData.total_pages} onPageChange={setPage} />
         </div>
       )}
     </div>

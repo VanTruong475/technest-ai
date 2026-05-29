@@ -11,6 +11,7 @@ import logging
 
 from app.core.cache import get_cached, set_cached
 from app.services.llm.base import BaseLLMProvider
+from app.services.llm.metrics import llm_metrics
 
 logger = logging.getLogger("techsphere")
 
@@ -35,12 +36,14 @@ class CachedProvider(BaseLLMProvider):
         cached = get_cached(key)
         if isinstance(cached, str) and cached:
             logger.info("LLM cache HIT key=%s", key[-12:])
+            llm_metrics.record_cache_hit()
             return cached
 
         result = self._inner.generate(system, user, timeout=timeout)
         # Chỉ cache khi provider trả text non-empty (đảm bảo bởi base contract).
         set_cached(key, result, ttl=self._ttl)
         logger.info("LLM cache MISS key=%s (cached for %ds)", key[-12:], self._ttl)
+        llm_metrics.record_cache_miss()
         return result
 
 

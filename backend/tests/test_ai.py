@@ -630,3 +630,15 @@ def test_smart_search_synonym_integration(client: TestClient, session: Session):
     data = response.json()
     assert data["total"] > 0
     assert any("MacBook" in r["product"]["name"] for r in data["results"])
+
+
+def test_llm_stats_endpoint(client: TestClient):
+    response = client.get("/api/ai/stats")
+    assert response.status_code == 200
+    data = response.json()
+    assert "cache" in data
+    assert "providers" in data
+    assert "chain_failures" in data
+    assert "no_provider_count" in data
+    assert data["cache"]["hits"] >= 0
+    assert data["cache"]["misses"] >= 0

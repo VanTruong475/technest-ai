@@ -748,15 +748,18 @@ def chat_with_ai(request: ChatRequest, session: Session) -> ChatResponse:
             )
 
     from app.services.llm import get_llm_provider, LLMError
+    from app.services.llm.metrics import llm_metrics
 
     provider = get_llm_provider()
     if provider is None:
+        llm_metrics.record_no_provider()
         return rule_response
 
     try:
         llm_reply = _generate_llm_reply(provider, request, rule_response, session)
     except LLMError as e:
         logger.warning("LLM provider failed, using rule-based: %s", e)
+        llm_metrics.record_chain_failure()
         return rule_response
     except Exception as e:
         # Defensive: bất kỳ lỗi unexpected nào cũng không được crash chatbot.

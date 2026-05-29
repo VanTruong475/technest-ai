@@ -24,6 +24,7 @@ from app.services.ai_service import (
     recommend_popular,
     chat_with_ai,
 )
+from app.services.llm.metrics import llm_metrics
 
 router = APIRouter(prefix="/api/ai", tags=["AI"])
 
@@ -145,3 +146,9 @@ def chat(
     Nếu không tìm thấy kết quả, fallback sang sản phẩm phổ biến/mới nhất.
     """
     return chat_with_ai(body, session)
+
+
+@router.get("/stats")
+def llm_stats():
+    """LLM observability metrics: cache hit rate, provider success rate."""
+    return llm_metrics.get_stats()

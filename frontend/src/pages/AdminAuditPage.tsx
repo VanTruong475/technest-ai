@@ -197,7 +197,9 @@ export default function AdminAuditPage() {
 
       {/* Pagination */}
       {data && data.total_pages > 1 && (
-        <Pagination page={page} totalPages={data.total_pages} onPageChange={setPage} />
+        <div className="mt-6">
+          <Pagination page={page} totalPages={data.total_pages} onPageChange={setPage} />
+        </div>
       )}
     </div>
   );

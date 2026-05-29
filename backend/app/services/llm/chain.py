@@ -7,6 +7,7 @@ fail → raise LLMError cuối → caller (chat_with_ai) bắt và fallback rule
 import logging
 
 from app.services.llm.base import BaseLLMProvider, LLMError
+from app.services.llm.metrics import llm_metrics
 
 logger = logging.getLogger("techsphere")
 
@@ -27,13 +28,16 @@ class ChainProvider(BaseLLMProvider):
                 continue
             attempted += 1
             try:
-                return provider.generate(system, user, timeout=timeout)
+                result = provider.generate(system, user, timeout=timeout)
+                llm_metrics.record_provider_success(type(provider).__name__)
+                return result
             except LLMError as e:
                 logger.warning(
                     "LLM provider %s failed, trying next: %s",
                     type(provider).__name__,
                     e,
                 )
+                llm_metrics.record_provider_failure(type(provider).__name__)
                 last_error = e
                 continue
 
