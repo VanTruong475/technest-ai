@@ -15,40 +15,7 @@ import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
 import { PRODUCT_STATUS_LABELS } from "@/constants/orderStatus";
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
-
-interface Product {
-  id: number;
-  category_id: number;
-  brand_id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  stock: number;
-  status: string;
-}
-
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-interface Brand {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-interface ProductsResponse {
-  items: Product[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
-}
+import type { Product, Category, Brand, ProductsResponse } from "@/types";
 
 interface ProductFormData {
   category_id: number;

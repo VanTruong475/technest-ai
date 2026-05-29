@@ -14,30 +14,7 @@ import {
 import { formatPrice } from "@/utils/format";
 import { ProductGridSkeleton } from "@/components/common/Skeleton";
 import { SaleBadge } from "@/components/common/SaleBadge";
-
-interface Product {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  stock: number;
-  status: string;
-}
-
-interface RecommendResult {
-  product: Product;
-  score: number;
-  reason: string;
-}
-
-interface Brand {
-  id: number;
-  name: string;
-  slug: string;
-}
+import type { Product, Brand, AISearchResult } from "@/types";
 
 // Brand/product-line showcase — 12 cards (2 rows × 6 cols on desktop).
 // brandSlug → link `/products?brand_id=<id>` (chỉ khi brand tồn tại trong DB).
@@ -159,7 +136,7 @@ export default function HomePage() {
     },
   });
 
-  const { data: recommendData, isLoading: recommendLoading, error: recommendError } = useQuery<{ results: RecommendResult[] }>({
+  const { data: recommendData, isLoading: recommendLoading, error: recommendError } = useQuery<{ results: AISearchResult[] }>({
     queryKey: ["home-recommend"],
     queryFn: async () => {
       const res = await axiosClient.get("/api/ai/recommend", { params: { strategy: "popular", limit: 4 } });

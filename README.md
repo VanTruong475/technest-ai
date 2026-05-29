@@ -10,6 +10,10 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688)
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1)
+![Lighthouse Performance](https://img.shields.io/badge/Lighthouse_Performance-71-yellow)
+![Lighthouse Accessibility](https://img.shields.io/badge/Lighthouse_Accessibility-96-brightgreen)
+![Lighthouse Best Practices](https://img.shields.io/badge/Lighthouse_Best_Practices-100-brightgreen)
+![Lighthouse SEO](https://img.shields.io/badge/Lighthouse_SEO-92-brightgreen)
 
 **🚀 Production highlights:** `349/349` tests pass · `87%` backend coverage · atomic stock + transaction wrappers · VNPay replay-protection · multi-provider LLM (Gemini + Groq) với Redis cache + fallback chain · co-occurrence recommendation · Cloudinary CDN · N+1 optimization · GZip · Sentry · CI/CD · Light/Dark/System theme · Responsive · A11y ARIA
 

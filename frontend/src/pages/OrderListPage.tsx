@@ -9,37 +9,7 @@ import Pagination from "@/components/common/Pagination";
 import { Package, ChevronRight, Home } from "lucide-react";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS } from "@/constants/orderStatus";
-
-interface OrderItem {
-  id: number;
-  product_id: number;
-  product_name: string;
-  price: number;
-  sale_price: number | null;
-  quantity: number;
-  subtotal: number;
-}
-
-interface Order {
-  id: number;
-  user_id: number;
-  total_amount: number;
-  status: string;
-  shipping_address: string;
-  phone: string;
-  note: string | null;
-  items: OrderItem[];
-  created_at: string;
-  updated_at: string;
-}
-
-interface OrdersResponse {
-  items: Order[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
-}
+import type { OrdersResponse } from "@/types";
 
 const STATUS_TABS = [
   { key: "", label: "Tất cả" },

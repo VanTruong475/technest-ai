@@ -13,40 +13,16 @@ import {
 import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
 import { SaleBadge } from "@/components/common/SaleBadge";
+import type { AISearchResult, ChatMessage } from "@/types";
 
 const CHAT_STORAGE_KEY = "techsphere-chat-messages";
-
-interface Product {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  stock: number;
-  status: string;
-}
-
-interface ChatProductResult {
-  product: Product;
-  score: number;
-  reason: string;
-}
 
 interface ChatResponse {
   message: string;
   reply: string;
-  products: ChatProductResult[];
+  products: AISearchResult[];
   total: number;
   suggestions: string[];
-}
-
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-  products?: ChatProductResult[];
-  suggestions?: string[];
 }
 
 const QUICK_PROMPTS = [

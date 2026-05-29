@@ -1,11 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
-
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
-}
+import type { Category } from "@/types";
 
 export function useCategories() {
   return useQuery<Category[]>({

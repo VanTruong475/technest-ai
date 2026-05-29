@@ -9,25 +9,7 @@ import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, ShieldCheck } from "lucid
 import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
 import { Skeleton } from "@/components/common/Skeleton";
-
-interface CartItem {
-  id: number;
-  product_id: number;
-  product_name: string;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  quantity: number;
-  subtotal: number;
-}
-
-interface CartData {
-  id: number;
-  user_id: number;
-  items: CartItem[];
-  total_items: number;
-  total_amount: number;
-}
+import type { Cart } from "@/types";
 
 function CartItemCardSkeleton() {
   return (
@@ -49,7 +31,7 @@ function CartItemCardSkeleton() {
 export default function CartPage() {
   const queryClient = useQueryClient();
 
-  const { data: cart, isLoading, error, refetch } = useQuery<CartData>({
+  const { data: cart, isLoading, error, refetch } = useQuery<Cart>({
     queryKey: ["cart"],
     queryFn: async () => {
       const res = await axiosClient.get("/api/cart");

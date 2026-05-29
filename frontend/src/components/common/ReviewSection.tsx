@@ -9,17 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { StarRating } from "./StarRating";
 import { getErrorMessage } from "@/utils/api";
 import { MessageSquare, Trash2, Edit2 } from "lucide-react";
-
-interface Review {
-  id: number;
-  user_id: number;
-  user_name: string;
-  product_id: number;
-  rating: number;
-  comment: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import type { Review } from "@/types";
 
 interface ReviewSectionProps {
   productId: number;

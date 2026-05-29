@@ -11,24 +11,7 @@ import AdminNav from "@/components/common/AdminNav";
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { getErrorMessage } from "@/utils/api";
-
-interface User {
-  id: number;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  role: string;
-  is_active: boolean;
-  created_at: string;
-}
-
-interface UsersResponse {
-  items: User[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
-}
+import type { User, UsersResponse } from "@/types";
 
 interface UserFormData {
   full_name: string;
@@ -222,7 +205,7 @@ export default function AdminUserPage() {
                           {user.is_active ? "Hoạt động" : "Vô hiệu"}
                         </span>
                       </td>
-                      <td className="p-3 text-muted-foreground">{formatDate(user.created_at)}</td>
+                      <td className="p-3 text-muted-foreground">{formatDate(user.created_at!)}</td>
                       <td className="p-3 text-center">
                         <Button variant="ghost" size="icon" onClick={() => openEditForm(user)} aria-label={`Chỉnh sửa ${user.full_name}`} className="h-8 w-8 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
                           <Pencil className="h-4 w-4" />

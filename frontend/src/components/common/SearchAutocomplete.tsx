@@ -6,26 +6,7 @@ import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import axiosClient from "@/api/axiosClient";
 import { formatPrice } from "@/utils/format";
-
-interface Product {
-  id: number;
-  name: string;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  category_id: number;
-  brand_id: number;
-}
-
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Brand {
-  id: number;
-  name: string;
-}
+import type { Product, Category, Brand } from "@/types";
 
 interface SearchAutocompleteProps {
   onSearch: (query: string) => void;

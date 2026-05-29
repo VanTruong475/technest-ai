@@ -11,32 +11,7 @@ import { ArrowLeft, Package, Home, ChevronRight } from "lucide-react";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS, PAYMENT_STATUS_MAP, PAYMENT_METHOD_MAP } from "@/constants/orderStatus";
 import { getErrorMessage } from "@/utils/api";
-
-interface OrderItem {
-  id: number;
-  product_id: number;
-  product_name: string;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  quantity: number;
-  subtotal: number;
-}
-
-interface Order {
-  id: number;
-  user_id: number;
-  total_amount: number;
-  status: string;
-  payment_method: string;
-  payment_status: string;
-  shipping_address: string;
-  phone: string;
-  note: string | null;
-  items: OrderItem[];
-  created_at: string;
-  updated_at: string;
-}
+import type { Order } from "@/types";
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();

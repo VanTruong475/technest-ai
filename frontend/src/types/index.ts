@@ -99,6 +99,7 @@ export interface User {
 export interface Review {
   id: number;
   user_id: number;
+  user_name: string;
   product_id: number;
   rating: number;
   comment: string | null;
@@ -125,6 +126,11 @@ export interface AISearchResult {
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
-  products?: Product[];
+  products?: AISearchResult[];
   suggestions?: string[];
 }
+
+// ── Paginated response aliases ──
+export type ProductsResponse = PaginatedResponse<Product>;
+export type OrdersResponse = PaginatedResponse<Order>;
+export type UsersResponse = PaginatedResponse<User>;

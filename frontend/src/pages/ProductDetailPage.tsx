@@ -18,20 +18,7 @@ import RecentlyViewed from "@/components/common/RecentlyViewed";
 import CustomersAlsoBought from "@/components/common/CustomersAlsoBought";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { getErrorMessage } from "@/utils/api";
-
-interface Product {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  stock: number;
-  status: string;
-  category_id: number;
-  brand_id: number;
-}
+import type { Product } from "@/types";
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();

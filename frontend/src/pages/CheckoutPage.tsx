@@ -15,24 +15,7 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
-
-interface CartItem {
-  id: number;
-  product_id: number;
-  product_name: string;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  quantity: number;
-  subtotal: number;
-}
-
-interface CartData {
-  id: number;
-  items: CartItem[];
-  total_items: number;
-  total_amount: number;
-}
+import type { Cart } from "@/types";
 
 const STEPS = [
   { label: "Giỏ hàng", icon: ShoppingCart },
@@ -54,7 +37,7 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<{ fullName?: string; phone?: string; shippingAddress?: string }>({});
   const clearError = (field: keyof typeof errors) => setErrors((p) => ({ ...p, [field]: undefined }));
 
-  const { data: cart, isLoading, error: cartError } = useQuery<CartData>({
+  const { data: cart, isLoading, error: cartError } = useQuery<Cart>({
     queryKey: ["cart"],
     queryFn: async () => {
       const res = await axiosClient.get("/api/cart");

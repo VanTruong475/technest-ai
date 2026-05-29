@@ -15,6 +15,7 @@ import {
   Smartphone, Laptop, Tablet, Headphones, Cable, ArrowUpDown,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
+import type { Category, Brand, ProductsResponse } from "@/types";
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Mới nhất" },
@@ -29,40 +30,6 @@ const PRICE_PRESETS = [
   { label: "10 - 20 triệu", min: "10000000", max: "20000000" },
   { label: "Trên 20 triệu", min: "20000000", max: "" },
 ];
-
-interface Product {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-  stock: number;
-  status: string;
-  category_id: number;
-  brand_id: number;
-}
-
-interface ProductsResponse {
-  items: Product[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
-}
-
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-interface Brand {
-  id: number;
-  name: string;
-  slug: string;
-}
 
 const CATEGORY_ICONS: Record<string, typeof Smartphone> = {
   "dien-thoai": Smartphone,
