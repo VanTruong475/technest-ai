@@ -154,7 +154,7 @@ export default function AdminAuditPage() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead>
+                  <thead className="sticky top-0 z-10">
                     <tr className="border-b bg-muted/50">
                       <th className="text-left p-3 font-medium">ID</th>
                       <th className="text-left p-3 font-medium">Thời gian</th>

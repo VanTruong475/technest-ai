@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
@@ -88,13 +88,17 @@ export default function HeartButton({ productId, className = "", showLabel = fal
       className={`flex items-center justify-center rounded-full transition-all ${className}`}
       aria-label={isFavorited ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
     >
-      <Heart
-        className={`h-5 w-5 transition-colors ${
-          isFavorited
-            ? "fill-red-500 text-red-500"
-            : "text-muted-foreground hover:text-red-400"
-        } ${isLoading ? "opacity-50" : ""}`}
-      />
+      {isLoading ? (
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      ) : (
+        <Heart
+          className={`h-5 w-5 transition-colors ${
+            isFavorited
+              ? "fill-red-500 text-red-500"
+              : "text-muted-foreground hover:text-red-400"
+          }`}
+        />
+      )}
       {showLabel && (
         <span className="ml-1">{isFavorited ? "Đã yêu thích" : "Yêu thích"}</span>
       )}

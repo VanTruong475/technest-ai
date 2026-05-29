@@ -13,6 +13,7 @@ import {
 import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
 import { SaleBadge } from "@/components/common/SaleBadge";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 import type { AISearchResult, ChatMessage } from "@/types";
 
 const CHAT_STORAGE_KEY = "techsphere-chat-messages";
@@ -43,9 +44,9 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Persist messages to localStorage
+  // Persist messages to localStorage (keep last 100)
   useEffect(() => {
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-100)));
   }, [messages]);
 
   const clearChat = () => {
@@ -119,10 +120,17 @@ export default function ChatPage() {
             </div>
           </div>
           {messages.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearChat} className="text-muted-foreground" aria-label="Xóa cuộc trò chuyện">
-              <Trash2 className="h-4 w-4 sm:mr-1.5" />
-              <span className="hidden sm:inline">Cuộc trò chuyện mới</span>
-            </Button>
+            <ConfirmDialog
+              title="Xóa cuộc trò chuyện?"
+              description="Tin nhắn sẽ bị xóa vĩnh viễn và không thể khôi phục."
+              variant="destructive"
+              onConfirm={clearChat}
+            >
+              <Button variant="ghost" size="sm" className="text-muted-foreground" aria-label="Xóa cuộc trò chuyện">
+                <Trash2 className="h-4 w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Cuộc trò chuyện mới</span>
+              </Button>
+            </ConfirmDialog>
           )}
         </div>
       </header>
