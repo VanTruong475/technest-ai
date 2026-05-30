@@ -13,6 +13,7 @@ import { ArrowLeft, Package, Home, ChevronRight, Star, CheckCircle2 } from "luci
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS, PAYMENT_STATUS_MAP, PAYMENT_METHOD_MAP } from "@/constants/orderStatus";
 import { getErrorMessage } from "@/utils/api";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 import type { Order } from "@/types";
 
 interface CanReviewResult {
@@ -249,17 +250,30 @@ export default function OrderDetailPage() {
               {ORDER_STATUS_OPTIONS.map((status) => {
                 const info = ORDER_STATUS_MAP[status];
                 const isCurrent = order.status === status;
+                if (isCurrent) {
+                  return (
+                    <Button key={status} variant="default" size="sm" disabled className="rounded-lg">
+                      {info.label}
+                    </Button>
+                  );
+                }
                 return (
-                  <Button
+                  <ConfirmDialog
                     key={status}
-                    variant={isCurrent ? "default" : "outline"}
-                    size="sm"
-                    disabled={isCurrent || updateStatusMutation.isPending}
-                    onClick={() => updateStatusMutation.mutate(status)}
-                    className="rounded-lg"
+                    title="Đổi trạng thái đơn hàng?"
+                    description={`Chuyển đơn hàng #${order.id} sang "${info.label}"?${status === "CANCELLED" ? " Hành động này có thể không thể hoàn tác." : ""}`}
+                    variant={status === "CANCELLED" ? "destructive" : "default"}
+                    onConfirm={() => updateStatusMutation.mutate(status)}
                   >
-                    {info.label}
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={updateStatusMutation.isPending}
+                      className="rounded-lg"
+                    >
+                      {info.label}
+                    </Button>
+                  </ConfirmDialog>
                 );
               })}
             </div>

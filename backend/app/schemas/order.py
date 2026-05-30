@@ -18,6 +18,8 @@ class OrderCreate(BaseModel):
     def validate_address(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("Shipping address cannot be empty")
+        if len(v) > 500:
+            raise ValueError("Shipping address must be at most 500 characters")
         return v.strip()
 
     @field_validator("phone")
@@ -25,6 +27,8 @@ class OrderCreate(BaseModel):
     def validate_phone(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("Phone cannot be empty")
+        if len(v) > 20:
+            raise ValueError("Phone must be at most 20 characters")
         return v.strip()
 
 

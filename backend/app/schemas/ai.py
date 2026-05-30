@@ -83,6 +83,13 @@ class ChatHistoryItem(BaseModel):
             raise ValueError("Role must be 'user' or 'assistant'")
         return v
 
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        if len(v) > 2000:
+            raise ValueError("Content must be at most 2000 characters")
+        return v
+
 
 class ChatRequest(BaseModel):
     message: str

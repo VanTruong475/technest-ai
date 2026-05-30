@@ -16,6 +16,13 @@ class UserUpdate(BaseModel):
             raise ValueError("Full name must be 1-100 characters")
         return v.strip() if v else v
 
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 20:
+            raise ValueError("Phone must be at most 20 characters")
+        return v
+
     @field_validator("role")
     @classmethod
     def validate_role(cls, v: Optional[str]) -> Optional[str]:

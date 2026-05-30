@@ -10,6 +10,13 @@ class UserCreate(BaseModel):
     password: str
     phone: Optional[str] = None
 
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 20:
+            raise ValueError("Phone must be at most 20 characters")
+        return v
+
     @field_validator("password")
     @classmethod
     def validate_password_length(cls, v: str) -> str:
@@ -21,7 +28,7 @@ class UserCreate(BaseModel):
 
 
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
@@ -49,7 +56,7 @@ class ChangePassword(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class ResetPasswordRequest(BaseModel):

@@ -27,6 +27,13 @@ class ProductCreate(BaseModel):
             raise ValueError("Name must be at most 255 characters")
         return v.strip()
 
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 5000:
+            raise ValueError("Description must be at most 5000 characters")
+        return v
+
     @field_validator("slug")
     @classmethod
     def validate_slug(cls, v: str) -> str:
@@ -72,6 +79,13 @@ class ProductUpdate(BaseModel):
     sale_price: Optional[float] = None
     stock: Optional[int] = None
     status: Optional[ProductStatus] = None
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 5000:
+            raise ValueError("Description must be at most 5000 characters")
+        return v
 
     @field_validator("price")
     @classmethod

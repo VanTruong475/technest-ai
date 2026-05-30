@@ -43,6 +43,8 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   // Persist messages to localStorage (keep last 100)
   useEffect(() => {
@@ -56,8 +58,8 @@ export default function ChatPage() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      // Gửi 10 tin nhắn gần nhất làm context
-      const history = messages.slice(-10).map((m) => ({
+      // Gửi 10 tin nhắn gần nhất làm context — dùng ref để tránh stale closure
+      const history = messagesRef.current.slice(-10).map((m) => ({
         role: m.role,
         content: m.content,
       }));

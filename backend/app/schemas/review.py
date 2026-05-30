@@ -16,6 +16,13 @@ class ReviewCreate(BaseModel):
             raise ValueError("Rating must be between 1 and 5")
         return v
 
+    @field_validator("comment")
+    @classmethod
+    def validate_comment(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 2000:
+            raise ValueError("Comment must be at most 2000 characters")
+        return v
+
 
 class ReviewUpdate(BaseModel):
     rating: Optional[int] = None
@@ -26,6 +33,13 @@ class ReviewUpdate(BaseModel):
     def validate_rating(cls, v: Optional[int]) -> Optional[int]:
         if v is not None and (v < 1 or v > 5):
             raise ValueError("Rating must be between 1 and 5")
+        return v
+
+    @field_validator("comment")
+    @classmethod
+    def validate_comment(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 2000:
+            raise ValueError("Comment must be at most 2000 characters")
         return v
 
 

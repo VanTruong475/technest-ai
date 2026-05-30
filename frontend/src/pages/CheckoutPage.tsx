@@ -79,6 +79,7 @@ export default function CheckoutPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (orderMutation.isPending) return;
     const newErrors: typeof errors = {};
     if (!fullName.trim()) newErrors.fullName = "Vui lòng nhập họ tên";
     if (!phone.trim()) newErrors.phone = "Vui lòng nhập số điện thoại";

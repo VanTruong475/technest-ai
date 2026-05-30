@@ -1,14 +1,44 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, XCircle, ArrowLeft, Package } from "lucide-react";
+import { CheckCircle, XCircle, ArrowLeft, Package, Loader2 } from "lucide-react";
+import type { Order } from "@/types";
 
 export default function PaymentResultPage() {
   const [searchParams] = useSearchParams();
-  const status = searchParams.get("status");
   const orderId = searchParams.get("order_id");
 
-  const isSuccess = status === "success";
+  // Verify payment status from server — don't trust URL param alone
+  const { data: order, isLoading, error } = useQuery<Order>({
+    queryKey: ["order", orderId],
+    queryFn: async () => {
+      const res = await axiosClient.get(`/api/orders/${orderId}`);
+      return res.data;
+    },
+    enabled: !!orderId,
+    retry: 1,
+  });
+
+  // Determine success from server response, fallback to URL param for edge cases
+  const urlStatus = searchParams.get("status");
+  const isSuccess = order
+    ? order.payment_status === "PAID"
+    : urlStatus === "success" && !error;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Card className="w-full max-w-md border-border/60 shadow-sm">
+          <CardContent className="pt-8 pb-6 space-y-4 text-center">
+            <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Đang xác nhận thanh toán...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center">

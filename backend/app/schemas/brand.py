@@ -18,6 +18,13 @@ class BrandCreate(BaseModel):
             raise ValueError("Name must be at most 100 characters")
         return v.strip()
 
+    @field_validator("logo_url")
+    @classmethod
+    def validate_logo_url(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 500:
+            raise ValueError("Logo URL must be at most 500 characters")
+        return v
+
     @field_validator("slug")
     @classmethod
     def validate_slug(cls, v: str) -> str:
@@ -43,6 +50,13 @@ class BrandUpdate(BaseModel):
             if len(v) > 100:
                 raise ValueError("Name must be at most 100 characters")
             return v.strip()
+        return v
+
+    @field_validator("logo_url")
+    @classmethod
+    def validate_logo_url(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 500:
+            raise ValueError("Logo URL must be at most 500 characters")
         return v
 
     @field_validator("slug")

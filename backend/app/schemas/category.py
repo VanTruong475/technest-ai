@@ -18,6 +18,13 @@ class CategoryCreate(BaseModel):
             raise ValueError("Name must be at most 100 characters")
         return v.strip()
 
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 1000:
+            raise ValueError("Description must be at most 1000 characters")
+        return v
+
     @field_validator("slug")
     @classmethod
     def validate_slug(cls, v: str) -> str:
@@ -43,6 +50,13 @@ class CategoryUpdate(BaseModel):
             if len(v) > 100:
                 raise ValueError("Name must be at most 100 characters")
             return v.strip()
+        return v
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > 1000:
+            raise ValueError("Description must be at most 1000 characters")
         return v
 
     @field_validator("slug")
