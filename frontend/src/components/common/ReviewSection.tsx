@@ -27,9 +27,12 @@ interface CanReviewResponse {
 
 interface ReviewSectionProps {
   productId: number;
+  /** "display" = chỉ hiện reviews, "full" = hiện cả form + can-review check */
+  mode?: "display" | "full";
 }
 
-export function ReviewSection({ productId }: ReviewSectionProps) {
+export function ReviewSection({ productId, mode = "full" }: ReviewSectionProps) {
+  const isDisplayOnly = mode === "display";
   const { user, isAuthenticated } = useAuthStore();
   const queryClient = useQueryClient();
   const [rating, setRating] = useState(0);
@@ -54,7 +57,7 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       const res = await axiosClient.get(`/api/reviews/can-review/${productId}`);
       return res.data;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !isDisplayOnly,
   });
 
   // Create review
@@ -201,7 +204,7 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       )}
 
       {/* Review Form */}
-      {isAuthenticated && !myReview && canReviewData?.can_review && (
+      {!isDisplayOnly && isAuthenticated && !myReview && canReviewData?.can_review && (
         <Card className="ring-1 ring-foreground/10 border-border/60 shadow-sm">
           <CardContent className="p-6 space-y-5">
             <div className="flex items-center gap-2">
@@ -255,7 +258,7 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       )}
 
       {/* Cannot review messages */}
-      {isAuthenticated && !myReview && canReviewData && !canReviewData.can_review && (
+      {!isDisplayOnly && isAuthenticated && !myReview && canReviewData && !canReviewData.can_review && (
         <Card className="ring-1 ring-foreground/10 border-dashed">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center">
@@ -281,7 +284,7 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
         </Card>
       )}
 
-      {!isAuthenticated && (
+      {!isDisplayOnly && !isAuthenticated && (
         <Card className="ring-1 ring-foreground/10 border-dashed">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center">

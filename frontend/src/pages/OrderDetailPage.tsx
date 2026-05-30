@@ -1,22 +1,37 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
+import { ReviewDialog } from "@/components/common/ReviewDialog";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/common/Skeleton";
-import { ArrowLeft, Package, Home, ChevronRight } from "lucide-react";
+import { ArrowLeft, Package, Home, ChevronRight, Star, CheckCircle2 } from "lucide-react";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS, PAYMENT_STATUS_MAP, PAYMENT_METHOD_MAP } from "@/constants/orderStatus";
 import { getErrorMessage } from "@/utils/api";
 import type { Order } from "@/types";
 
+interface CanReviewResult {
+  can_review: boolean;
+  has_purchased: boolean;
+  has_reviewed: boolean;
+  reason: string | null;
+}
+
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const isAdmin = useAuthStore((s) => s.isAdmin);
   const queryClient = useQueryClient();
+
+  const [reviewTarget, setReviewTarget] = useState<{
+    productId: number;
+    productName: string;
+    productImage?: string | null;
+  } | null>(null);
 
   const { data: order, isLoading, error } = useQuery<Order>({
     queryKey: ["order", id],
@@ -25,6 +40,19 @@ export default function OrderDetailPage() {
       return res.data;
     },
     enabled: !!id,
+  });
+
+  // Bulk check can-review for all items in COMPLETED orders
+  const productIds = order?.items.map((item) => item.product_id) || [];
+  const { data: canReviewData } = useQuery<{ results: Record<number, CanReviewResult> }>({
+    queryKey: ["can-review-bulk", ...productIds],
+    queryFn: async () => {
+      const res = await axiosClient.post("/api/reviews/can-review-bulk", {
+        product_ids: productIds,
+      });
+      return res.data;
+    },
+    enabled: !!order && order.status === "COMPLETED" && productIds.length > 0,
   });
 
   const updateStatusMutation = useMutation({
@@ -76,6 +104,7 @@ export default function OrderDetailPage() {
   const statusInfo = ORDER_STATUS_MAP[order.status] || { label: order.status, color: "text-gray-600 bg-gray-50" };
   const paymentStatusInfo = PAYMENT_STATUS_MAP[order.payment_status] || { label: order.payment_status, color: "text-gray-600 bg-gray-50" };
   const paymentMethodLabel = PAYMENT_METHOD_MAP[order.payment_method] || order.payment_method;
+  const isCompleted = order.status === "COMPLETED";
 
   return (
     <div className="max-w-4xl mx-auto px-4 space-y-6">
@@ -145,34 +174,64 @@ export default function OrderDetailPage() {
         <CardContent className="p-6">
           <h2 className="text-lg font-semibold mb-4">Sản phẩm</h2>
           <div className="space-y-4">
-            {order.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 py-3 border-b last:border-0">
-                <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0">
-                  {item.image_url ? (
-                    <OptimizedImage src={item.image_url} alt={item.product_name} width={64} height={64} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xl" aria-hidden="true">📦</div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <Link to={`/products/${item.product_id}`} className="font-medium hover:underline line-clamp-1">
-                    {item.product_name}
-                  </Link>
-                  <div className="flex items-center gap-2 mt-1">
-                    {item.sale_price ? (
-                      <>
-                        <span className="text-sm text-destructive font-medium">{formatPrice(item.sale_price)}</span>
-                        <span className="text-xs text-muted-foreground line-through">{formatPrice(item.price)}</span>
-                      </>
+            {order.items.map((item) => {
+              const canReview = canReviewData?.results[item.product_id];
+              return (
+                <div key={item.id} className="flex items-center gap-4 py-3 border-b last:border-0">
+                  <div className="w-16 h-16 bg-muted rounded-xl overflow-hidden shrink-0">
+                    {item.image_url ? (
+                      <OptimizedImage src={item.image_url} alt={item.product_name} width={64} height={64} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-sm">{formatPrice(item.price)}</span>
+                      <div className="w-full h-full flex items-center justify-center text-xl" aria-hidden="true">📦</div>
                     )}
-                    <span className="text-xs text-muted-foreground">x{item.quantity}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Link to={`/products/${item.product_id}`} className="font-medium hover:underline line-clamp-1">
+                      {item.product_name}
+                    </Link>
+                    <div className="flex items-center gap-2 mt-1">
+                      {item.sale_price ? (
+                        <>
+                          <span className="text-sm text-destructive font-medium">{formatPrice(item.sale_price)}</span>
+                          <span className="text-xs text-muted-foreground line-through">{formatPrice(item.price)}</span>
+                        </>
+                      ) : (
+                        <span className="text-sm">{formatPrice(item.price)}</span>
+                      )}
+                      <span className="text-xs text-muted-foreground">x{item.quantity}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <p className="font-semibold">{formatPrice(item.subtotal)}</p>
+                    {/* Review button for COMPLETED orders */}
+                    {isCompleted && canReview && (
+                      canReview.has_reviewed ? (
+                        <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span className="font-medium">Đã đánh giá</span>
+                        </div>
+                      ) : canReview.can_review ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg gap-1.5"
+                          onClick={() =>
+                            setReviewTarget({
+                              productId: item.product_id,
+                              productName: item.product_name,
+                              productImage: item.image_url,
+                            })
+                          }
+                        >
+                          <Star className="h-3.5 w-3.5" />
+                          Đánh giá
+                        </Button>
+                      ) : null
+                    )}
                   </div>
                 </div>
-                <p className="font-semibold shrink-0">{formatPrice(item.subtotal)}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="flex justify-between pt-4 mt-2 border-t">
             <span className="font-semibold text-base">Tổng cộng</span>
@@ -213,6 +272,17 @@ export default function OrderDetailPage() {
         <ArrowLeft className="h-4 w-4" />
         Quay lại danh sách đơn hàng
       </Link>
+
+      {/* Review Dialog */}
+      {reviewTarget && (
+        <ReviewDialog
+          isOpen={true}
+          onClose={() => setReviewTarget(null)}
+          productId={reviewTarget.productId}
+          productName={reviewTarget.productName}
+          productImage={reviewTarget.productImage}
+        />
+      )}
     </div>
   );
 }

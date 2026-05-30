@@ -211,7 +211,7 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Reviews */}
-      <ReviewSection productId={Number(id)} />
+      <ReviewSection productId={Number(id)} mode="display" />
 
       {/* "Có thể bạn cũng thích" — backend dùng co-occurrence (khách mua A
           cũng mua B), tự fallback về cùng category → popular nếu chưa đủ

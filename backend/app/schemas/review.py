@@ -50,3 +50,11 @@ class CanReviewResponse(BaseModel):
     has_purchased: bool
     has_reviewed: bool
     reason: Optional[str] = None
+
+
+class CanReviewBulkRequest(BaseModel):
+    product_ids: list[int]
+
+
+class CanReviewBulkResponse(BaseModel):
+    results: dict[int, CanReviewResponse]

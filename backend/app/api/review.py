@@ -4,10 +4,18 @@ from sqlmodel import Session
 from app.core.database import get_session
 from app.core.dependencies import require_admin
 from app.models.user import User
-from app.schemas.review import CanReviewResponse, ReviewCreate, ReviewResponse, ReviewUpdate
+from app.schemas.review import (
+    CanReviewBulkRequest,
+    CanReviewBulkResponse,
+    CanReviewResponse,
+    ReviewCreate,
+    ReviewResponse,
+    ReviewUpdate,
+)
 from app.services.auth_service import get_current_user
 from app.services.review_service import (
     can_user_review,
+    can_user_review_bulk,
     create_review,
     delete_review,
     get_reviews_by_product,
@@ -32,6 +40,15 @@ def check_can_review(
     session: Session = Depends(get_session),
 ):
     return can_user_review(current_user, product_id, session)
+
+
+@router.post("/can-review-bulk", response_model=CanReviewBulkResponse)
+def check_can_review_bulk(
+    data: CanReviewBulkRequest,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    return can_user_review_bulk(current_user, data.product_ids, session)
 
 
 @router.post("", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)

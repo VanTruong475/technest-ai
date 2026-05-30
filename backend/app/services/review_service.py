@@ -9,7 +9,13 @@ from app.repositories.order_repository import OrderItemRepository
 from app.repositories.product_repository import ProductRepository
 from app.repositories.review_repository import ReviewRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.review import CanReviewResponse, ReviewCreate, ReviewResponse, ReviewUpdate
+from app.schemas.review import (
+    CanReviewBulkResponse,
+    CanReviewResponse,
+    ReviewCreate,
+    ReviewResponse,
+    ReviewUpdate,
+)
 
 
 def _build_review_response(review: Review, session: Session) -> ReviewResponse:
@@ -187,3 +193,35 @@ def can_user_review(
         has_purchased=True,
         has_reviewed=False,
     )
+
+
+def can_user_review_bulk(
+    current_user: User,
+    product_ids: list[int],
+    session: Session,
+) -> CanReviewBulkResponse:
+    """Kiểm tra user có thể đánh giá nhiều sản phẩm cùng lúc."""
+    review_repo = ReviewRepository(session)
+    order_item_repo = OrderItemRepository(session)
+
+    results: dict[int, CanReviewResponse] = {}
+    for pid in product_ids:
+        has_reviewed = review_repo.find_by_user_and_product(current_user.id, pid) is not None
+        has_purchased = order_item_repo.has_user_purchased_product(current_user.id, pid)
+
+        if has_reviewed:
+            results[pid] = CanReviewResponse(
+                can_review=False, has_purchased=has_purchased, has_reviewed=True,
+                reason="You have already reviewed this product",
+            )
+        elif not has_purchased:
+            results[pid] = CanReviewResponse(
+                can_review=False, has_purchased=False, has_reviewed=False,
+                reason="You must purchase and receive this product before reviewing",
+            )
+        else:
+            results[pid] = CanReviewResponse(
+                can_review=True, has_purchased=True, has_reviewed=False,
+            )
+
+    return CanReviewBulkResponse(results=results)
