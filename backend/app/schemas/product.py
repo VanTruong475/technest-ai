@@ -71,7 +71,7 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = None
     sale_price: Optional[float] = None
     stock: Optional[int] = None
-    status: Optional[str] = None
+    status: Optional[ProductStatus] = None
 
     @field_validator("price")
     @classmethod

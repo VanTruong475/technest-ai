@@ -55,6 +55,15 @@ class CanReviewResponse(BaseModel):
 class CanReviewBulkRequest(BaseModel):
     product_ids: list[int]
 
+    @field_validator("product_ids")
+    @classmethod
+    def validate_product_ids(cls, v: list[int]) -> list[int]:
+        if len(v) > 50:
+            raise ValueError("Maximum 50 product IDs per request")
+        if len(v) == 0:
+            raise ValueError("At least one product ID is required")
+        return v
+
 
 class CanReviewBulkResponse(BaseModel):
     results: dict[int, CanReviewResponse]

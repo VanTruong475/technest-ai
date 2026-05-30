@@ -215,6 +215,10 @@ export default function AdminProductPage() {
       toast.error("Giá phải lớn hơn 0");
       return;
     }
+    if (form.sale_price && form.sale_price >= form.price) {
+      toast.error("Giá khuyến mãi phải nhỏ hơn giá gốc");
+      return;
+    }
 
     if (editingProduct) {
       updateMutation.mutate({ id: editingProduct.id, data: form });

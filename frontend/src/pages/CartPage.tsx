@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
@@ -211,26 +212,38 @@ export default function CartPage() {
                 {/* Mobile: subtotal + delete inline */}
                 <div className="flex items-center justify-between sm:hidden">
                   <p className="text-lg font-bold">{formatPrice(item.subtotal)}</p>
-                  <button
-                    className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                    onClick={() => deleteMutation.mutate(item.id)}
-                    disabled={deleteMutation.isPending}
+                  <ConfirmDialog
+                    title="Xóa sản phẩm"
+                    description="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?"
+                    variant="destructive"
+                    onConfirm={() => deleteMutation.mutateAsync(item.id)}
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                    <button
+                      className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </ConfirmDialog>
                 </div>
               </div>
 
               {/* Right: subtotal + delete */}
               <div className="text-right shrink-0 space-y-2 hidden sm:block">
                 <p className="text-lg font-bold">{formatPrice(item.subtotal)}</p>
-                <button
-                  className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                  onClick={() => deleteMutation.mutate(item.id)}
-                  disabled={deleteMutation.isPending}
+                <ConfirmDialog
+                  title="Xóa sản phẩm"
+                  description="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?"
+                  variant="destructive"
+                  onConfirm={() => deleteMutation.mutateAsync(item.id)}
                 >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                  <button
+                    className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </ConfirmDialog>
               </div>
             </div>
           ))}

@@ -632,8 +632,13 @@ def test_smart_search_synonym_integration(client: TestClient, session: Session):
     assert any("MacBook" in r["product"]["name"] for r in data["results"])
 
 
-def test_llm_stats_endpoint(client: TestClient):
-    response = client.get("/api/ai/stats")
+def test_llm_stats_requires_admin(client: TestClient, user_token: str):
+    response = client.get("/api/ai/stats", headers={"Authorization": f"Bearer {user_token}"})
+    assert response.status_code == 403
+
+
+def test_llm_stats_endpoint(client: TestClient, admin_token: str):
+    response = client.get("/api/ai/stats", headers={"Authorization": f"Bearer {admin_token}"})
     assert response.status_code == 200
     data = response.json()
     assert "cache" in data

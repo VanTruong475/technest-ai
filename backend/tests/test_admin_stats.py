@@ -15,11 +15,13 @@ def _create_order(
     status: str = "COMPLETED",
     total: float = 100000,
     created_at: datetime | None = None,
+    payment_status: str = "PAID",
 ) -> Order:
     order = Order(
         user_id=user.id,
         total_amount=total,
         status=status,
+        payment_status=payment_status,
         shipping_address="123 Test St",
         phone="0900000000",
         created_at=created_at or datetime.now(timezone.utc),

@@ -13,6 +13,8 @@ class CartItemCreate(BaseModel):
     def validate_quantity(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("Quantity must be greater than 0")
+        if v > 999:
+            raise ValueError("Quantity must not exceed 999")
         return v
 
 
@@ -24,6 +26,8 @@ class CartItemUpdate(BaseModel):
     def validate_quantity(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("Quantity must be greater than 0")
+        if v > 999:
+            raise ValueError("Quantity must not exceed 999")
         return v
 
 

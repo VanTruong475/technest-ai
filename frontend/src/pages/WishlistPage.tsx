@@ -23,7 +23,7 @@ interface WishlistItem {
 export default function WishlistPage() {
   const queryClient = useQueryClient();
 
-  const { data: items = [], isLoading } = useQuery<WishlistItem[]>({
+  const { data: items = [], isLoading, error } = useQuery<WishlistItem[]>({
     queryKey: ["wishlist"],
     queryFn: async () => {
       const res = await axiosClient.get("/api/wishlist");
@@ -61,7 +61,14 @@ export default function WishlistPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">Sản phẩm yêu thích</h1>
 
-      {items.length === 0 ? (
+      {error ? (
+        <Card className="border-border/60 shadow-sm">
+          <CardContent className="py-12 text-center space-y-3">
+            <p className="text-destructive font-medium">Không thể tải danh sách yêu thích</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>Thử lại</Button>
+          </CardContent>
+        </Card>
+      ) : items.length === 0 ? (
         <div className="text-center py-16 space-y-4">
           <Heart className="h-12 w-12 mx-auto text-muted-foreground/30" />
           <p className="text-muted-foreground">Chưa có sản phẩm yêu thích nào</p>

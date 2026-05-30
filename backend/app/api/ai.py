@@ -7,6 +7,7 @@ from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.database import get_session
+from app.core.dependencies import require_admin
 from app.core.rate_limit import limiter
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
@@ -149,6 +150,8 @@ def chat(
 
 
 @router.get("/stats")
-def llm_stats():
+def llm_stats(
+    current_user: User = Depends(require_admin),
+):
     """LLM observability metrics: cache hit rate, provider success rate."""
     return llm_metrics.get_stats()

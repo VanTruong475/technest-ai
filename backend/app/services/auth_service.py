@@ -170,6 +170,11 @@ def reset_password(token: str, new_password: str, session: Session) -> None:
         )
 
     expires_at = user.reset_token_expires_at
+    if not expires_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
     if expires_at:
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)

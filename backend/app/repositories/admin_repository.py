@@ -32,7 +32,8 @@ class AdminRepository:
 
     def sum_revenue(self) -> float:
         statement = select(func.coalesce(func.sum(Order.total_amount), 0)).where(
-            Order.status != "CANCELLED"
+            Order.status != "CANCELLED",
+            Order.payment_status == "PAID",
         )
         return float(self.session.exec(statement).one())
 
