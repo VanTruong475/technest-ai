@@ -67,6 +67,16 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
     )
 
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    import logging
+    logging.getLogger("uvicorn.error").exception("Unhandled exception")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error", "error_code": "INTERNAL_ERROR"},
+    )
+
+
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     return JSONResponse(

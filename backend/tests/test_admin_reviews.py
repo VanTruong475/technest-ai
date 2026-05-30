@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models.product import Product
 from app.models.review import Review
@@ -119,8 +119,27 @@ def test_list_reviews_pagination(
     test_user: User,
     product: Product,
 ) -> None:
+    from app.models.category import Category
+    from app.models.brand import Brand
+
+    category = session.exec(select(Category)).first()
+    brand = session.exec(select(Brand)).first()
+
     for i in range(15):
-        _create_review(session, test_user, product, rating=3, comment=f"Review {i}")
+        p = Product(
+            name=f"Pagination Product {i}",
+            slug=f"pagination-product-{i}",
+            description="Test",
+            price=1000000,
+            stock=10,
+            status="ACTIVE",
+            category_id=category.id,
+            brand_id=brand.id,
+        )
+        session.add(p)
+        session.commit()
+        session.refresh(p)
+        _create_review(session, test_user, p, rating=3, comment=f"Review {i}")
 
     # Page 1
     response = client.get(

@@ -2,7 +2,7 @@ import logging
 import re
 from typing import Optional
 
-from sqlmodel import Session, select, func, or_
+from sqlmodel import Session, select, func, or_, col
 
 from app.models.brand import Brand
 from app.models.cart import Cart, CartItem
@@ -780,37 +780,46 @@ def _extract_products_from_history(
 ) -> list[ChatProductResult]:
     """Extract sản phẩm từ assistant messages trong history.
 
-    Parse product info từ reply text (tên + giá) và query DB để lấy Product objects.
+    Parse product name từ reply text và query DB để lấy Product objects.
     Trả về tối đa 5 sản phẩm gần nhất được nhắc đến.
     """
+    # Load chỉ name + id (lightweight) thay vì full product objects
+    product_names = list(
+        session.exec(
+            select(Product.name).where(Product.status == "ACTIVE")
+        ).all()
+    )
+    if not product_names:
+        return []
+
     mentioned_names: list[str] = []
     for item in reversed(history):
         if item.role != "assistant":
             continue
-        # Tìm tên sản phẩm trong reply — pattern: tên sản phẩm + giá
-        # Gemini thường mention tên sản phẩm, query DB theo name ILIKE
         text = item.content.lower()
-        # Tìm tất cả sản phẩm trong DB mà tên xuất hiện trong reply
-        products = list(
-            session.exec(
-                select(Product).where(Product.status == "ACTIVE")
-            ).all()
-        )
-        for p in products:
-            if p.name.lower() in text and p.name not in mentioned_names:
-                mentioned_names.append(p.name)
+        for name in product_names:
+            if name.lower() in text and name not in mentioned_names:
+                mentioned_names.append(name)
         if len(mentioned_names) >= 5:
             break
 
     if not mentioned_names:
         return []
 
-    # Query lại để lấy full product objects
+    # Query full products cho matched names (single query với IN clause)
+    products = list(
+        session.exec(
+            select(Product).where(
+                col(Product.name).in_(mentioned_names[:5]),
+                Product.status == "ACTIVE",
+            )
+        ).all()
+    )
+    product_map = {p.name: p for p in products}
+
     results: list[ChatProductResult] = []
     for name in mentioned_names[:5]:
-        product = session.exec(
-            select(Product).where(Product.name == name, Product.status == "ACTIVE")
-        ).first()
+        product = product_map.get(name)
         if product:
             results.append(
                 ChatProductResult(
