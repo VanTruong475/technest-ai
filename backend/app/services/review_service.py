@@ -5,10 +5,11 @@ from sqlmodel import Session
 
 from app.models.review import Review
 from app.models.user import User
+from app.repositories.order_repository import OrderItemRepository
 from app.repositories.product_repository import ProductRepository
 from app.repositories.review_repository import ReviewRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.review import ReviewCreate, ReviewResponse, ReviewUpdate
+from app.schemas.review import CanReviewResponse, ReviewCreate, ReviewResponse, ReviewUpdate
 
 
 def _build_review_response(review: Review, session: Session) -> ReviewResponse:
@@ -75,6 +76,13 @@ def create_review(
             detail="You have already reviewed this product",
         )
 
+    order_item_repo = OrderItemRepository(session)
+    if not order_item_repo.has_user_purchased_product(current_user.id, data.product_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must purchase and receive this product before reviewing",
+        )
+
     review = Review(
         user_id=current_user.id,
         product_id=data.product_id,
@@ -139,3 +147,43 @@ def delete_review(
         )
 
     review_repo.delete(review)
+
+
+def can_user_review(
+    current_user: User,
+    product_id: int,
+    session: Session,
+) -> CanReviewResponse:
+    """Kiểm tra user có thể đánh giá sản phẩm không."""
+    product_repo = ProductRepository(session)
+    if not product_repo.find_by_id(product_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+
+    review_repo = ReviewRepository(session)
+    has_reviewed = review_repo.find_by_user_and_product(current_user.id, product_id) is not None
+
+    order_item_repo = OrderItemRepository(session)
+    has_purchased = order_item_repo.has_user_purchased_product(current_user.id, product_id)
+
+    if has_reviewed:
+        return CanReviewResponse(
+            can_review=False,
+            has_purchased=has_purchased,
+            has_reviewed=True,
+            reason="You have already reviewed this product",
+        )
+    if not has_purchased:
+        return CanReviewResponse(
+            can_review=False,
+            has_purchased=False,
+            has_reviewed=False,
+            reason="You must purchase and receive this product before reviewing",
+        )
+    return CanReviewResponse(
+        can_review=True,
+        has_purchased=True,
+        has_reviewed=False,
+    )

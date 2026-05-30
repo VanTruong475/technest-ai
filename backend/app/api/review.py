@@ -4,9 +4,10 @@ from sqlmodel import Session
 from app.core.database import get_session
 from app.core.dependencies import require_admin
 from app.models.user import User
-from app.schemas.review import ReviewCreate, ReviewResponse, ReviewUpdate
+from app.schemas.review import CanReviewResponse, ReviewCreate, ReviewResponse, ReviewUpdate
 from app.services.auth_service import get_current_user
 from app.services.review_service import (
+    can_user_review,
     create_review,
     delete_review,
     get_reviews_by_product,
@@ -22,6 +23,15 @@ def list_product_reviews(
     session: Session = Depends(get_session),
 ):
     return get_reviews_by_product(product_id, session)
+
+
+@router.get("/can-review/{product_id}", response_model=CanReviewResponse)
+def check_can_review(
+    product_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    return can_user_review(current_user, product_id, session)
 
 
 @router.post("", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)

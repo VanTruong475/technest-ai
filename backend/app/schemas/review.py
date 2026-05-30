@@ -43,3 +43,10 @@ class ReviewResponse(BaseModel):
 class ProductRatingSummary(BaseModel):
     rating_average: Optional[float] = None
     rating_count: int = 0
+
+
+class CanReviewResponse(BaseModel):
+    can_review: bool
+    has_purchased: bool
+    has_reviewed: bool
+    reason: Optional[str] = None

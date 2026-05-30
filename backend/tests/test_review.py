@@ -1,10 +1,94 @@
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, select
 
+from app.models.order import Order, OrderItem
 from app.models.product import Product
+from app.models.review import Review
+from app.models.user import User
 
 
-def test_create_review(client: TestClient, user_token: str, product: Product):
+def _create_completed_order(session: Session, user: User, product: Product) -> Order:
+    """Tạo đơn COMPLETED chứa sản phẩm để user được phép review."""
+    order = Order(
+        user_id=user.id,
+        total_amount=product.price,
+        status="COMPLETED",
+        payment_method="COD",
+        payment_status="PAID",
+        shipping_address="123 Test St",
+        phone="0900000000",
+    )
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+
+    item = OrderItem(
+        order_id=order.id,
+        product_id=product.id,
+        product_name=product.name,
+        price=product.price,
+        quantity=1,
+        subtotal=product.price,
+    )
+    session.add(item)
+    session.commit()
+    return order
+
+
+# --- Purchase check tests ---
+
+
+def test_create_review_without_purchase(client: TestClient, user_token: str, product: Product):
+    """User chưa mua sản phẩm → 403."""
+    response = client.post("/api/reviews", headers={
+        "Authorization": f"Bearer {user_token}",
+    }, json={
+        "product_id": product.id,
+        "rating": 5,
+        "comment": "Good",
+    })
+    assert response.status_code == 403
+    assert "purchase" in response.json()["detail"].lower()
+
+
+def test_create_review_with_pending_order(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    """User có đơn PENDING → không được review."""
+    order = Order(
+        user_id=test_user.id,
+        total_amount=product.price,
+        status="PENDING",
+        shipping_address="123 Test St",
+        phone="0900000000",
+    )
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+
+    item = OrderItem(
+        order_id=order.id,
+        product_id=product.id,
+        product_name=product.name,
+        price=product.price,
+        quantity=1,
+        subtotal=product.price,
+    )
+    session.add(item)
+    session.commit()
+
+    response = client.post("/api/reviews", headers={
+        "Authorization": f"Bearer {user_token}",
+    }, json={
+        "product_id": product.id,
+        "rating": 5,
+        "comment": "Good",
+    })
+    assert response.status_code == 403
+
+
+def test_create_review_with_completed_order(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    """User có đơn COMPLETED → được review."""
+    _create_completed_order(session, test_user, product)
+
     response = client.post("/api/reviews", headers={
         "Authorization": f"Bearer {user_token}",
     }, json={
@@ -29,7 +113,9 @@ def test_create_review_without_login(client: TestClient, product: Product):
     assert response.status_code in (401, 403)
 
 
-def test_create_review_invalid_rating(client: TestClient, user_token: str, product: Product):
+def test_create_review_invalid_rating(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    _create_completed_order(session, test_user, product)
+
     response = client.post("/api/reviews", headers={
         "Authorization": f"Bearer {user_token}",
     }, json={
@@ -60,7 +146,9 @@ def test_create_review_product_not_found(client: TestClient, user_token: str):
     assert response.status_code == 404
 
 
-def test_create_duplicate_review(client: TestClient, user_token: str, product: Product):
+def test_create_duplicate_review(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    _create_completed_order(session, test_user, product)
+
     client.post("/api/reviews", headers={
         "Authorization": f"Bearer {user_token}",
     }, json={
@@ -80,7 +168,9 @@ def test_create_duplicate_review(client: TestClient, user_token: str, product: P
     assert "already reviewed" in response.json()["detail"]
 
 
-def test_get_reviews_by_product(client: TestClient, user_token: str, product: Product):
+def test_get_reviews_by_product(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    _create_completed_order(session, test_user, product)
+
     client.post("/api/reviews", headers={
         "Authorization": f"Bearer {user_token}",
     }, json={
@@ -104,7 +194,9 @@ def test_get_reviews_empty(client: TestClient, product: Product):
     assert data == []
 
 
-def test_update_own_review(client: TestClient, user_token: str, product: Product):
+def test_update_own_review(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    _create_completed_order(session, test_user, product)
+
     create_resp = client.post("/api/reviews", headers={
         "Authorization": f"Bearer {user_token}",
     }, json={
@@ -126,7 +218,9 @@ def test_update_own_review(client: TestClient, user_token: str, product: Product
     assert data["comment"] == "Updated: Excellent!"
 
 
-def test_update_other_user_review(client: TestClient, admin_token: str, user_token: str, product: Product):
+def test_update_other_user_review(client: TestClient, admin_token: str, user_token: str, product: Product, session: Session, test_user: User):
+    _create_completed_order(session, test_user, product)
+
     create_resp = client.post("/api/reviews", headers={
         "Authorization": f"Bearer {user_token}",
     }, json={
@@ -145,7 +239,9 @@ def test_update_other_user_review(client: TestClient, admin_token: str, user_tok
     assert response.json()["rating"] == 1
 
 
-def test_delete_own_review(client: TestClient, user_token: str, product: Product):
+def test_delete_own_review(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    _create_completed_order(session, test_user, product)
+
     create_resp = client.post("/api/reviews", headers={
         "Authorization": f"Bearer {user_token}",
     }, json={
@@ -165,11 +261,10 @@ def test_delete_own_review(client: TestClient, user_token: str, product: Product
 
 
 def test_delete_other_user_review_forbidden(client: TestClient, admin_token: str, user_token: str, product: Product, session: Session):
-    from app.models.user import User
-    from app.models.review import Review
+    from app.models.user import User as UserModel
 
     user = session.exec(
-        __import__("sqlmodel", fromlist=["select"]).select(User).where(User.email == "test@example.com")
+        select(UserModel).where(UserModel.email == "test@example.com")
     ).first()
 
     review = Review(user_id=user.id, product_id=product.id, rating=3, comment="User review")
@@ -197,3 +292,69 @@ def test_delete_review_not_found(client: TestClient, user_token: str):
         "Authorization": f"Bearer {user_token}",
     })
     assert response.status_code == 404
+
+
+# --- Can-review endpoint tests ---
+
+
+def test_can_review_not_authenticated(client: TestClient, product: Product):
+    response = client.get(f"/api/reviews/can-review/{product.id}")
+    assert response.status_code in (401, 403)
+
+
+def test_can_review_product_not_found(client: TestClient, user_token: str):
+    response = client.get("/api/reviews/can-review/9999", headers={
+        "Authorization": f"Bearer {user_token}",
+    })
+    assert response.status_code == 404
+
+
+def test_can_review_no_purchase(client: TestClient, user_token: str, product: Product):
+    """User chưa mua → can_review=False, has_purchased=False."""
+    response = client.get(f"/api/reviews/can-review/{product.id}", headers={
+        "Authorization": f"Bearer {user_token}",
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["can_review"] is False
+    assert data["has_purchased"] is False
+    assert data["has_reviewed"] is False
+    assert "purchase" in data["reason"].lower()
+
+
+def test_can_review_purchased_not_reviewed(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    """User đã mua COMPLETED, chưa review → can_review=True."""
+    _create_completed_order(session, test_user, product)
+
+    response = client.get(f"/api/reviews/can-review/{product.id}", headers={
+        "Authorization": f"Bearer {user_token}",
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["can_review"] is True
+    assert data["has_purchased"] is True
+    assert data["has_reviewed"] is False
+    assert data["reason"] is None
+
+
+def test_can_review_already_reviewed(client: TestClient, user_token: str, product: Product, session: Session, test_user: User):
+    """User đã review rồi → can_review=False, has_reviewed=True."""
+    _create_completed_order(session, test_user, product)
+
+    client.post("/api/reviews", headers={
+        "Authorization": f"Bearer {user_token}",
+    }, json={
+        "product_id": product.id,
+        "rating": 5,
+        "comment": "Done",
+    })
+
+    response = client.get(f"/api/reviews/can-review/{product.id}", headers={
+        "Authorization": f"Bearer {user_token}",
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["can_review"] is False
+    assert data["has_purchased"] is True
+    assert data["has_reviewed"] is True
+    assert "already reviewed" in data["reason"].lower()

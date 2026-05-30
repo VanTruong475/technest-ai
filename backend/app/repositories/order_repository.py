@@ -74,6 +74,19 @@ class OrderItemRepository:
         statement = select(OrderItem).where(OrderItem.order_id.in_(order_ids))
         return list(self.session.exec(statement).all())
 
+    def has_user_purchased_product(self, user_id: int, product_id: int) -> bool:
+        """Kiểm tra user đã mua sản phẩm này trong đơn COMPLETED chưa."""
+        statement = (
+            select(OrderItem)
+            .join(Order, OrderItem.order_id == Order.id)
+            .where(
+                Order.user_id == user_id,
+                Order.status == "COMPLETED",
+                OrderItem.product_id == product_id,
+            )
+        )
+        return self.session.exec(statement).first() is not None
+
     def create(self, item: OrderItem) -> OrderItem:
         self.session.add(item)
         self.session.commit()
