@@ -48,7 +48,12 @@ export default function ChatPage() {
 
   // Persist messages to localStorage (keep last 100)
   useEffect(() => {
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-100)));
+    try {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-100)));
+    } catch {
+      // localStorage full — silently drop oldest messages on next save
+      console.warn("Failed to save chat messages to localStorage (storage may be full)");
+    }
   }, [messages]);
 
   const clearChat = () => {

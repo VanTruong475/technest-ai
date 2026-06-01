@@ -101,6 +101,11 @@ export default function CheckoutPage() {
     }
   }, [isLoading, items.length, navigate, cartError]);
 
+  // ── Redirect guard — prevent flashing form before redirect ──
+  if (!isLoading && items.length === 0 && !cartError) {
+    return null;
+  }
+
   // ── Loading ──
   if (isLoading) {
     return (

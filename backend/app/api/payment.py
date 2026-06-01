@@ -134,7 +134,12 @@ def vnpay_return(
         logger.info(f"Order #{order_id} payment failed, response_code={response_code}")
 
     order.updated_at = datetime.now(timezone.utc)
-    order_repo.update(order)
+
+    try:
+        order_repo.update(order)
+    except Exception as e:
+        logger.error(f"VNPay return DB update failed for order #{order_id}: {e}")
+        return _redirect_fail("db_error")
 
     status_param = "success" if response_code == "00" else "failed"
     return RedirectResponse(

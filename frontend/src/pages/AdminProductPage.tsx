@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, X, Package } from "lucide-react";
 import Pagination from "@/components/common/Pagination";
-import AdminNav from "@/components/common/AdminNav";
+
 import ImageUpload from "@/components/common/ImageUpload";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatPrice } from "@/utils/format";
@@ -61,6 +61,7 @@ function generateSlug(name: string): string {
 export default function AdminProductPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   useScrollToTopOnChange(page);
   const [showForm, setShowForm] = useState(false);
@@ -70,12 +71,21 @@ export default function AdminProductPage() {
   const [editingStock, setEditingStock] = useState<Record<number, number>>({});
   const limit = 10;
 
+  // Debounce search input — wait 300ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   // Fetch products
   const { data: productsData, isLoading, error: productsError } = useQuery<ProductsResponse>({
-    queryKey: ["admin-products", search, page],
+    queryKey: ["admin-products", debouncedSearch, page],
     queryFn: async () => {
       const params: Record<string, string | number> = { page, limit };
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
       const res = await axiosClient.get("/api/products", { params });
       return res.data;
     },
@@ -270,8 +280,8 @@ export default function AdminProductPage() {
   }, [editingStock, selectedIds, bulkUpdateMutation]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <AdminNav />
+    <div className="space-y-6">
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl font-bold">Quản lý sản phẩm</h1>
         <Button onClick={openCreateForm}>
@@ -285,7 +295,7 @@ export default function AdminProductPage() {
         <Input
           placeholder="Tìm kiếm sản phẩm..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => setSearch(e.target.value)}
           className="max-w-sm w-full"
         />
       </div>
