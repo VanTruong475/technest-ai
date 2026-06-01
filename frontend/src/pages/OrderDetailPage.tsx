@@ -14,14 +14,7 @@ import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS, PAYMENT_STATUS_MAP, PAYMENT_METHOD_MAP } from "@/constants/orderStatus";
 import { getErrorMessage } from "@/utils/api";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import type { Order } from "@/types";
-
-interface CanReviewResult {
-  can_review: boolean;
-  has_purchased: boolean;
-  has_reviewed: boolean;
-  reason: string | null;
-}
+import type { Order, CanReviewResult } from "@/types";
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();

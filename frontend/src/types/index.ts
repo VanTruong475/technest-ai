@@ -134,3 +134,11 @@ export interface ChatMessage {
 export type ProductsResponse = PaginatedResponse<Product>;
 export type OrdersResponse = PaginatedResponse<Order>;
 export type UsersResponse = PaginatedResponse<User>;
+
+// ── Review eligibility ──
+export interface CanReviewResult {
+  can_review: boolean;
+  has_purchased: boolean;
+  has_reviewed: boolean;
+  reason: string | null;
+}

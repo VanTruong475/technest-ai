@@ -11,14 +11,7 @@ import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { Package, ChevronRight, Home, Star, CheckCircle2 } from "lucide-react";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS } from "@/constants/orderStatus";
-import type { OrdersResponse } from "@/types";
-
-interface CanReviewResult {
-  can_review: boolean;
-  has_purchased: boolean;
-  has_reviewed: boolean;
-  reason: string | null;
-}
+import type { OrdersResponse, CanReviewResult } from "@/types";
 
 const STATUS_TABS = [
   { key: "", label: "Tất cả" },

@@ -1,4 +1,5 @@
 import sentry_sdk
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
@@ -20,6 +21,7 @@ from app.api.upload import router as upload_router
 from app.api.wishlist import router as wishlist_router
 from app.api.payment import router as payment_router
 from app.api.admin import router as admin_router
+from app.api.homepage import router as homepage_router
 from app.core.cache import get_redis, close_redis
 from app.core.config import settings
 from app.core.database import create_db_and_tables
@@ -38,7 +40,19 @@ if settings.SENTRY_DSN:
         traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
     )
 
-app = FastAPI(title="TechSphere AI - Backend")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    if settings.ENVIRONMENT == "development":
+        create_db_and_tables()
+    get_redis()
+    yield
+    # Shutdown
+    close_redis()
+
+
+app = FastAPI(title="TechSphere AI - Backend", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(SlowAPIMiddleware)
@@ -96,17 +110,7 @@ app.include_router(upload_router)
 app.include_router(wishlist_router)
 app.include_router(payment_router)
 app.include_router(admin_router)
-
-@app.on_event("startup")
-def on_startup():
-    if settings.ENVIRONMENT == "development":
-        create_db_and_tables()
-    get_redis()
-
-
-@app.on_event("shutdown")
-def on_shutdown():
-    close_redis()
+app.include_router(homepage_router)
 
 
 @app.get("/")
