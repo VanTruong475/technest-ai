@@ -322,6 +322,13 @@ def update_order_status(
                         .values(stock=Product.stock + qty)
                     )
 
+        # Write audit log INSIDE transaction — if commit fails, audit is also rolled back
+        if old_status != data.status and admin_user:
+            log_action(
+                session, admin_user.id, "UPDATE", "ORDER", order.id,
+                json.dumps({"old_status": old_status, "new_status": data.status}),
+            )
+
         session.commit()
     except Exception:
         session.rollback()
@@ -330,12 +337,8 @@ def update_order_status(
     session.refresh(order)
     order_response = _build_order_response(order, session)
 
+    # Email notification AFTER commit (non-critical, failure shouldn't block status change)
     if old_status != data.status:
-        if admin_user:
-            log_action(
-                session, admin_user.id, "UPDATE", "ORDER", order.id,
-                json.dumps({"old_status": old_status, "new_status": data.status}),
-            )
         try:
             user_repo = UserRepository(session)
             order_user = user_repo.find_by_id(order.user_id)

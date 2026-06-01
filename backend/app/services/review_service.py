@@ -18,9 +18,17 @@ from app.schemas.review import (
 )
 
 
-def _build_review_response(review: Review, session: Session) -> ReviewResponse:
-    user_repo = UserRepository(session)
-    user = user_repo.find_by_id(review.user_id)
+def _build_review_response(
+    review: Review,
+    session: Session,
+    user_map: dict[int, User] | None = None,
+) -> ReviewResponse:
+    """Build review response. Pass user_map to avoid N+1 queries."""
+    if user_map is None:
+        user_repo = UserRepository(session)
+        user = user_repo.find_by_id(review.user_id)
+    else:
+        user = user_map.get(review.user_id)
     user_name = user.full_name if user else "Unknown"
 
     return ReviewResponse(
@@ -35,29 +43,21 @@ def _build_review_response(review: Review, session: Session) -> ReviewResponse:
     )
 
 
+def _batch_load_users(session: Session, reviews: list[Review]) -> dict[int, User]:
+    """Batch-load users for a list of reviews to avoid N+1 queries."""
+    user_ids = list({r.user_id for r in reviews})
+    if not user_ids:
+        return {}
+    user_repo = UserRepository(session)
+    users = user_repo.find_by_ids(user_ids)
+    return {u.id: u for u in users}
+
+
 def get_reviews_by_product(product_id: int, session: Session) -> list[ReviewResponse]:
     review_repo = ReviewRepository(session)
     reviews = review_repo.find_by_product_id(product_id)
-
-    user_ids = list({r.user_id for r in reviews})
-    user_repo = UserRepository(session)
-    users = user_repo.find_by_ids(user_ids) if user_ids else []
-    user_map = {u.id: u for u in users}
-
-    results = []
-    for r in reviews:
-        user = user_map.get(r.user_id)
-        results.append(ReviewResponse(
-            id=r.id,
-            user_id=r.user_id,
-            user_name=user.full_name if user else "Unknown",
-            product_id=r.product_id,
-            rating=r.rating,
-            comment=r.comment,
-            created_at=r.created_at,
-            updated_at=r.updated_at,
-        ))
-    return results
+    user_map = _batch_load_users(session, reviews)
+    return [_build_review_response(r, session, user_map) for r in reviews]
 
 
 def create_review(

@@ -11,7 +11,7 @@ export default function PaymentResultPage() {
   const orderId = searchParams.get("order_id");
 
   // Verify payment status from server — don't trust URL param alone
-  const { data: order, isLoading, error } = useQuery<Order>({
+  const { data: order, isLoading } = useQuery<Order>({
     queryKey: ["order", orderId],
     queryFn: async () => {
       const res = await axiosClient.get(`/api/orders/${orderId}`);
@@ -21,11 +21,10 @@ export default function PaymentResultPage() {
     retry: 1,
   });
 
-  // Determine success from server response, fallback to URL param for edge cases
-  const urlStatus = searchParams.get("status");
+  // Determine success from server response ONLY — don't trust URL param when fetch fails
   const isSuccess = order
     ? order.payment_status === "PAID"
-    : urlStatus === "success" && !error;
+    : false; // Default to false if order not loaded (don't trust URL param)
 
   if (isLoading) {
     return (

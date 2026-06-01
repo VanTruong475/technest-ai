@@ -139,13 +139,25 @@ class AdminService:
         from_dt = None
         to_dt = None
         if from_date:
-            from_dt = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            try:
+                from_dt = datetime.strptime(from_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid from_date format. Use YYYY-MM-DD.",
+                )
         if to_date:
-            to_dt = datetime.combine(
-                datetime.strptime(to_date, "%Y-%m-%d").date(),
-                time.max,
-                tzinfo=timezone.utc,
-            )
+            try:
+                to_dt = datetime.combine(
+                    datetime.strptime(to_date, "%Y-%m-%d").date(),
+                    time.max,
+                    tzinfo=timezone.utc,
+                )
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid to_date format. Use YYYY-MM-DD.",
+                )
 
         rows = self.repo.export_orders(
             from_date=from_dt,

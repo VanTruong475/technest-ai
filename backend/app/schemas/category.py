@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Optional
 
@@ -32,7 +33,10 @@ class CategoryCreate(BaseModel):
             raise ValueError("Slug cannot be empty")
         if len(v) > 100:
             raise ValueError("Slug must be at most 100 characters")
-        return v.strip().lower()
+        v = v.strip().lower()
+        if not re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", v):
+            raise ValueError("Slug must be lowercase alphanumeric with hyphens")
+        return v
 
 
 class CategoryUpdate(BaseModel):
@@ -67,7 +71,10 @@ class CategoryUpdate(BaseModel):
                 raise ValueError("Slug cannot be empty")
             if len(v) > 100:
                 raise ValueError("Slug must be at most 100 characters")
-            return v.strip().lower()
+            v = v.strip().lower()
+            if not re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", v):
+                raise ValueError("Slug must be lowercase alphanumeric with hyphens")
+            return v
         return v
 
 
