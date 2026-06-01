@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import {
-  ShoppingCart, User, LogOut, LayoutDashboard, Menu, X, ChevronDown,
+  ShoppingCart, User, LogOut, LayoutDashboard, Menu, X,
   Headphones, Heart, Mail, MapPin, Phone, Sparkles, ShieldCheck, Truck,
   RotateCcw, CreditCard,
 } from "lucide-react";
@@ -42,6 +42,7 @@ export default function MainLayout() {
   // Chat page có layout đặc biệt: full viewport, ẩn footer, không scroll page.
   // Chat content tự manage scroll trong container của nó.
   const isChatPage = location.pathname === "/chat";
+  const isAdminPage = location.pathname.startsWith("/admin");
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: categories = [] } = useCategories();
   const { data: cartData } = useQuery<{ total_items: number }>({
@@ -66,8 +67,6 @@ export default function MainLayout() {
     }
     return links;
   }, [categories]);
-  const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -90,18 +89,6 @@ export default function MainLayout() {
   };
 
   const closeMobile = () => setMobileOpen(false);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setAdminDropdownOpen(false);
-      }
-    }
-    if (adminDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [adminDropdownOpen]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -169,78 +156,12 @@ export default function MainLayout() {
                   </Button>
                 </Link>
                 {isAdmin && (
-                  <div className="relative" ref={dropdownRef}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
-                      id="admin-menu-trigger"
-                      aria-haspopup="menu"
-                      aria-expanded={adminDropdownOpen}
-                      aria-controls="admin-menu-panel"
-                    >
+                  <Link to="/admin/dashboard">
+                    <Button variant="ghost" size="sm">
                       <LayoutDashboard className="h-4 w-4 mr-1" />
                       Admin
-                      <ChevronDown className="h-3 w-3 ml-1" />
                     </Button>
-                    {adminDropdownOpen && (
-                      <div
-                        id="admin-menu-panel"
-                        role="menu"
-                        aria-labelledby="admin-menu-trigger"
-                        className="absolute right-0 top-full mt-1 w-48 rounded-md border bg-popover shadow-md z-50"
-                      >
-                        <Link
-                          to="/admin/dashboard"
-                          role="menuitem"
-                          className="block px-3 py-2 text-sm hover:bg-accent rounded-t-md"
-                          onClick={() => setAdminDropdownOpen(false)}
-                        >
-                          Dashboard
-                        </Link>
-                        <Link
-                          to="/admin/products"
-                          role="menuitem"
-                          className="block px-3 py-2 text-sm hover:bg-accent"
-                          onClick={() => setAdminDropdownOpen(false)}
-                        >
-                          Quản lý sản phẩm
-                        </Link>
-                        <Link
-                          to="/admin/orders"
-                          role="menuitem"
-                          className="block px-3 py-2 text-sm hover:bg-accent"
-                          onClick={() => setAdminDropdownOpen(false)}
-                        >
-                          Quản lý đơn hàng
-                        </Link>
-                        <Link
-                          to="/admin/users"
-                          role="menuitem"
-                          className="block px-3 py-2 text-sm hover:bg-accent"
-                          onClick={() => setAdminDropdownOpen(false)}
-                        >
-                          Quản lý người dùng
-                        </Link>
-                        <Link
-                          to="/admin/reviews"
-                          role="menuitem"
-                          className="block px-3 py-2 text-sm hover:bg-accent"
-                          onClick={() => setAdminDropdownOpen(false)}
-                        >
-                          Quản lý đánh giá
-                        </Link>
-                        <Link
-                          to="/admin/audit-logs"
-                          role="menuitem"
-                          className="block px-3 py-2 text-sm hover:bg-accent rounded-b-md"
-                          onClick={() => setAdminDropdownOpen(false)}
-                        >
-                          Nhật ký hệ thống
-                        </Link>
-                      </div>
-                    )}
-                  </div>
+                  </Link>
                 )}
                 <Link to="/profile" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground ml-1">
                   <User className="h-4 w-4" />
@@ -319,17 +240,9 @@ export default function MainLayout() {
                   Đơn hàng
                 </Link>
                 {isAdmin && (
-                  <>
-                    <Link to="/admin/products" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
-                      Quản lý sản phẩm
-                    </Link>
-                    <Link to="/admin/orders" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
-                      Quản lý đơn hàng
-                    </Link>
-                    <Link to="/admin/users" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
-                      Quản lý người dùng
-                    </Link>
-                  </>
+                  <Link to="/admin/dashboard" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
+                    Quản trị
+                  </Link>
                 )}
                 <Link to="/profile" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
                   Hồ sơ cá nhân
@@ -356,9 +269,10 @@ export default function MainLayout() {
         )}
       </header>
 
-      {/* Main content — chat page dùng full-bleed layout (không container/padding)
-          để fill viewport bên dưới header, tránh page scroll khi chat dài. */}
-      {isChatPage ? (
+      {/* Main content — chat page dùng full-bleed layout, admin dùng AdminLayout tự handle */}
+      {isAdminPage ? (
+        <Outlet />
+      ) : isChatPage ? (
         <main className="h-[calc(100vh-3.5rem)] overflow-hidden">
           <Outlet />
         </main>
@@ -368,8 +282,8 @@ export default function MainLayout() {
         </main>
       )}
 
-      {/* Footer — ẩn ở /chat để chat full-height không có scroll page */}
-      {!isChatPage && (
+      {/* Footer — ẩn ở /chat và /admin */}
+      {!isChatPage && !isAdminPage && (
       <footer className="relative border-t bg-gradient-to-b from-muted/20 via-muted/30 to-muted/40 mt-16">
         {/* Trust bar — 4 commitments inline, đậm hơn ở footer */}
         <div className="border-b border-border/60">
@@ -491,7 +405,7 @@ export default function MainLayout() {
       </footer>
       )}
 
-      {!isChatPage && <ScrollToTop />}
+      {!isChatPage && !isAdminPage && <ScrollToTop />}
     </div>
   );
 }

@@ -29,7 +29,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import AdminNav from "@/components/common/AdminNav";
+
 import { DashboardSkeleton } from "@/components/common/Skeleton";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP } from "@/constants/orderStatus";
@@ -105,8 +105,8 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
-        <AdminNav />
+      <div className="space-y-6">
+
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <DashboardSkeleton />
       </div>
@@ -115,8 +115,8 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
-        <AdminNav />
+      <div className="space-y-6">
+
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="text-center py-12 space-y-4">
           <p className="text-destructive">Không thể tải dữ liệu dashboard.</p>
@@ -199,8 +199,8 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <AdminNav />
+    <div className="space-y-6">
+
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       {/* Stats Cards — color identity riêng + gradient subtle + hover lift */}

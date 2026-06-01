@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Star } from "lucide-react";
-import AdminNav from "@/components/common/AdminNav";
+
 import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
@@ -63,8 +63,8 @@ export default function AdminReviewsPage() {
   const reviews = data?.items || [];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <AdminNav />
+    <div className="space-y-6">
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Quản lý đánh giá</h1>
         {data && (

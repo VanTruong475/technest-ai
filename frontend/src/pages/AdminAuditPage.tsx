@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import AdminNav from "@/components/common/AdminNav";
+
 import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { formatDate } from "@/utils/format";
@@ -57,8 +57,8 @@ export default function AdminAuditPage() {
   const logs = data?.items || [];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <AdminNav />
+    <div className="space-y-6">
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Nhật ký hoạt động</h1>
         {data && (

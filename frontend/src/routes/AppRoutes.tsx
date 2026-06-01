@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import MainLayout from "@/layouts/MainLayout";
+import AdminLayout from "@/layouts/AdminLayout";
 import ScrollToTopOnNavigate from "@/components/common/ScrollToTopOnNavigate";
 
 // Lazy-loaded page components — each becomes its own chunk
@@ -84,13 +85,16 @@ export default function AppRoutes() {
           <Route path="/wishlist" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><WishlistPage /></Suspense></ProtectedRoute>} />
           <Route path="/payment/result" element={<Suspense fallback={<RouteFallback />}><PaymentResultPage /></Suspense>} />
 
-          {/* Admin */}
-          <Route path="/admin/dashboard" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminDashboardPage /></Suspense></AdminRoute>} />
-          <Route path="/admin/products" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminProductPage /></Suspense></AdminRoute>} />
-          <Route path="/admin/orders" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminOrderPage /></Suspense></AdminRoute>} />
-          <Route path="/admin/users" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminUserPage /></Suspense></AdminRoute>} />
-          <Route path="/admin/reviews" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminReviewsPage /></Suspense></AdminRoute>} />
-          <Route path="/admin/audit-logs" element={<AdminRoute><Suspense fallback={<RouteFallback />}><AdminAuditPage /></Suspense></AdminRoute>} />
+          {/* Admin — nested layout with sidebar */}
+          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Suspense fallback={<RouteFallback />}><AdminDashboardPage /></Suspense>} />
+            <Route path="products" element={<Suspense fallback={<RouteFallback />}><AdminProductPage /></Suspense>} />
+            <Route path="orders" element={<Suspense fallback={<RouteFallback />}><AdminOrderPage /></Suspense>} />
+            <Route path="users" element={<Suspense fallback={<RouteFallback />}><AdminUserPage /></Suspense>} />
+            <Route path="reviews" element={<Suspense fallback={<RouteFallback />}><AdminReviewsPage /></Suspense>} />
+            <Route path="audit-logs" element={<Suspense fallback={<RouteFallback />}><AdminAuditPage /></Suspense>} />
+          </Route>
 
           {/* 404 */}
           <Route path="*" element={<Suspense fallback={<RouteFallback />}><NotFoundPage /></Suspense>} />

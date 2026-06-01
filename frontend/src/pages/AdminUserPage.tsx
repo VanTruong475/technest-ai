@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Pencil, X } from "lucide-react";
 import Pagination from "@/components/common/Pagination";
-import AdminNav from "@/components/common/AdminNav";
+
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { getErrorMessage } from "@/utils/api";
@@ -90,8 +90,8 @@ export default function AdminUserPage() {
   const totalPages = data?.total_pages || 1;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <AdminNav />
+    <div className="space-y-6">
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
         <p className="text-sm text-muted-foreground">{data?.total || 0} người dùng</p>

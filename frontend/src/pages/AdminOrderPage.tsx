@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Download, Eye } from "lucide-react";
-import AdminNav from "@/components/common/AdminNav";
+
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import Pagination from "@/components/common/Pagination";
 import { TableSkeleton } from "@/components/common/Skeleton";
@@ -87,8 +87,8 @@ export default function AdminOrderPage() {
   const orders = data?.items || [];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <AdminNav />
+    <div className="space-y-6">
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <h1 className="text-2xl font-bold">Quản lý đơn hàng</h1>
         {data && (
