@@ -17,7 +17,7 @@ describe("ORDER_STATUS_MAP", () => {
   })
 
   it("each status has label and color", () => {
-    for (const [key, value] of Object.entries(ORDER_STATUS_MAP)) {
+    for (const value of Object.values(ORDER_STATUS_MAP)) {
       expect(value).toHaveProperty("label")
       expect(value).toHaveProperty("color")
       expect(typeof value.label).toBe("string")
