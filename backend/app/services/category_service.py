@@ -1,9 +1,10 @@
 import math
 
 from fastapi import HTTPException, status
-from sqlmodel import Session
+from sqlmodel import Session, select, func
 
 from app.models.category import Category
+from app.models.product import Product
 from app.models.user import User
 from app.repositories.category_repository import CategoryRepository
 from app.schemas.category import CategoryCreate, CategoryUpdate
@@ -95,6 +96,16 @@ def delete_category(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category not found"
+        )
+
+    # Check if category has products before deleting
+    product_count = session.exec(
+        select(func.count()).select_from(Product).where(Product.category_id == category_id)
+    ).one()
+    if product_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete category with {product_count} products. Remove or reassign products first."
         )
 
     repo.delete(category)

@@ -1,9 +1,10 @@
 import math
 
 from fastapi import HTTPException, status
-from sqlmodel import Session
+from sqlmodel import Session, select, func
 
 from app.models.brand import Brand
+from app.models.product import Product
 from app.models.user import User
 from app.repositories.brand_repository import BrandRepository
 from app.schemas.brand import BrandCreate, BrandUpdate
@@ -95,6 +96,16 @@ def delete_brand(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Brand not found"
+        )
+
+    # Check if brand has products before deleting
+    product_count = session.exec(
+        select(func.count()).select_from(Product).where(Product.brand_id == brand_id)
+    ).one()
+    if product_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete brand with {product_count} products. Remove or reassign products first."
         )
 
     repo.delete(brand)

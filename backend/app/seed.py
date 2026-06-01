@@ -13,7 +13,7 @@ from app.models.user import User
 from app.models.category import Category
 from app.models.brand import Brand
 from app.models.product import Product
-from app.services.auth_service import hash_password
+from app.services.auth_service import hash_password, verify_password
 from sqlmodel import Session, select
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -39,7 +39,7 @@ def seed_admin(session: Session) -> None:
     existing = session.exec(select(User).where(User.email == email)).first()
     if existing:
         # Cho phép update password nếu custom hợp lệ (để đổi password production)
-        if existing.password_hash != hash_password(password):
+        if not verify_password(password, existing.password_hash):
             existing.password_hash = hash_password(password)
             session.add(existing)
             session.commit()
