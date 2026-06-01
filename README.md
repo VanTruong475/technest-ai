@@ -4,7 +4,7 @@
 > Backend FastAPI + PostgreSQL + Redis, Frontend React 19 + TypeScript. AI Search, Recommendation (gồm co-occurrence "khách mua cũng mua"), Chatbot multi-provider LLM (Gemini + Groq) với cache + fallback chain → rule-based.
 
 ![CI](https://github.com/VanTruong475/techsphere-ai/actions/workflows/ci.yml/badge.svg)
-![Tests](https://img.shields.io/badge/Tests-370/370-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-425/425-brightgreen)
 ![Coverage](https://img.shields.io/badge/Coverage-87%25-green)
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688)
@@ -15,7 +15,7 @@
 ![Lighthouse Best Practices](https://img.shields.io/badge/Lighthouse_Best_Practices-100-brightgreen)
 ![Lighthouse SEO](https://img.shields.io/badge/Lighthouse_SEO-92-brightgreen)
 
-**🚀 Production highlights:** `370/370` tests pass · `87%` backend coverage · atomic stock + transaction wrappers · VNPay replay-protection · multi-provider LLM (Gemini + Groq) với Redis cache + fallback chain · co-occurrence recommendation · Cloudinary CDN · N+1 optimization · GZip · Sentry · CI/CD · Light/Dark/System theme · Responsive · A11y ARIA
+**🚀 Production highlights:** `370/370` backend tests + `55/55` frontend tests · `87%` backend coverage · atomic stock + transaction wrappers · VNPay replay-protection · multi-provider LLM (Gemini + Groq) với Redis cache + fallback chain · co-occurrence recommendation · Cloudinary CDN · N+1 optimization · GZip · Sentry · CI/CD · Light/Dark/System theme · Responsive · A11y ARIA
 
 ---
 
@@ -330,9 +330,25 @@ pytest tests/ -v --cov=app          # Chạy với coverage report
 
 ```bash
 cd frontend
-npm run build       # TypeScript check + production build
-npm run lint        # ESLint check
+npm test                # Chạy tất cả tests
+npm run test:watch      # Watch mode
+npm run test:coverage   # Coverage report
+npm run build           # TypeScript check + production build
+npm run lint            # ESLint check
 ```
+
+**55/55 tests** — Vitest + React Testing Library:
+
+| Test File | Tests | Nội dung |
+|-----------|-------|----------|
+| format.test.ts | 6 | formatPrice, formatDate |
+| api.test.ts | 7 | getErrorMessage (AxiosError, Error, unknown) |
+| cloudinary.test.ts | 5 | getOptimizedImageUrl (Cloudinary transforms) |
+| orderStatus.test.ts | 6 | ORDER/PAYMENT/PRODUCT status maps |
+| SaleBadge.test.tsx | 4 | Discount percentage rendering |
+| StarRating.test.tsx | 8 | Filled/empty stars, interactive mode |
+| Pagination.test.tsx | 9 | Page numbers, ellipsis, prev/next, onPageChange |
+| useRecentlyViewed.test.ts | 10 | localStorage CRUD, dedup, max items |
 
 ### CI/CD
 
