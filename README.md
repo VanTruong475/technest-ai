@@ -4,9 +4,9 @@
 > Backend FastAPI + PostgreSQL + Redis, Frontend React 19 + TypeScript. AI Search, Recommendation (gồm co-occurrence "khách mua cũng mua"), Chatbot multi-provider LLM (Gemini + Groq) với cache + fallback chain → rule-based.
 
 ![CI](https://github.com/VanTruong475/techsphere-ai/actions/workflows/ci.yml/badge.svg)
-![Tests](https://img.shields.io/badge/Tests-349/349-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-370/370-brightgreen)
 ![Coverage](https://img.shields.io/badge/Coverage-87%25-green)
-![Python](https://img.shields.io/badge/Python-3.11+-blue)
+![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688)
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1)
@@ -15,7 +15,7 @@
 ![Lighthouse Best Practices](https://img.shields.io/badge/Lighthouse_Best_Practices-100-brightgreen)
 ![Lighthouse SEO](https://img.shields.io/badge/Lighthouse_SEO-92-brightgreen)
 
-**🚀 Production highlights:** `349/349` tests pass · `87%` backend coverage · atomic stock + transaction wrappers · VNPay replay-protection · multi-provider LLM (Gemini + Groq) với Redis cache + fallback chain · co-occurrence recommendation · Cloudinary CDN · N+1 optimization · GZip · Sentry · CI/CD · Light/Dark/System theme · Responsive · A11y ARIA
+**🚀 Production highlights:** `370/370` tests pass · `87%` backend coverage · atomic stock + transaction wrappers · VNPay replay-protection · multi-provider LLM (Gemini + Groq) với Redis cache + fallback chain · co-occurrence recommendation · Cloudinary CDN · N+1 optimization · GZip · Sentry · CI/CD · Light/Dark/System theme · Responsive · A11y ARIA
 
 ---
 
@@ -37,9 +37,10 @@
 |---|---|
 | **AI features 3 cấp** | Search (SQL ILIKE pre-filter + cap 200 candidates + Python scoring), Recommendation (cart/history/popular/**co-occurrence** SQL self-join), Chatbot (rule-based + **multi-provider LLM Gemini→Groq fallback chain**). Architecture provider abstraction, mở rộng OpenRouter/Anthropic = 1 file. |
 | **Production engineering LLM** | Redis cache cho LLM response (sha256 key, TTL 1h) → cùng câu hỏi $0 quota · Provider chain Gemini lỗi → Groq → rule-based · Graceful 2 tầng (Redis down vẫn LLM, LLM down vẫn rule-based) · Endpoint chatbot luôn 200 OK · Anti-hallucination prompt (products/giá/tồn kho từ DB, không bịa, brand list pass tường minh) |
-| **Backend hardening sprint** | 5 PRs: config guardrails (production env validate) · atomic transaction wrapper (create_order + cancel rollback) · stock atomicity (conditional UPDATE WHERE stock>=:q anti-oversell) · VNPay hardening (amount verify + replay protection qua UNIQUE txn_ref + CANCELLED state lock) · perf polish (smart_search down to SQL, cart GET pure read) |
-| **Test coverage thật** | 349 tests, 87% coverage — integration tests cho cart/order/payment flow, edge cases SQL injection/XSS, anti-API-call guard cho LLM tests, prompt-structure smoke tests |
+| **Backend hardening** | Config guardrails (production env validate) · atomic transaction wrapper (create_order + cancel rollback) · stock atomicity (conditional UPDATE WHERE stock>=:q anti-oversell) · VNPay hardening (amount verify + replay protection qua UNIQUE txn_ref + CANCELLED state lock) · lifespan context manager (FastAPI best practice) |
+| **Test coverage thật** | 370 tests, 87% coverage — integration tests cho cart/order/payment flow, edge cases SQL injection/XSS, anti-API-call guard cho LLM tests, prompt-structure smoke tests |
 | **Hệ thống Audit Log** | Mọi action admin (CRUD product, đổi role, xóa review, export, bulk inventory...) được log có thể truy vết — không phải feature trang trí, có 10 tests |
+| **Security hardening** | XSS-safe image URLs · FK-safe category/brand deletion · JWT token verification on app mount · 401 interceptor sync with Zustand store · bcrypt password verification in seed |
 | **A11y + Dark mode** | ARIA labels đầy đủ, focus management, mobile menu role nav, Light/Dark/System theme toggle với localStorage persistence, scroll reset on route change |
 | **CI/CD ready** | GitHub Actions chạy pytest + frontend build trên mọi PR, deploy auto lên Render + Vercel |
 
@@ -79,7 +80,7 @@ Theme toggle (Sun/Moon/Monitor) ở header — thử Light/Dark/System bất c�
 - **Responsive UI** mobile-first (375px+)
 
 ### Tính năng AI
-- **AI Search** — Tìm kiếm sản phẩm theo relevance score, fuzzy matching
+- **AI Search** — Tìm kiếm sản phẩm theo relevance score, fuzzy matching, synonym dictionary (40+ entries)
 - **AI Recommendation** — Gợi ý dựa trên giỏ hàng, lịch sử, phổ biến, **co-occurrence** ("khách mua sản phẩm này cũng mua")
   - Co-occurrence: SQL self-join trên `order_items` tính số đơn cùng chứa anchor + co-product. Fallback chain: co-occurrence → cùng category → popular → latest.
   - Endpoint: `GET /api/ai/recommend?strategy=co_occurrence&product_id=<id>&limit=5` (public)
@@ -100,7 +101,7 @@ Theme toggle (Sun/Moon/Monitor) ở header — thử Light/Dark/System bất c�
 - Quản lý đánh giá (xem, xóa đánh giá vi phạm)
 - Quản lý kho hàng (bulk update tồn kho)
 - Nhật ký hệ thống (Audit Log)
-- Quản lý danh mục, thương hiệu (CRUD)
+- Quản lý danh mục, thương hiệu (CRUD — **FK-safe deletion**, không xóa nếu còn sản phẩm)
 
 ---
 
@@ -109,15 +110,15 @@ Theme toggle (Sun/Moon/Monitor) ở header — thử Light/Dark/System bất c�
 | Lớp | Công nghệ |
 |-----|-----------|
 | **Backend** | FastAPI 0.136, SQLModel, PostgreSQL 16, Alembic |
-| **Frontend** | React 19, Vite, TypeScript, Tailwind CSS, shadcn/ui |
-| **Quản lý state** | Zustand, TanStack Query |
+| **Frontend** | React 19, Vite 8, TypeScript 6, Tailwind CSS 4, shadcn/ui |
+| **Quản lý state** | Zustand 5, TanStack Query 5 |
 | **Xác thực** | JWT (python-jose), bcrypt (passlib) |
-| **Cache** | Redis (graceful degradation — app vẫn chạy nếu không có Redis) — dùng cho product list, category/brand, LLM response |
+| **Cache** | Redis (graceful degradation — app vẫn chạy nếu không có Redis) — dùng cho product list, category/brand, LLM response, homepage batch |
 | **AI / LLM** | Multi-provider abstraction (httpx REST): Gemini API + Groq API (OpenAI-compat). Fallback chain provider → rule-based. Redis cache TTL 1h cho LLM response |
 | **Upload hình ảnh** | Cloudinary (auto WebP/AVIF, resize, CDN) |
 | **Báo lỗi** | Sentry (error tracking + performance monitoring) |
 | **Email** | Resend (transactional email) |
-| **Biểu đồ** | Recharts (admin dashboard) |
+| **Biểu đồ** | Recharts (admin dashboard, **lazy-loaded separate chunk**) |
 | **Thanh toán** | VNPay (sandbox, HMAC-SHA512 verify, replay protection qua UNIQUE txn_ref) |
 | **Nén truyền** | GZip middleware (Starlette) |
 | **Kiểm thử** | Pytest, httpx, pytest-cov, GitHub Actions |
@@ -130,8 +131,9 @@ Theme toggle (Sun/Moon/Monitor) ở header — thử Light/Dark/System bất c�
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   Frontend (Vercel)                      │
-│            React + Vite + TypeScript + Tailwind          │
+│            React 19 + Vite 8 + TypeScript + Tailwind     │
 │         OptimizedImage (Cloudinary transforms)           │
+│         XSS-safe URL validation · Lazy chunks            │
 └──────────────────────────┬──────────────────────────────┘
                            │ HTTPS
                            ▼
@@ -152,7 +154,8 @@ Theme toggle (Sun/Moon/Monitor) ở header — thử Light/Dark/System bất c�
 │  │   Redis Cache     │  │      Sentry Monitoring      │  │
 │  │ product 5min,     │  │   (error tracking, perf)    │  │
 │  │ category 30min,   │  │                             │  │
-│  │ LLM resp 1h       │  │                             │  │
+│  │ LLM resp 1h,      │  │                             │  │
+│  │ homepage 1min     │  │                             │  │
 │  └───────────────────┘  └─────────────────────────────┘  │
 └──────────────────────────┬──────────────────────────────┘
                            │
@@ -179,7 +182,9 @@ Request → API (router.py) → Service (service.py) → Repository (repository.
 ```
 backend/app/
 ├── api/            # API endpoints (router)
+│   └── homepage.py # Batch endpoint (brands + categories + products)
 ├── core/           # Config, database, cache, rate_limit
+│   └── config.py   # Production env validation guardrails
 ├── models/         # SQLModel models
 ├── repositories/   # Data access layer
 ├── schemas/        # Pydantic schemas (request/response)
@@ -191,7 +196,7 @@ backend/app/
 │       ├── chain.py       # ChainProvider (fail-through)
 │       ├── cache.py       # CachedProvider (Redis wrap)
 │       └── factory.py     # get_llm_provider()
-└── main.py         # FastAPI app entry (CORS, GZip, routers)
+└── main.py         # FastAPI app entry (lifespan, CORS, GZip, routers)
 ```
 
 ---
@@ -227,7 +232,7 @@ Các màn hình khác (không hiển thị inline để giữ README gọn): Pro
 ## Cài đặt local
 
 ### Yêu cầu
-- Python 3.11+
+- Python 3.12+
 - Node.js 20+
 - PostgreSQL 16+
 - Redis (tùy chọn — app vẫn chạy bình thường nếu không có Redis)
@@ -287,7 +292,7 @@ pytest tests/ -v                    # Chạy tất cả tests
 pytest tests/ -v --cov=app          # Chạy với coverage report
 ```
 
-**349/349 tests** — 87% coverage, phân bố qua 29 test modules:
+**370/370 tests** — 87% coverage, phân bố qua 32 test modules:
 
 | Module | Số lượng | Nội dung |
 |--------|----------|----------|
@@ -298,8 +303,8 @@ pytest tests/ -v --cov=app          # Chạy với coverage report
 | test_user_management | 17 | List, get, update, phân quyền, role escalation, **admin self-demote block** |
 | test_cart | 12 | Add, update, delete, stock validation, **GET không mutate DB** |
 | test_payment | 12 | VNPay create, return success/fail, **amount mismatch, replay protection, cancelled order lock** |
-| test_brand | 13 | CRUD, phân quyền, pagination, duplicate slug |
-| test_category | 13 | CRUD, phân quyền, pagination, duplicate slug |
+| test_brand | 13 | CRUD, phân quyền, pagination, duplicate slug, **FK-safe deletion** |
+| test_category | 13 | CRUD, phân quyền, pagination, duplicate slug, **FK-safe deletion** |
 | test_cache | 13 | Cache key, get/set, invalidate, no-Redis graceful degradation |
 | test_review | 13 | Create, list, delete, rating stats |
 | test_email | 12 | Resend integration, template render, error handling |
@@ -325,14 +330,15 @@ pytest tests/ -v --cov=app          # Chạy với coverage report
 
 ```bash
 cd frontend
-npm run build
+npm run build       # TypeScript check + production build
+npm run lint        # ESLint check
 ```
 
 ### CI/CD
 
 GitHub Actions tự động chạy khi push hoặc PR vào nhánh `main`:
-- Backend: cài đặt dependencies + chạy pytest
-- Frontend: cài đặt dependencies + build production
+- Backend: cài đặt dependencies + `alembic upgrade head` + chạy pytest với coverage
+- Frontend: cài đặt dependencies + TypeScript check + build production
 
 ---
 
@@ -354,7 +360,7 @@ API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 
 ## Trạng thái dự án
 
-### Đã hoàn thành (Month 1 + 2 + 3 + Hardening Sprint)
+### Đã hoàn thành (Month 1 + 2 + 3 + Hardening Sprint + Security & Performance Review)
 
 **Core Features:**
 - Đăng ký, đăng nhập, phân quyền (JWT)
@@ -367,7 +373,7 @@ API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 - Sản phẩm đã xem (Recently Viewed)
 
 **AI Features:**
-- **AI Search** — SQL ILIKE pre-filter (đẩy filter xuống DB) + cap 200 candidates + Python relevance scoring (name=10đ/kw, desc=3đ/kw)
+- **AI Search** — SQL ILIKE pre-filter (đẩy filter xuống DB) + cap 200 candidates + Python relevance scoring (name=10đ/kw, desc=3đ/kw) + synonym dictionary (40+ entries)
 - **AI Recommendation** — 4 chiến lược:
   - `cart` (dựa giỏ hàng — cùng category/brand)
   - `history` (dựa lịch sử mua hàng)
@@ -389,23 +395,39 @@ API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 - Bulk update tồn kho
 - Nhật ký hệ thống (Audit Log)
 
-**Backend Production Hardening Sprint (5 PRs):**
-- **PR #1 Config guardrails** — Production env validate `SECRET_KEY`/`ADMIN_PASSWORD` không phải default, `CORS_ORIGINS != '*'`, gate `create_db_and_tables` chỉ dev
-- **PR #2 Transaction foundation** — `create_order` + cancel path atomic (session.add/flush/commit + try/rollback)
-- **PR #3 Stock atomicity** — Conditional `UPDATE products SET stock=stock-:q WHERE id=:id AND stock>=:q` anti-oversell (portable Postgres + SQLite)
-- **PR #4 VNPay hardening** — Verify `int(vnp_Amount) == round(total*100)`, reject nếu `status==CANCELLED` hoặc `payment_status!=PENDING`, lưu `vnp_TxnRef` UNIQUE chống replay
-- **PR #5 Perf & UX polish** — `smart_search` đẩy ILIKE xuống SQL + cap 200 (bỏ `limit=10000`); `_build_cart_response` pure read; checkout cleanup stale items atomically
+**Backend Hardening:**
+- **Config guardrails** — Production env validate `SECRET_KEY`/`ADMIN_PASSWORD` không phải default, `CORS_ORIGINS != '*'`, gate `create_db_and_tables` chỉ dev
+- **Transaction foundation** — `create_order` + cancel path atomic (session.add/flush/commit + try/rollback)
+- **Stock atomicity** — Conditional `UPDATE products SET stock=stock-:q WHERE id=:id AND stock>=:q` anti-oversell
+- **VNPay hardening** — Verify `int(vnp_Amount) == round(total*100)`, reject nếu `status==CANCELLED` hoặc `payment_status!=PENDING`, lưu `vnp_TxnRef` UNIQUE chống replay
+- **Lifespan context manager** — Migrated from deprecated `@app.on_event` to `asynccontextmanager` lifespan
+
+**Security Review (15 fixes):**
+- XSS-safe image URL validation (`isSafeUrl` protocol check)
+- FK-safe category/brand deletion (check product count before delete)
+- JWT token verification on app startup (`fetchCurrentUser` on mount)
+- 401 interceptor sync with Zustand store (proper state cleanup)
+- `seed.py` password comparison fix (`verify_password` instead of hash comparison)
+- `reset_password` redundant null check cleanup
+- VNPay return endpoint exception handling (graceful redirect on DB errors)
+- Admin search debouncing (300ms delay)
+- localStorage error handling in chat (try/catch for storage full)
+- Checkout empty cart flash fix (early return before redirect)
+- Dynamic Tailwind classes fix (static class strings for JIT)
+- Homepage batch endpoint (4 API calls → 1, cached 60s)
+- Shared frontend types extraction (`CanReviewResult`)
+- Recharts lazy-loaded as separate chunk (381KB out of main bundle)
 
 **Technical:**
-- Redis caching (product 5min, category/brand 30min, **LLM response 1h**, graceful degradation)
-- Image optimization (Cloudinary transforms, lazy loading, WebP/AVIF)
+- Redis caching (product 5min, category/brand 30min, LLM response 1h, homepage 1min, graceful degradation)
+- Image optimization (Cloudinary transforms, lazy loading, WebP/AVIF, XSS-safe URL validation)
 - GZip compression
 - N+1 query optimization (batch find_by_ids)
 - Rate limiting (slowapi)
 - Logging middleware
 - Sentry error tracking
 - Seed dữ liệu (75 sản phẩm, 9 thương hiệu, 5 danh mục, ảnh thật từ Unsplash)
-- **349/349 tests**, 87% coverage
+- **370/370 tests**, 87% coverage
 - CI/CD (GitHub Actions)
 - Triển khai production (Render + Vercel)
 
@@ -416,9 +438,11 @@ API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 - Accessibility: aria-label cho icon buttons, role nav cho mobile menu, ARIA cho admin dropdown, id/htmlFor cho form, aria-hidden cho decorative emojis
 - Semantic tokens (bg-card, bg-popover, bg-muted) — dark mode không vỡ giao diện
 - Order/payment status badges có dark variant
-- **Code splitting** 22 routes lazy-loaded, initial bundle 934→405 KB (−57%), gzip 267→128 KB (−52%)
+- **Code splitting** 22 routes lazy-loaded + recharts separate chunk, initial bundle 405 KB (gzip 128 KB)
 - **Scroll reset on route change** (`ScrollToTopOnNavigate`) — fix SPA mặc định giữ scrollY khi navigate
 - **"Có thể bạn cũng thích" section** trên product detail dùng co-occurrence recommendation
+- **Search autocomplete** với debounce 300ms
+- **Loading skeletons** cho mọi page type (ProductGrid, ProductDetail, CartItem, Table, Wishlist, Profile, Dashboard)
 
 ---
 
