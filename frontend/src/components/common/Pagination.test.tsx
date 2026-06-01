@@ -52,9 +52,10 @@ describe("Pagination", () => {
   })
 
   it("shows ellipsis for large page count", () => {
-    render(<Pagination page={5} totalPages={20} onPageChange={vi.fn()} />)
-    const ellipses = screen.getAllByText("…")
-    expect(ellipses.length).toBeGreaterThan(0)
+    const { container } = render(<Pagination page={5} totalPages={20} onPageChange={vi.fn()} />)
+    // Ellipsis uses MoreHorizontal icon (SVG), not text
+    const ellipsisContainers = container.querySelectorAll(".lucide-ellipsis")
+    expect(ellipsisContainers.length).toBeGreaterThan(0)
   })
 
   it("highlights current page", () => {
