@@ -10,6 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from sqlalchemy import inspect
 
 # revision identifiers, used by Alembic.
 revision: str = 'fe64d2e010e4'
@@ -19,6 +20,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Idempotent: skip if table already exists (created by SQLModel auto-create)
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    if 'blog_posts' in inspector.get_table_names():
+        return
+
     op.create_table('blog_posts',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('title', sa.String(length=255), nullable=False),
