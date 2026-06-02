@@ -9,35 +9,20 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { formatPrice } from "@/utils/format";
 import {
   Sparkles, Zap, ArrowRight, ShoppingCart, Heart,
-  Smartphone, Laptop, Headphones, Tablet, Cable,
-  ShieldCheck, Truck, RotateCcw, CreditCard, Brain,
+  Smartphone, ShieldCheck, Truck, RotateCcw, CreditCard, Brain,
 } from "lucide-react";
 import type { Product, Brand, Category } from "@/types";
 
-// Category icon map
-const CATEGORY_ICONS: Record<string, typeof Smartphone> = {
-  "dien-thoai": Smartphone,
-  "điện thoại": Smartphone,
-  phone: Smartphone,
-  smartphone: Smartphone,
-  laptop: Laptop,
-  "tai-nghe": Headphones,
-  "tai nghe": Headphones,
-  headphone: Headphones,
-  tablet: Tablet,
-  "máy tính bảng": Tablet,
-  "phu-kien": Cable,
-  "phụ kiện": Cable,
-  accessory: Cable,
+// Category images — Unsplash photos matching each category
+const CATEGORY_IMAGES: Record<string, string> = {
+  "laptop": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&q=80",
+  "laptop-gaming": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&q=80",
+  "dien-thoai": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80",
+  "tablet": "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&q=80",
+  "tai-nghe": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80",
+  "phu-kien": "https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?w=600&q=80",
+  "default": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
 };
-
-function getCategoryIcon(name: string) {
-  const lower = name.toLowerCase();
-  for (const [key, Icon] of Object.entries(CATEGORY_ICONS)) {
-    if (lower.includes(key)) return Icon;
-  }
-  return Cable;
-}
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -126,16 +111,16 @@ export default function HomePage() {
           ═══════════════════════════════════════════════════════ */}
       {flashSaleProducts.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-12 md:py-16">
-          <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-3xl p-6 md:p-8 shadow-2xl">
+          <div className="bg-[#ba1a1a] rounded-[2rem] p-6 md:p-8 shadow-2xl">
             {/* Header */}
-            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
               <div className="flex items-center gap-4 flex-wrap justify-center md:justify-start">
                 <h2 className="text-white text-3xl md:text-4xl font-bold italic flex items-center gap-3 uppercase">
                   <Zap className="h-8 w-8 fill-current" />
                   Flash Sale
                 </h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-white/80 text-xs font-semibold uppercase">Kết thúc sau:</span>
+                <div className="flex items-center gap-2 ml-4">
+                  <span className="text-white/80 text-xs uppercase">Kết thúc sau:</span>
                   <div className="flex gap-1.5">
                     {countdown.display.split(":").map((part, i) => (
                       <span key={i} className="bg-red-900/60 text-white px-2 py-1 rounded font-bold text-sm tabular-nums">
@@ -145,7 +130,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              <Link to="/products" className="text-white font-bold text-sm flex items-center gap-2 hover:underline">
+              <Link to="/products" className="text-white font-bold text-xs flex items-center gap-2 hover:underline">
                 Xem tất cả <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -156,7 +141,6 @@ export default function HomePage() {
                 const discount = product.sale_price
                   ? Math.round((1 - product.sale_price / product.price) * 100)
                   : 0;
-                // Simulate sold percentage based on stock
                 const soldPercent = product.stock > 0 ? Math.max(10, Math.min(95, 100 - (product.stock * 2))) : 100;
 
                 return (
@@ -168,7 +152,7 @@ export default function HomePage() {
                       </div>
 
                       {/* Image */}
-                      <div className="aspect-square mb-4 overflow-hidden rounded-xl bg-surface-container">
+                      <div className="aspect-square mb-4 overflow-hidden rounded-xl bg-muted">
                         {product.image_url ? (
                           <OptimizedImage
                             src={product.image_url}
@@ -192,7 +176,7 @@ export default function HomePage() {
                         <span className="text-red-600 font-bold text-xl">
                           {formatPrice(product.sale_price!)}
                         </span>
-                        <span className="text-muted-foreground text-sm line-through">
+                        <span className="text-muted-foreground text-xs line-through">
                           {formatPrice(product.price)}
                         </span>
                       </div>
@@ -203,7 +187,7 @@ export default function HomePage() {
                           className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500"
                           style={{ width: `${soldPercent}%` }}
                         />
-                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground/70 italic">
+                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-muted-foreground italic">
                           {product.stock <= 3 ? "Sắp cháy hàng!" : `Đã bán ${Math.floor(soldPercent / 5)}/20`}
                         </span>
                       </div>
@@ -219,24 +203,24 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════
           AI SHOP ASSISTANT
           ═══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 py-12 md:py-16">
-        <div className="bg-gradient-to-br from-primary/90 to-violet-700 rounded-3xl p-8 md:p-12 relative overflow-hidden">
+      <section className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl p-8 md:p-12 relative overflow-hidden border border-primary/10">
           {/* Decorative icon */}
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <Brain className="h-60 w-60 text-white" />
+            <Brain className="h-60 w-60 text-primary" />
           </div>
 
           <div className="relative z-10 max-w-2xl">
-            <div className="flex items-center gap-3 text-white/90 mb-4">
+            <div className="flex items-center gap-3 text-primary mb-4">
               <Sparkles className="h-5 w-5" />
               <span className="text-xs uppercase tracking-widest font-bold">Trợ lý mua sắm AI</span>
             </div>
 
-            <h2 className="text-white text-3xl md:text-4xl font-bold mb-6">
+            <h2 className="text-foreground text-2xl md:text-3xl font-bold mb-4">
               Bạn chưa biết chọn sản phẩm nào?
             </h2>
 
-            <p className="text-white/80 text-lg mb-10 leading-relaxed">
+            <p className="text-muted-foreground text-base mb-8 leading-relaxed">
               Mô tả nhu cầu của bạn, AI sẽ phân tích hàng ngàn đánh giá và cấu hình để tìm ra thiết bị hoàn hảo nhất.
             </p>
 
@@ -245,27 +229,27 @@ export default function HomePage() {
                 e.preventDefault();
                 navigate("/chat");
               }}
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-3"
             >
               <input
                 type="text"
                 placeholder='Gõ nhu cầu: "Laptop code game dưới 30tr"...'
-                className="flex-1 bg-white/10 border border-white/20 text-white placeholder:text-white/50 rounded-xl px-6 py-4 focus:ring-2 focus:ring-white/30 outline-none backdrop-blur-sm text-sm"
+                className="flex-1 bg-card border border-border text-foreground placeholder:text-muted-foreground rounded-xl px-5 py-3.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm"
               />
               <Link to="/chat">
-                <Button className="bg-white text-primary px-8 py-4 rounded-xl font-bold shadow-xl hover:bg-white/90 w-full sm:w-auto">
+                <Button className="px-7 py-3.5 rounded-xl font-semibold shadow-lg shadow-primary/10 w-full sm:w-auto">
                   Tìm cho tôi
                 </Button>
               </Link>
             </form>
 
-            <div className="mt-6 flex flex-wrap gap-2 items-center">
-              <span className="text-white/60 text-xs font-bold uppercase">Gợi ý:</span>
+            <div className="mt-5 flex flex-wrap gap-2 items-center">
+              <span className="text-muted-foreground text-xs font-bold uppercase">Gợi ý:</span>
               {["Màn hình đồ họa tốt nhất", "Tai nghe chống ồn", "Laptop văn phòng"].map((s) => (
                 <Link
                   key={s}
                   to={`/chat`}
-                  className="text-white/90 text-xs hover:underline"
+                  className="text-primary text-xs hover:underline"
                 >
                   {s}
                 </Link>
@@ -382,88 +366,37 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          CATEGORIES BENTO GRID
+          CATEGORIES
           ═══════════════════════════════════════════════════════ */}
       {categories.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-12 md:py-16">
+        <section className="max-w-7xl mx-auto px-6 py-12 md:py-16">
           <h2 className="text-2xl md:text-3xl font-bold mb-10 text-center uppercase tracking-widest">
             Danh mục hàng đầu
           </h2>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 auto-rows-[200px]">
-            {/* Large card — first category */}
-            {categories[0] && (
-              <Link
-                to={`/products?category_id=${categories[0].id}`}
-                className="col-span-2 row-span-1 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-6 relative overflow-hidden group cursor-pointer border border-primary/10 hover:shadow-lg transition-all"
-              >
-                <div className="relative z-10">
-                  <h3 className="text-xl font-bold mb-2">{categories[0].name}</h3>
-                  <p className="text-muted-foreground text-sm max-w-xs mb-4">
-                    {categories[0].description || "Khám phá ngay"}
-                  </p>
-                  <span className="text-primary font-bold text-sm flex items-center gap-2">
-                    Xem ngay <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all">
-                  {(() => { const Icon = getCategoryIcon(categories[0].name); return <Icon className="h-40 w-40 text-primary" />; })()}
-                </div>
-              </Link>
-            )}
-
-            {/* Small cards */}
-            {categories.slice(1, 3).map((cat) => {
-              const Icon = getCategoryIcon(cat.name);
+          <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
+            {categories.filter((c) => c.is_active !== false).slice(0, 6).map((cat) => {
+              const img = CATEGORY_IMAGES[cat.slug] || CATEGORY_IMAGES.default;
               return (
                 <Link
                   key={cat.id}
                   to={`/products?category_id=${cat.id}`}
-                  className="bg-card rounded-2xl p-6 flex flex-col justify-between border border-border/60 group cursor-pointer hover:shadow-lg transition-all"
+                  className="group relative rounded-xl overflow-hidden aspect-[3/4] cursor-pointer"
                 >
-                  <Icon className="h-10 w-10 text-primary" />
-                  <div>
-                    <h3 className="font-bold text-lg">{cat.name}</h3>
-                    <p className="text-xs text-muted-foreground uppercase font-bold">Khám phá</p>
-                  </div>
-                </Link>
-              );
-            })}
-
-            {/* Dark card — if we have enough categories */}
-            {categories[3] && (
-              <Link
-                to={`/products?category_id=${categories[3].id}`}
-                className="col-span-2 bg-foreground text-background rounded-2xl p-6 relative overflow-hidden group cursor-pointer hover:shadow-lg transition-all"
-              >
-                <div className="flex h-full items-center">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-2">{categories[3].name}</h3>
-                    <p className="text-background/60 text-sm mb-4">
-                      {categories[3].description || "Trải nghiệm công nghệ mới nhất"}
-                    </p>
-                    <span className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors inline-block">
-                      Khám phá ngay
+                  <OptimizedImage
+                    src={img}
+                    alt={cat.name}
+                    width={300}
+                    height={400}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <h3 className="text-white text-sm font-bold">{cat.name}</h3>
+                    <span className="text-white/70 text-[11px] flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                      Khám phá <ArrowRight className="h-3 w-3" />
                     </span>
                   </div>
-                  <div className="w-1/3 flex justify-center">
-                    {(() => { const Icon = getCategoryIcon(categories[3].name); return <Icon className="h-24 w-24 text-primary/40 group-hover:rotate-12 transition-transform" />; })()}
-                  </div>
-                </div>
-              </Link>
-            )}
-
-            {/* Remaining categories */}
-            {categories.slice(4, 6).map((cat) => {
-              const Icon = getCategoryIcon(cat.name);
-              return (
-                <Link
-                  key={cat.id}
-                  to={`/products?category_id=${cat.id}`}
-                  className="bg-gradient-to-br from-primary/5 to-transparent rounded-2xl p-6 border border-primary/10 group cursor-pointer hover:shadow-lg transition-all"
-                >
-                  <Icon className="h-8 w-8 text-primary mb-3" />
-                  <h3 className="font-bold text-sm">{cat.name}</h3>
                 </Link>
               );
             })}
