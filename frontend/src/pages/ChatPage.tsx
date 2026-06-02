@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -34,6 +34,7 @@ const QUICK_PROMPTS = [
 ];
 
 export default function ChatPage() {
+  const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem(CHAT_STORAGE_KEY);
@@ -45,6 +46,7 @@ export default function ChatPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
+  const autoSendRef = useRef(false);
 
   // Persist messages to localStorage (keep last 100)
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function ChatPage() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      // Gửi 10 tin nhắn gần nhất làm context — dùng ref để tránh stale closure
+      // Gửi 10 tin nhắn gần nhất (bao gồm user message vừa thêm) làm context
       const history = messagesRef.current.slice(-10).map((m) => ({
         role: m.role,
         content: m.content,
@@ -71,10 +73,10 @@ export default function ChatPage() {
       const res = await axiosClient.post("/api/ai/chat", { message, limit: 5, history });
       return res.data as ChatResponse;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
+      // Chỉ thêm assistant reply (user message đã được thêm trong handleSend)
       setMessages((prev) => [
         ...prev,
-        { role: "user", content: variables },
         {
           role: "assistant",
           content: data.reply,
@@ -84,6 +86,12 @@ export default function ChatPage() {
       ]);
     },
     onError: (err: unknown) => {
+      // Rollback: xóa user message cuối cùng nếu API fail
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "user") return prev.slice(0, -1);
+        return prev;
+      });
       toast.error(getErrorMessage(err, "Không thể kết nối AI"));
     },
   });
@@ -98,8 +106,21 @@ export default function ChatPage() {
     const message = text || input.trim();
     if (!message || chatMutation.isPending) return;
     setInput("");
+    // Thêm user message ngay lập tức để AI có context câu trước
+    setMessages((prev) => [...prev, { role: "user", content: message }]);
     chatMutation.mutate(message);
   };
+
+  // Auto-send from URL param ?q=... (e.g. from HomePage suggestions)
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q && !autoSendRef.current) {
+      autoSendRef.current = true;
+      handleSend(q);
+      // Clean URL param without re-triggering
+      window.history.replaceState({}, "", "/chat");
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {

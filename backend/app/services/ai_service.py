@@ -558,30 +558,38 @@ def _fallback_popular(strategy: str, limit: int, session: Session, exclude_ids: 
 
 # Category keywords mapping
 _CATEGORY_KEYWORDS: dict[str, list[str]] = {
-    "dien-thoai": ["điện thoại", "dienthoai", "phone", "đt", "di động", "smartphone", "mobile"],
-    "laptop": ["laptop", "macbook", "notebook", "máy tính xách tay", "máy tính"],
+    "dien-thoai": ["điện thoại", "dienthoai", "phone", "đt", "di động", "smartphone", "mobile", "đtdđ"],
+    "laptop": ["laptop", "macbook", "notebook", "máy tính xách tay", "máy tính", "laptop gaming"],
     "tablet": ["tablet", "ipad", "máy tính bảng", "tab"],
-    "tai-nghe": ["tai nghe", "tai nghe", "headphone", "earphone", "airpods", "earbuds", "headset"],
-    "phu-kien": ["phụ kiện", "phu kien", "accessory", "sạc", "charger", "cáp", "case", "ốp"],
+    "tai-nghe": ["tai nghe", "tai nghe", "headphone", "earphone", "airpods", "earbuds", "headset", "tai nghe bluetooth"],
+    "phu-kien": ["phụ kiện", "phu kien", "accessory", "sạc", "charger", "cáp", "case", "ốp", "chuột", "bàn phím", "webcam", "loa", "speaker", "pin dự phòng", "powerbank", "hub", "dock", "ổ cứng", "ssd"],
 }
 
 # Brand keywords mapping
 _BRAND_KEYWORDS: dict[str, list[str]] = {
-    "apple": ["apple", "iphone", "ipad", "macbook", "airpods"],
+    "apple": ["apple", "iphone", "ipad", "macbook", "airpods", "apple watch"],
     "samsung": ["samsung", "galaxy"],
-    "sony": ["sony", "wh-", "wf-"],
-    "dell": ["dell", "xps", "inspiron"],
-    "xiaomi": ["xiaomi", "redmi", "poco"],
+    "sony": ["sony", "wh-1000xm", "wf-1000xm", "linkbuds", "inzone"],
+    "dell": ["dell", "xps", "inspiron", "latitude", "ultrasharp"],
+    "xiaomi": ["xiaomi", "redmi", "poco", "mi band"],
+    "asus": ["asus", "rog", "zenbook", "vivobook", "tuf"],
+    "lenovo": ["lenovo", "thinkpad", "yoga", "ideapad", "legion"],
+    "hp": ["hp ", "spectre", "envy", "pavilion", "elitebook", "omen"],
+    "logitech": ["logitech", "mx master", "mx keys", "g pro", "g502"],
 }
 
 # Need keywords mapping
 _NEED_KEYWORDS: dict[str, list[str]] = {
-    "hoc-tap": ["học tập", "học", "sinh viên", "student", "study"],
-    "cong-viec": ["công việc", "làm việc", "văn phòng", "office", "work", "doanh nghiệp"],
-    "gaming": ["gaming", "chơi game", "game", "gamer", "esport"],
-    "chup-anh": ["chụp ảnh", "camera", "photo", "selfie", "nhiếp ảnh"],
-    "nghe-nhạc": ["nghe nhạc", "music", "âm thanh", "audio", "nhạc"],
-    "chong-on": ["chống ồn", "noise cancelling", "anc", "ồn"],
+    "hoc-tap": ["học tập", "học", "sinh viên", "student", "study", "đại học", "học online"],
+    "cong-viec": ["công việc", "làm việc", "văn phòng", "office", "work", "doanh nghiệp", "lập trình", "code", "programming"],
+    "gaming": ["gaming", "chơi game", "game", "gamer", "esport", "fps", "pubg", "lol", "valorant"],
+    "chup-anh": ["chụp ảnh", "camera", "photo", "selfie", "nhiếp ảnh", "quay video", "vlog"],
+    "nghe-nhạc": ["nghe nhạc", "music", "âm thanh", "audio", "nhạc", "spotify"],
+    "chong-on": ["chống ồn", "noise cancelling", "anc", "ồn", "ồn ào"],
+    "mong-nhe": ["mỏng nhẹ", "nhẹ", "mỏng", "di động", "di chuyển nhiều", "mang đi"],
+    "pin-trau": ["pin trâu", "pin lâu", "dùng cả ngày", "battery", "pin khỏe", "sạc nhanh"],
+    "man-hinh-dep": ["màn hình đẹp", "màn hình oled", "màn hình 4k", "màn hình retina", "màn hình chất lượng"],
+    "hieu-nang": ["hiệu năng cao", "mạnh", "nhanh", "chip mạnh", "ram nhiều", "cấu hình mạnh"],
 }
 
 # Budget patterns
@@ -593,6 +601,11 @@ _BUDGET_PATTERNS = [
     (r"under\s+(\d+)\s+million", lambda m: float(m.group(1)) * 1_000_000),
     (r"under\s+(\d+)\s+usd", lambda m: float(m.group(1)) * 25_000),
     (r"(\d+)\s+triệu\s*đổ\s*xuống", lambda m: float(m.group(1)) * 1_000_000),
+    (r"khoảng\s+(\d+)\s+triệu", lambda m: float(m.group(1)) * 1_000_000),
+    (r"tầm\s+(\d+)\s+triệu", lambda m: float(m.group(1)) * 1_000_000),
+    (r"(\d+)\s*-\s*(\d+)\s*triệu", lambda m: float(m.group(2)) * 1_000_000),
+    (r"(\d+)tr", lambda m: float(m.group(1)) * 1_000_000),
+    (r"(\d+)\s+triệu", lambda m: float(m.group(1)) * 1_000_000),
 ]
 
 # Price level keywords
@@ -1008,26 +1021,40 @@ def _chat_rule_based(request: ChatRequest, session: Session) -> ChatResponse:
 
         if needs:
             cat_name = _get_category_name(session, product.category_id).lower()
+            desc = (product.description or "").lower()
+            name = product.name.lower()
 
             for need in needs:
                 if need == "hoc-tap" and ("laptop" in cat_name or "tablet" in cat_name):
                     score += 0.15
                     reasons.append("phù hợp học tập")
-                elif need == "cong-viec" and "laptop" in cat_name:
+                elif need == "cong-viec" and ("laptop" in cat_name or "tablet" in cat_name):
                     score += 0.15
                     reasons.append("phù hợp công việc")
-                elif need == "gaming" and "laptop" in cat_name:
+                elif need == "gaming" and ("laptop" in cat_name or "gaming" in name or "rog" in name or "tuf" in name or "legion" in name or "omen" in name):
                     score += 0.15
                     reasons.append("phù hợp gaming")
-                elif need == "chup-anh" and "điện thoại" in cat_name:
+                elif need == "chup-anh" and ("điện thoại" in cat_name or "camera" in desc):
                     score += 0.15
                     reasons.append("chụp ảnh tốt")
-                elif need == "nghe-nhạc" and "tai nghe" in cat_name:
+                elif need == "nghe-nhạc" and ("tai nghe" in cat_name or "loa" in cat_name):
                     score += 0.15
                     reasons.append("phù hợp nghe nhạc")
-                elif need == "chong-on" and "tai nghe" in cat_name:
+                elif need == "chong-on" and ("tai nghe" in cat_name or "chống ồn" in desc or "anc" in desc):
                     score += 0.15
                     reasons.append("chống ồn")
+                elif need == "mong-nhe" and ("mỏng" in desc or "nhẹ" in desc or "ultrabook" in desc or product.price >= 15_000_000):
+                    score += 0.1
+                    reasons.append("mỏng nhẹ")
+                elif need == "pin-trau" and ("pin" in desc):
+                    score += 0.1
+                    reasons.append("pin trâu")
+                elif need == "man-hinh-dep" and ("oled" in desc or "retina" in desc or "amoled" in desc or "4k" in desc):
+                    score += 0.1
+                    reasons.append("màn hình đẹp")
+                elif need == "hieu-nang" and (product.price >= 20_000_000 or "mạnh" in desc or "high" in desc):
+                    score += 0.1
+                    reasons.append("hiệu năng cao")
 
         reason = _build_product_reason(product, session, max_price)
         if reasons:
