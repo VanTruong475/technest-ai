@@ -4,7 +4,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Star, FileText,
-  LogOut, Menu, X, ArrowLeft, Sparkles,
+  LogOut, Menu, X, ArrowLeft, Sparkles, BookOpen,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 
@@ -15,6 +15,7 @@ const ADMIN_LINKS = [
   { to: "/admin/users", label: "Người dùng", icon: Users },
   { to: "/admin/reviews", label: "Đánh giá", icon: Star },
   { to: "/admin/audit-logs", label: "Nhật ký", icon: FileText },
+  { to: "/admin/blogs", label: "Blog", icon: BookOpen },
 ];
 
 export default function AdminLayout() {

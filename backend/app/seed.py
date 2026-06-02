@@ -200,6 +200,52 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
     print(f"\n  Tổng kết: {created} tạo mới, {updated} cập nhật, {skipped} bỏ qua")
 
 
+def seed_blog_posts(session: Session) -> None:
+    """Seed blog posts from data/blog_posts.json (idempotent)."""
+    from datetime import datetime, timezone
+    from app.models.blog_post import BlogPost
+    from app.models.user import User
+
+    blog_file = DATA_DIR / "blog_posts.json"
+    if not blog_file.exists():
+        print(f"  [SKIP] Không tìm thấy: {blog_file}")
+        return
+
+    posts_data = json.loads(blog_file.read_text(encoding="utf-8"))
+
+    # Find admin user
+    admin = session.exec(select(User).where(User.role == "ADMIN")).first()
+    if not admin:
+        print("  [SKIP] Không tìm thấy admin user")
+        return
+
+    created, skipped = 0, 0
+    for data in posts_data:
+        existing = session.exec(select(BlogPost).where(BlogPost.slug == data["slug"])).first()
+        if existing:
+            skipped += 1
+            continue
+
+        post = BlogPost(
+            title=data["title"],
+            slug=data["slug"],
+            excerpt=data.get("excerpt"),
+            content=data["content"],
+            image_url=data.get("image_url"),
+            author_id=admin.id,
+            category=data.get("category"),
+            tags=data.get("tags"),
+            published=data.get("published", False),
+            published_at=datetime.now(timezone.utc) if data.get("published") else None,
+        )
+        session.add(post)
+        session.commit()
+        print(f"  [CREATE] Blog: {data['title']}")
+        created += 1
+
+    print(f"\n  Tổng kết: {created} tạo mới, {skipped} bỏ qua")
+
+
 def main() -> None:
     print("=" * 50)
     print("TechSphere AI - Seed Data")
@@ -220,6 +266,9 @@ def main() -> None:
 
         print("\n[4/4] Seeding Products...")
         seed_products(session, categories, brands)
+
+        print("\n[5/5] Seeding Blog Posts...")
+        seed_blog_posts(session)
 
     print("\n" + "=" * 50)
     print("Seed data hoàn thành!")

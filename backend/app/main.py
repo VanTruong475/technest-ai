@@ -22,6 +22,7 @@ from app.api.wishlist import router as wishlist_router
 from app.api.payment import router as payment_router
 from app.api.admin import router as admin_router
 from app.api.homepage import router as homepage_router
+from app.api.blog import router as blog_router
 from app.core.cache import get_redis, close_redis
 from app.core.config import settings
 from app.core.database import create_db_and_tables
@@ -31,6 +32,7 @@ from app.core.rate_limit import limiter
 
 # Import models để SQLModel nhận diện bảng
 from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem, Review, WishlistItem, AuditLog  # noqa: F401
+from app.models.blog_post import BlogPost  # noqa: F401
 
 # Init Sentry (chỉ khi có DSN)
 if settings.SENTRY_DSN:
@@ -111,6 +113,7 @@ app.include_router(wishlist_router)
 app.include_router(payment_router)
 app.include_router(admin_router)
 app.include_router(homepage_router)
+app.include_router(blog_router)
 
 
 @app.get("/")

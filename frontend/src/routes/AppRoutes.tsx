@@ -27,6 +27,9 @@ const AdminAuditPage = lazy(() => import("@/pages/AdminAuditPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const WishlistPage = lazy(() => import("@/pages/WishlistPage"));
 const PaymentResultPage = lazy(() => import("@/pages/PaymentResultPage"));
+const BlogListPage = lazy(() => import("@/pages/BlogListPage"));
+const BlogDetailPage = lazy(() => import("@/pages/BlogDetailPage"));
+const AdminBlogPage = lazy(() => import("@/pages/AdminBlogPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 // Protected Route - requires auth
@@ -80,6 +83,7 @@ export default function AppRoutes() {
           <Route path="users" element={<Suspense fallback={<RouteFallback />}><AdminUserPage /></Suspense>} />
           <Route path="reviews" element={<Suspense fallback={<RouteFallback />}><AdminReviewsPage /></Suspense>} />
           <Route path="audit-logs" element={<Suspense fallback={<RouteFallback />}><AdminAuditPage /></Suspense>} />
+          <Route path="blogs" element={<Suspense fallback={<RouteFallback />}><AdminBlogPage /></Suspense>} />
         </Route>
 
         <Route element={<MainLayout />}>
@@ -87,6 +91,8 @@ export default function AppRoutes() {
           <Route path="/" element={<Suspense fallback={<RouteFallback />}><HomePage /></Suspense>} />
           <Route path="/products" element={<Suspense fallback={<RouteFallback />}><ProductListPage /></Suspense>} />
           <Route path="/products/:id" element={<Suspense fallback={<RouteFallback />}><ProductDetailPage /></Suspense>} />
+          <Route path="/blog" element={<Suspense fallback={<RouteFallback />}><BlogListPage /></Suspense>} />
+          <Route path="/blog/:slug" element={<Suspense fallback={<RouteFallback />}><BlogDetailPage /></Suspense>} />
           <Route path="/chat" element={<Suspense fallback={<RouteFallback />}><ChatPage /></Suspense>} />
 
           {/* Protected */}

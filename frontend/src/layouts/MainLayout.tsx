@@ -64,6 +64,7 @@ export default function MainLayout() {
       const id = getCategoryIdBySlug(categories, cat.slug);
       if (id) links.push({ to: `/products?category_id=${id}`, label: cat.label });
     }
+    links.push({ to: "/blog", label: "Blog" });
     links.push({ to: "/chat", label: "Giải pháp AI" });
     return links;
   }, [categories]);
