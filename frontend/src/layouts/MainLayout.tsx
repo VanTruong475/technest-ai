@@ -93,20 +93,17 @@ export default function MainLayout() {
       {/* ═══════════════════════════════════════════════════════
           HEADER
           ═══════════════════════════════════════════════════════ */}
-      <header className="fixed top-0 w-full z-[60] bg-card/90 backdrop-blur-xl border-b border-border/40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
+      <header className="fixed top-0 w-full z-[60] bg-card/90 backdrop-blur-xl border-b border-border/30 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6">
           {/* Top bar */}
-          <div className="flex items-center justify-between h-16 md:h-20 gap-4 md:gap-8">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 shrink-0" onClick={closeMobile}>
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-600 text-primary-foreground">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <span className="text-xl font-bold tracking-tight text-primary hidden sm:inline">TechSphere AI</span>
+          <div className="flex items-center justify-between h-20 gap-8">
+            {/* Logo — text only, matching example */}
+            <Link to="/" className="text-2xl font-bold text-primary tracking-tight shrink-0" onClick={closeMobile}>
+              TechSphere AI
             </Link>
 
-            {/* Search bar — desktop */}
-            <div className="hidden md:flex flex-1 max-w-xl relative group">
+            {/* Search bar */}
+            <div className="hidden md:flex flex-1 max-w-2xl relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -123,7 +120,7 @@ export default function MainLayout() {
                 <input
                   type="text"
                   placeholder="Tìm kiếm Laptop, iPhone, Phụ kiện..."
-                  className="block w-full pl-11 pr-20 py-2.5 bg-muted/50 border border-border/40 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-sm outline-none"
+                  className="block w-full pl-12 pr-4 py-2.5 bg-muted border-none focus:ring-2 focus:ring-primary/20 rounded-xl text-sm outline-none"
                 />
               </form>
               <div className="absolute inset-y-0 right-2 flex items-center">
@@ -138,11 +135,11 @@ export default function MainLayout() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 md:gap-4 shrink-0">
-              {/* Support — desktop */}
-              <Link to="/chat" className="hidden lg:flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-xs font-semibold uppercase">
+            <div className="flex items-center gap-4 shrink-0">
+              {/* Hỗ trợ — with border separator */}
+              <Link to="/chat" className="hidden lg:flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors border-r border-border pr-4 mr-2">
                 <Headphones className="h-4 w-4" />
-                <span>Hỗ trợ</span>
+                <span className="text-xs font-bold uppercase">Hỗ trợ</span>
               </Link>
 
               <ThemeToggle />
@@ -166,7 +163,7 @@ export default function MainLayout() {
                 </Link>
               )}
 
-              {/* Auth buttons — desktop */}
+              {/* Auth — desktop */}
               <div className="hidden md:flex items-center gap-2">
                 {isAuthenticated ? (
                   <>
@@ -191,13 +188,10 @@ export default function MainLayout() {
                   </>
                 ) : (
                   <>
-                    <Link to="/register">
-                      <Button size="sm" className="font-semibold shadow-md shadow-primary/20">
-                        Đăng ký
-                      </Button>
-                    </Link>
                     <Link to="/login">
-                      <Button variant="ghost" size="sm">Đăng nhập</Button>
+                      <Button size="sm" className="px-6 py-2.5 rounded-xl text-xs uppercase font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                        Đăng nhập
+                      </Button>
                     </Link>
                   </>
                 )}
@@ -218,15 +212,15 @@ export default function MainLayout() {
             </div>
           </div>
 
-          {/* Category navigation — desktop */}
-          <nav className="hidden md:flex items-center gap-6 h-10 overflow-x-auto border-t border-border/20" aria-label="Điều hướng danh mục">
+          {/* Category nav */}
+          <nav className="hidden md:flex items-center gap-8 h-12 overflow-x-auto no-scrollbar border-t border-border/10" aria-label="Điều hướng danh mục">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.to || (link.to !== "/" && location.pathname + location.search === link.to);
               return (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`text-xs font-bold uppercase tracking-wider whitespace-nowrap h-full flex items-center px-1 transition-colors ${
+                  className={`whitespace-nowrap h-full flex items-center px-1 text-xs font-bold uppercase tracking-wider transition-colors ${
                     isActive
                       ? "text-primary border-b-2 border-primary"
                       : "text-muted-foreground hover:text-primary"
@@ -338,7 +332,7 @@ export default function MainLayout() {
           <Outlet />
         </main>
       ) : (
-        <main className={isHomePage ? "" : "max-w-7xl mx-auto px-4 pt-28 md:pt-32 pb-6"}>
+        <main className={isHomePage ? "" : "max-w-7xl mx-auto px-6 mt-32 pb-6"}>
           <Outlet />
         </main>
       )}

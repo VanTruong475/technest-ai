@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +8,7 @@ import { SaleBadge } from "@/components/common/SaleBadge";
 import { useCountdown } from "@/hooks/useCountdown";
 import { formatPrice } from "@/utils/format";
 import {
-  Search, Sparkles, Zap, ArrowRight, ShoppingCart, Heart,
+  Sparkles, Zap, ArrowRight, ShoppingCart, Heart,
   Smartphone, Laptop, Headphones, Tablet, Cable,
   ShieldCheck, Truck, RotateCcw, CreditCard, Brain,
 } from "lucide-react";
@@ -42,7 +41,6 @@ function getCategoryIcon(name: string) {
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [searchInput, setSearchInput] = useState("");
   const countdown = useCountdown();
 
   const { data: homepageData, isLoading } = useQuery<{
@@ -66,13 +64,6 @@ export default function HomePage() {
     },
   });
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchInput.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchInput.trim())}`);
-    }
-  };
-
   const products = homepageData?.products || [];
   const categories = homepageData?.categories || [];
   const flashSaleProducts = (flashSaleData?.items || []).filter(
@@ -80,11 +71,11 @@ export default function HomePage() {
   );
 
   return (
-    <div className="min-h-screen pt-16 md:pt-[104px]">
+    <div className="min-h-screen mt-32">
       {/* ═══════════════════════════════════════════════════════
           HERO SECTION
           ═══════════════════════════════════════════════════════ */}
-      <section className="relative h-[65vh] min-h-[480px] flex items-center overflow-hidden">
+      <section className="relative h-[65vh] flex items-center overflow-hidden">
         {/* Background image */}
         <div className="absolute inset-0 z-0">
           <OptimizedImage
@@ -95,58 +86,35 @@ export default function HomePage() {
             className="w-full h-full object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent dark:from-background dark:via-background/90" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
           <div className="max-w-2xl">
             {/* AI badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-primary text-xs font-semibold uppercase tracking-wider">Kỷ nguyên mua sắm AI</span>
+              <Sparkles className="h-[18px] w-[18px] text-primary fill-primary" />
+              <span className="text-primary text-xs font-bold uppercase tracking-wider">Kỷ nguyên mua sắm AI Precision</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
-              Công nghệ tối tân.<br />
-              <span className="bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">
-                Trải nghiệm thông minh.
-              </span>
+            <h1 className="text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-bold tracking-tight mb-6">
+              Công nghệ tối tân.<br />Trải nghiệm thông minh.
             </h1>
 
-            <p className="text-lg text-muted-foreground mb-10 max-w-lg leading-relaxed">
+            <p className="text-lg text-muted-foreground mb-10 max-w-lg">
               Khám phá danh mục thiết bị công nghệ hàng đầu được tuyển chọn bởi AI dành riêng cho nhu cầu của bạn.
             </p>
 
-            {/* Search bar */}
-            <form onSubmit={handleSearch} className="flex gap-3 max-w-lg mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm Laptop, iPhone, Phụ kiện..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 bg-card border border-border/60 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none shadow-sm"
-                />
-              </div>
-              <Button type="submit" className="px-6 py-3.5 rounded-xl font-semibold">
-                <Search className="h-4 w-4 mr-2" />
-                AI Search
-              </Button>
-            </form>
-
-            {/* CTAs */}
             <div className="flex flex-wrap gap-4">
               <Link to="/products">
-                <Button size="lg" className="px-8 py-4 rounded-xl font-semibold shadow-lg shadow-primary/20">
+                <button className="bg-primary text-primary-foreground px-10 py-4 rounded-2xl text-xs uppercase font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 active:scale-95">
                   Mua sắm ngay
-                </Button>
+                </button>
               </Link>
               <Link to="/chat">
-                <Button size="lg" variant="outline" className="px-8 py-4 rounded-xl font-semibold border-primary/20">
-                  <Sparkles className="h-4 w-4 mr-2 text-primary" />
+                <button className="bg-card text-primary border border-primary/20 px-10 py-4 rounded-2xl text-xs uppercase font-bold hover:bg-muted transition-all">
                   Tư vấn AI
-                </Button>
+                </button>
               </Link>
             </div>
           </div>
@@ -275,7 +243,7 @@ export default function HomePage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (searchInput.trim()) navigate(`/chat`);
+                navigate("/chat");
               }}
               className="flex flex-col sm:flex-row gap-4"
             >
