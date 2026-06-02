@@ -6,11 +6,10 @@ import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import {
   ShoppingCart, User, LogOut, LayoutDashboard, Menu, X,
-  Headphones, Heart, Mail, MapPin, Phone, Sparkles, ShieldCheck, Truck,
-  RotateCcw, CreditCard,
+  Headphones, Heart, Mail, Sparkles, Search,
 } from "lucide-react";
 
-// Brand icons không có trong lucide-react v1.16 → dùng inline SVG.
+// Brand icons
 function GithubIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
@@ -32,6 +31,7 @@ import { useCategories, getCategoryIdBySlug } from "@/hooks/useCategories";
 const CATEGORY_NAV = [
   { slug: "laptop", label: "Laptop" },
   { slug: "dien-thoai", label: "Điện thoại" },
+  { slug: "tai-nghe", label: "Tai nghe" },
   { slug: "phu-kien", label: "Phụ kiện" },
 ];
 
@@ -39,10 +39,9 @@ export default function MainLayout() {
   const { isAuthenticated, isAdmin, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  // Chat page có layout đặc biệt: full viewport, ẩn footer, không scroll page.
-  // Chat content tự manage scroll trong container của nó.
   const isChatPage = location.pathname === "/chat";
   const isAdminPage = location.pathname.startsWith("/admin");
+  const isHomePage = location.pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: categories = [] } = useCategories();
   const { data: cartData } = useQuery<{ total_items: number }>({
@@ -58,13 +57,13 @@ export default function MainLayout() {
 
   const navLinks = useMemo(() => {
     const links = [
-      { to: "/", label: "Trang chủ" },
-      { to: "/products", label: "Sản phẩm" },
+      { to: "/products", label: "Tất cả sản phẩm" },
     ];
     for (const cat of CATEGORY_NAV) {
       const id = getCategoryIdBySlug(categories, cat.slug);
       if (id) links.push({ to: `/products?category_id=${id}`, label: cat.label });
     }
+    links.push({ to: "/chat", label: "Giải pháp AI" });
     return links;
   }, [categories]);
 
@@ -72,7 +71,6 @@ export default function MainLayout() {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Close mobile menu on Escape
   useEffect(() => {
     if (!mobileOpen) return;
     function onKey(e: KeyboardEvent) {
@@ -92,111 +90,153 @@ export default function MainLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navbar */}
-      <header className="sticky top-0 left-0 right-0 z-[60] border-b bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur">
-        <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          {/* Left: Logo + Nav */}
-          <div className="flex items-center gap-6">
-            <Link to="/" className="text-lg font-bold tracking-tight" onClick={closeMobile}>
-              TechSphere
+      {/* ═══════════════════════════════════════════════════════
+          HEADER
+          ═══════════════════════════════════════════════════════ */}
+      <header className="fixed top-0 w-full z-[60] bg-card/90 backdrop-blur-xl border-b border-border/40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Top bar */}
+          <div className="flex items-center justify-between h-16 md:h-20 gap-4 md:gap-8">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 shrink-0" onClick={closeMobile}>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-600 text-primary-foreground">
+                <Sparkles className="h-4 w-4" />
+              </span>
+              <span className="text-xl font-bold tracking-tight text-primary hidden sm:inline">TechSphere AI</span>
             </Link>
-            {/* Nav: 2 link chính (Trang chủ, Sản phẩm) hiển thị từ md+,
-                các category links hiện ở lg+ để tránh overflow viewport
-                trung bình. Index 0,1 = primary; còn lại = category. */}
-            <nav className="hidden md:flex items-center gap-1" aria-label="Điều hướng chính">
-              {navLinks.map((link, idx) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`text-sm px-3 py-1.5 rounded-md transition-colors ${
-                    idx >= 2 ? "hidden lg:inline-block" : ""
-                  } ${
-                    location.pathname === link.to || (link.to !== "/" && location.pathname + location.search === link.to)
-                      ? "text-foreground bg-accent"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                  }`}
+
+            {/* Search bar — desktop */}
+            <div className="hidden md:flex flex-1 max-w-xl relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const input = (e.target as HTMLFormElement).querySelector("input") as HTMLInputElement;
+                  if (input.value.trim()) {
+                    navigate(`/products?search=${encodeURIComponent(input.value.trim())}`);
+                  }
+                }}
+                className="w-full"
+              >
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm Laptop, iPhone, Phụ kiện..."
+                  className="block w-full pl-11 pr-20 py-2.5 bg-muted/50 border border-border/40 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-sm outline-none"
+                />
+              </form>
+              <div className="absolute inset-y-0 right-2 flex items-center">
+                <button
+                  type="button"
+                  onClick={() => navigate("/products")}
+                  className="bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1 rounded-lg text-xs font-bold transition-colors"
                 >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+                  AI Search
+                </button>
+              </div>
+            </div>
 
-          {/* Right: Desktop */}
-          <div className="hidden md:flex items-center gap-2">
-            <Link to="/chat">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <Headphones className="h-4 w-4 mr-1.5" />
-                Tư vấn mua hàng
-              </Button>
-            </Link>
+            {/* Actions */}
+            <div className="flex items-center gap-2 md:gap-4 shrink-0">
+              {/* Support — desktop */}
+              <Link to="/chat" className="hidden lg:flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-xs font-semibold uppercase">
+                <Headphones className="h-4 w-4" />
+                <span>Hỗ trợ</span>
+              </Link>
 
-            <ThemeToggle />
+              <ThemeToggle />
 
-            {isAuthenticated ? (
-              <>
-                <Link to="/wishlist">
-                  <Button variant="ghost" size="icon" aria-label="Danh sách yêu thích">
-                    <Heart className="h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link to="/cart" className="relative">
-                  <Button variant="ghost" size="icon" aria-label={cartCount > 0 ? `Giỏ hàng (${cartCount} sản phẩm)` : "Giỏ hàng"}>
-                    <ShoppingCart className="h-5 w-5" />
-                  </Button>
+              {/* Cart */}
+              {isAuthenticated && (
+                <Link to="/cart" className="relative p-2 text-foreground hover:bg-muted rounded-full transition-colors">
+                  <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-5 min-w-[20px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
+                    <span className="absolute top-0 right-0 bg-destructive text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-card">
                       {cartCount > 99 ? "99+" : cartCount}
                     </span>
                   )}
                 </Link>
-                <Link to="/orders">
-                  <Button variant="ghost" size="sm">
-                    Đơn hàng
-                  </Button>
+              )}
+
+              {/* Wishlist */}
+              {isAuthenticated && (
+                <Link to="/wishlist" className="hidden md:flex p-2 text-foreground hover:bg-muted rounded-full transition-colors">
+                  <Heart className="h-5 w-5" />
                 </Link>
-                {isAdmin && (
-                  <Link to="/admin/dashboard">
-                    <Button variant="ghost" size="sm">
-                      <LayoutDashboard className="h-4 w-4 mr-1" />
-                      Admin
+              )}
+
+              {/* Auth buttons — desktop */}
+              <div className="hidden md:flex items-center gap-2">
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/orders">
+                      <Button variant="ghost" size="sm">Đơn hàng</Button>
+                    </Link>
+                    {isAdmin && (
+                      <Link to="/admin/dashboard">
+                        <Button variant="ghost" size="sm">
+                          <LayoutDashboard className="h-4 w-4 mr-1" />
+                          Admin
+                        </Button>
+                      </Link>
+                    )}
+                    <Link to="/profile" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground ml-1">
+                      <User className="h-4 w-4" />
+                      <span className="hidden xl:inline">{user?.full_name}</span>
+                    </Link>
+                    <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Đăng xuất">
+                      <LogOut className="h-4 w-4" />
                     </Button>
-                  </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/register">
+                      <Button size="sm" className="font-semibold shadow-md shadow-primary/20">
+                        Đăng ký
+                      </Button>
+                    </Link>
+                    <Link to="/login">
+                      <Button variant="ghost" size="sm">Đăng nhập</Button>
+                    </Link>
+                  </>
                 )}
-                <Link to="/profile" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground ml-1">
-                  <User className="h-4 w-4" />
-                  <span>{user?.full_name}</span>
-                </Link>
-                <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Đăng xuất">
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/login">
-                  <Button variant="ghost" size="sm">
-                    Đăng nhập
-                  </Button>
-                </Link>
-                <Link to="/register">
-                  <Button size="sm">Đăng ký</Button>
-                </Link>
-              </>
-            )}
+              </div>
+
+              {/* Mobile hamburger */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-menu"
+              >
+                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+            </div>
           </div>
 
-          {/* Mobile hamburger */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-menu"
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          {/* Category navigation — desktop */}
+          <nav className="hidden md:flex items-center gap-6 h-10 overflow-x-auto border-t border-border/20" aria-label="Điều hướng danh mục">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.to || (link.to !== "/" && location.pathname + location.search === link.to);
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`text-xs font-bold uppercase tracking-wider whitespace-nowrap h-full flex items-center px-1 transition-colors ${
+                    isActive
+                      ? "text-primary border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-primary"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
         {/* Mobile menu */}
@@ -207,28 +247,49 @@ export default function MainLayout() {
             aria-label="Menu di động"
             className="md:hidden border-t bg-background px-4 py-4 space-y-1"
           >
+            {/* Mobile search */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = (e.target as HTMLFormElement).querySelector("input") as HTMLInputElement;
+                if (input.value.trim()) {
+                  navigate(`/products?search=${encodeURIComponent(input.value.trim())}`);
+                  closeMobile();
+                }
+              }}
+              className="mb-3"
+            >
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border/40 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </form>
+
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="block text-sm py-2 px-2 rounded hover:bg-accent"
+                className="block text-sm py-2.5 px-2 rounded hover:bg-accent"
                 onClick={closeMobile}
               >
                 {link.label}
               </Link>
             ))}
-            <Link to="/chat" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
-              Tư vấn mua hàng
-            </Link>
+
             <div className="py-1">
               <ThemeToggle variant="full" className="w-full justify-start px-2 text-sm" />
             </div>
+
             {isAuthenticated ? (
               <>
-                <Link to="/wishlist" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
+                <Link to="/wishlist" className="block text-sm py-2.5 px-2 rounded hover:bg-accent" onClick={closeMobile}>
                   Yêu thích
                 </Link>
-                <Link to="/cart" className="flex items-center justify-between text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
+                <Link to="/cart" className="flex items-center justify-between text-sm py-2.5 px-2 rounded hover:bg-accent" onClick={closeMobile}>
                   Giỏ hàng
                   {cartCount > 0 && (
                     <span className="h-5 min-w-[20px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
@@ -236,15 +297,15 @@ export default function MainLayout() {
                     </span>
                   )}
                 </Link>
-                <Link to="/orders" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
+                <Link to="/orders" className="block text-sm py-2.5 px-2 rounded hover:bg-accent" onClick={closeMobile}>
                   Đơn hàng
                 </Link>
                 {isAdmin && (
-                  <Link to="/admin/dashboard" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
+                  <Link to="/admin/dashboard" className="block text-sm py-2.5 px-2 rounded hover:bg-accent" onClick={closeMobile}>
                     Quản trị
                   </Link>
                 )}
-                <Link to="/profile" className="block text-sm py-2 px-2 rounded hover:bg-accent" onClick={closeMobile}>
+                <Link to="/profile" className="block text-sm py-2.5 px-2 rounded hover:bg-accent" onClick={closeMobile}>
                   Hồ sơ cá nhân
                 </Link>
                 <div className="border-t pt-3 mt-2 flex items-center justify-between">
@@ -269,7 +330,7 @@ export default function MainLayout() {
         )}
       </header>
 
-      {/* Main content — chat page dùng full-bleed layout, admin dùng AdminLayout tự handle */}
+      {/* Main content */}
       {isAdminPage ? (
         <Outlet />
       ) : isChatPage ? (
@@ -277,128 +338,101 @@ export default function MainLayout() {
           <Outlet />
         </main>
       ) : (
-        <main className="container mx-auto px-4 py-6">
+        <main className={isHomePage ? "" : "max-w-7xl mx-auto px-4 pt-28 md:pt-32 pb-6"}>
           <Outlet />
         </main>
       )}
 
-      {/* Footer — ẩn ở /chat và /admin */}
+      {/* ═══════════════════════════════════════════════════════
+          FOOTER
+          ═══════════════════════════════════════════════════════ */}
       {!isChatPage && !isAdminPage && (
-      <footer className="relative border-t bg-gradient-to-b from-muted/20 via-muted/30 to-muted/40 mt-16">
-        {/* Trust bar — 4 commitments inline, đậm hơn ở footer */}
-        <div className="border-b border-border/60">
-          <div className="container mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { icon: ShieldCheck, label: "Bảo hành chính hãng", color: "text-emerald-600 dark:text-emerald-400" },
-              { icon: Truck, label: "Giao nhanh 1-2 ngày", color: "text-sky-600 dark:text-sky-400" },
-              { icon: RotateCcw, label: "Đổi trả 30 ngày", color: "text-amber-600 dark:text-amber-400" },
-              { icon: CreditCard, label: "Thanh toán an toàn", color: "text-violet-600 dark:text-violet-400" },
-            ].map(({ icon: Icon, label, color }) => (
-              <div key={label} className="flex items-center gap-2 text-xs md:text-sm">
-                <Icon className={`h-4 w-4 shrink-0 ${color}`} />
-                <span className="font-medium">{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-12 gap-8">
-            {/* Brand — cột rộng nhất */}
-            <div className="col-span-2 md:col-span-4">
-              <Link to="/" className="inline-flex items-center gap-2 mb-4">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-violet-600 text-primary-foreground shadow-md">
+      <footer className="bg-card border-t border-border/40 pt-16 pb-8 mt-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-14">
+            {/* Brand info */}
+            <div className="lg:col-span-2">
+              <Link to="/" className="inline-flex items-center gap-2 mb-5">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-600 text-primary-foreground">
                   <Sparkles className="h-4 w-4" />
                 </span>
-                <span className="font-bold text-xl tracking-tight">TechSphere</span>
+                <span className="text-xl font-bold tracking-tight text-primary">TechSphere AI</span>
               </Link>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4 max-w-sm">
-                Thiết bị công nghệ chính hãng — laptop, điện thoại, tablet, tai nghe.
-                Trợ lý AI giúp bạn chọn đúng nhu cầu trong vài giây.
+              <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-sm">
+                Hệ sinh thái mua sắm công nghệ thông minh, mang tương lai AI đến gần hơn với cuộc sống của bạn tại Việt Nam.
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex gap-3">
                 <a
                   href="https://github.com/VanTruong475/techsphere-ai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="GitHub repository"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                  aria-label="GitHub"
+                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white hover:border-primary transition-all"
                 >
                   <GithubIcon className="h-4 w-4" />
                 </a>
                 <a
                   href="#"
                   aria-label="Facebook"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white hover:border-primary transition-all"
                 >
                   <FacebookIcon className="h-4 w-4" />
                 </a>
                 <a
                   href="mailto:support@techsphere.vn"
                   aria-label="Email"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white hover:border-primary transition-all"
                 >
                   <Mail className="h-4 w-4" />
                 </a>
               </div>
             </div>
 
-            {/* Sản phẩm — categories */}
-            <div className="md:col-span-3">
-              <h4 className="font-semibold mb-4 text-sm">Sản phẩm</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                {categories.slice(0, 5).map((cat) => (
+            {/* Products */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-widest mb-5">Sản phẩm</h4>
+              <ul className="flex flex-col gap-3 text-sm text-muted-foreground">
+                {categories.slice(0, 4).map((cat) => (
                   <li key={cat.id}>
-                    <Link to={`/products?category_id=${cat.id}`} className="hover:text-foreground transition-colors">{cat.name}</Link>
+                    <Link to={`/products?category_id=${cat.id}`} className="hover:text-primary transition-colors">{cat.name}</Link>
                   </li>
                 ))}
                 {categories.length === 0 && (
-                  <li><Link to="/products" className="hover:text-foreground transition-colors">Tất cả sản phẩm</Link></li>
+                  <li><Link to="/products" className="hover:text-primary transition-colors">Tất cả sản phẩm</Link></li>
                 )}
               </ul>
             </div>
 
-            {/* Hỗ trợ */}
-            <div className="md:col-span-2">
-              <h4 className="font-semibold mb-4 text-sm">Hỗ trợ</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li><Link to="/orders" className="hover:text-foreground transition-colors">Theo dõi đơn</Link></li>
-                <li><Link to="/chat" className="hover:text-foreground transition-colors">Tư vấn AI</Link></li>
-                <li><span>Bảo hành</span></li>
-                <li><span>Đổi trả</span></li>
+            {/* Support */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-widest mb-5">Hỗ trợ khách hàng</h4>
+              <ul className="flex flex-col gap-3 text-sm text-muted-foreground">
+                <li><Link to="/orders" className="hover:text-primary transition-colors">Tra cứu đơn hàng</Link></li>
+                <li><Link to="/chat" className="hover:text-primary transition-colors">Tư vấn AI</Link></li>
+                <li><span className="hover:text-primary transition-colors cursor-default">Chính sách bảo hành</span></li>
+                <li><span className="hover:text-primary transition-colors cursor-default">Đổi trả 30 ngày</span></li>
               </ul>
             </div>
 
-            {/* Liên hệ */}
-            <div className="col-span-2 md:col-span-3">
-              <h4 className="font-semibold mb-4 text-sm">Liên hệ</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <Mail className="h-4 w-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                  <a href="mailto:support@techsphere.vn" className="hover:text-foreground transition-colors break-all">support@techsphere.vn</a>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Phone className="h-4 w-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                  <span>1900 xxxx</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                  <span>Hà Nội, Việt Nam</span>
-                </li>
+            {/* System */}
+            <div>
+              <h4 className="font-bold text-xs uppercase tracking-widest mb-5">Hệ thống</h4>
+              <ul className="flex flex-col gap-3 text-sm text-muted-foreground">
+                <li><span className="hover:text-primary transition-colors cursor-default">Về TechSphere AI</span></li>
+                <li><span className="hover:text-primary transition-colors cursor-default">Liên hệ</span></li>
+                <li><a href="https://github.com/VanTruong475/techsphere-ai" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">GitHub</a></li>
+                <li><span className="hover:text-primary transition-colors cursor-default">Đạo đức AI</span></li>
               </ul>
             </div>
           </div>
 
-          {/* Bottom bar: copyright + payment methods */}
-          <div className="border-t mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-            <p>
-              © {new Date().getFullYear()} <span className="font-semibold text-foreground">TechSphere</span>. All rights reserved.
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="hidden sm:inline">Phương thức:</span>
-              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">VNPay</span>
-              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-semibold">COD</span>
-              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">SSL</span>
+          {/* Bottom bar */}
+          <div className="border-t border-border/40 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
+            <p>© {new Date().getFullYear()} TechSphere AI. Giấy phép kinh doanh số: 0102030405.</p>
+            <div className="flex gap-6 uppercase font-bold tracking-tight">
+              <span className="hover:text-primary cursor-default transition-colors">Chính sách bảo mật</span>
+              <span className="hover:text-primary cursor-default transition-colors">Điều khoản dịch vụ</span>
+              <span className="hover:text-primary cursor-default transition-colors">Liên hệ quảng cáo</span>
             </div>
           </div>
         </div>

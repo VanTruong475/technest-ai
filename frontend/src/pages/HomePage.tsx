@@ -80,7 +80,7 @@ export default function HomePage() {
   );
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-16 md:pt-[104px]">
       {/* ═══════════════════════════════════════════════════════
           HERO SECTION
           ═══════════════════════════════════════════════════════ */}
@@ -98,7 +98,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent dark:from-background dark:via-background/90" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
           <div className="max-w-2xl">
             {/* AI badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
