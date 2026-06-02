@@ -65,15 +65,28 @@ export default function AppRoutes() {
     <BrowserRouter>
       <ScrollToTopOnNavigate />
       <Routes>
+        {/* Auth pages — no header/footer */}
+        <Route path="/login" element={<Suspense fallback={<RouteFallback />}><LoginPage /></Suspense>} />
+        <Route path="/register" element={<Suspense fallback={<RouteFallback />}><RegisterPage /></Suspense>} />
+        <Route path="/forgot-password" element={<Suspense fallback={<RouteFallback />}><ForgotPasswordPage /></Suspense>} />
+        <Route path="/reset-password" element={<Suspense fallback={<RouteFallback />}><ResetPasswordPage /></Suspense>} />
+
+        {/* Admin — own layout with sidebar, no MainLayout header/footer */}
+        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<Suspense fallback={<RouteFallback />}><AdminDashboardPage /></Suspense>} />
+          <Route path="products" element={<Suspense fallback={<RouteFallback />}><AdminProductPage /></Suspense>} />
+          <Route path="orders" element={<Suspense fallback={<RouteFallback />}><AdminOrderPage /></Suspense>} />
+          <Route path="users" element={<Suspense fallback={<RouteFallback />}><AdminUserPage /></Suspense>} />
+          <Route path="reviews" element={<Suspense fallback={<RouteFallback />}><AdminReviewsPage /></Suspense>} />
+          <Route path="audit-logs" element={<Suspense fallback={<RouteFallback />}><AdminAuditPage /></Suspense>} />
+        </Route>
+
         <Route element={<MainLayout />}>
           {/* Public */}
           <Route path="/" element={<Suspense fallback={<RouteFallback />}><HomePage /></Suspense>} />
           <Route path="/products" element={<Suspense fallback={<RouteFallback />}><ProductListPage /></Suspense>} />
           <Route path="/products/:id" element={<Suspense fallback={<RouteFallback />}><ProductDetailPage /></Suspense>} />
-          <Route path="/login" element={<Suspense fallback={<RouteFallback />}><LoginPage /></Suspense>} />
-          <Route path="/register" element={<Suspense fallback={<RouteFallback />}><RegisterPage /></Suspense>} />
-          <Route path="/forgot-password" element={<Suspense fallback={<RouteFallback />}><ForgotPasswordPage /></Suspense>} />
-          <Route path="/reset-password" element={<Suspense fallback={<RouteFallback />}><ResetPasswordPage /></Suspense>} />
           <Route path="/chat" element={<Suspense fallback={<RouteFallback />}><ChatPage /></Suspense>} />
 
           {/* Protected */}
@@ -84,17 +97,6 @@ export default function AppRoutes() {
           <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><ProfilePage /></Suspense></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><WishlistPage /></Suspense></ProtectedRoute>} />
           <Route path="/payment/result" element={<Suspense fallback={<RouteFallback />}><PaymentResultPage /></Suspense>} />
-
-          {/* Admin — nested layout with sidebar */}
-          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<Suspense fallback={<RouteFallback />}><AdminDashboardPage /></Suspense>} />
-            <Route path="products" element={<Suspense fallback={<RouteFallback />}><AdminProductPage /></Suspense>} />
-            <Route path="orders" element={<Suspense fallback={<RouteFallback />}><AdminOrderPage /></Suspense>} />
-            <Route path="users" element={<Suspense fallback={<RouteFallback />}><AdminUserPage /></Suspense>} />
-            <Route path="reviews" element={<Suspense fallback={<RouteFallback />}><AdminReviewsPage /></Suspense>} />
-            <Route path="audit-logs" element={<Suspense fallback={<RouteFallback />}><AdminAuditPage /></Suspense>} />
-          </Route>
 
           {/* 404 */}
           <Route path="*" element={<Suspense fallback={<RouteFallback />}><NotFoundPage /></Suspense>} />

@@ -44,9 +44,9 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)]">
-      {/* ── Sidebar (desktop) ── */}
-      <aside className="hidden md:flex flex-col w-60 border-r bg-card shrink-0">
+    <div className="flex min-h-screen">
+      {/* ── Sidebar (desktop) — fixed, không scroll ── */}
+      <aside className="hidden md:flex flex-col w-60 border-r bg-card shrink-0 sticky top-0 h-screen">
         {/* Logo */}
         <div className="h-14 flex items-center gap-2 px-4 border-b">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-600 text-primary-foreground">
@@ -55,8 +55,8 @@ export default function AdminLayout() {
           <span className="font-bold text-sm tracking-tight">Admin Panel</span>
         </div>
 
-        {/* Nav links */}
-        <nav className="flex-1 p-3 space-y-0.5" aria-label="Điều hướng admin">
+        {/* Nav links — scrollable */}
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Điều hướng admin">
           {ADMIN_LINKS.map((link) => {
             const Icon = link.icon;
             const isActive = location.pathname === link.to;

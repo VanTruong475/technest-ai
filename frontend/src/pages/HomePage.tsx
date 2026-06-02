@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SaleBadge } from "@/components/common/SaleBadge";
@@ -27,6 +29,31 @@ const CATEGORY_IMAGES: Record<string, string> = {
 export default function HomePage() {
   const navigate = useNavigate();
   const countdown = useCountdown();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const queryClient = useQueryClient();
+
+  const quickBuyMutation = useMutation({
+    mutationFn: async (productId: number) => {
+      await axiosClient.post("/api/cart/items", { product_id: productId, quantity: 1 });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      navigate("/checkout");
+    },
+    onError: () => {
+      toast.error("Không thể thêm vào giỏ hàng");
+    },
+  });
+
+  const handleQuickBuy = (e: React.MouseEvent, productId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    quickBuyMutation.mutate(productId);
+  };
 
   const { data: homepageData, isLoading } = useQuery<{
     brands: Brand[];
@@ -248,7 +275,7 @@ export default function HomePage() {
               {["Màn hình đồ họa tốt nhất", "Tai nghe chống ồn", "Laptop văn phòng"].map((s) => (
                 <Link
                   key={s}
-                  to={`/chat`}
+                  to={`/chat?q=${encodeURIComponent(s)}`}
                   className="text-primary text-xs hover:underline"
                 >
                   {s}
@@ -346,15 +373,18 @@ export default function HomePage() {
 
                       {/* Action buttons */}
                       <div className="grid grid-cols-5 gap-2">
-                        <Link
-                          to={`/products/${product.id}`}
+                        <button
+                          onClick={(e) => handleQuickBuy(e, product.id)}
                           className="col-span-4 bg-primary text-primary-foreground py-2.5 rounded-xl font-bold text-xs uppercase text-center hover:bg-primary/90 transition-colors shadow-lg shadow-primary/10"
                         >
                           Mua ngay
-                        </Link>
-                        <button className="col-span-1 border border-border hover:border-primary hover:text-primary rounded-xl flex items-center justify-center transition-all">
-                          <ShoppingCart className="h-4 w-4" />
                         </button>
+                        <Link
+                          to={`/products/${product.id}`}
+                          className="col-span-1 border border-border hover:border-primary hover:text-primary rounded-xl flex items-center justify-center transition-all"
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                        </Link>
                       </div>
                     </div>
                   </div>
