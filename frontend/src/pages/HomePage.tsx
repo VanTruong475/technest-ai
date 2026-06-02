@@ -75,7 +75,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════
           HERO SECTION
           ═══════════════════════════════════════════════════════ */}
-      <section className="relative h-[65vh] flex items-center overflow-hidden">
+      <section className="relative h-[calc(100vh-128px)] flex items-center overflow-hidden">
         {/* Background image */}
         <div className="absolute inset-0 z-0">
           <OptimizedImage
@@ -97,22 +97,22 @@ export default function HomePage() {
               <span className="text-primary text-xs font-bold uppercase tracking-wider">Kỷ nguyên mua sắm AI Precision</span>
             </div>
 
-            <h1 className="text-[32px] leading-[40px] md:text-[48px] md:leading-[56px] font-bold tracking-tight mb-6">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.15] mb-6">
               Công nghệ tối tân.<br />Trải nghiệm thông minh.
             </h1>
 
-            <p className="text-lg text-muted-foreground mb-10 max-w-lg">
+            <p className="text-lg text-muted-foreground mb-10 max-w-lg leading-relaxed">
               Khám phá danh mục thiết bị công nghệ hàng đầu được tuyển chọn bởi AI dành riêng cho nhu cầu của bạn.
             </p>
 
             <div className="flex flex-wrap gap-4">
               <Link to="/products">
-                <button className="bg-primary text-primary-foreground px-10 py-4 rounded-2xl text-xs uppercase font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 active:scale-95">
+                <button className="bg-primary text-primary-foreground px-10 py-4 rounded-2xl text-sm font-semibold hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 active:scale-95">
                   Mua sắm ngay
                 </button>
               </Link>
               <Link to="/chat">
-                <button className="bg-card text-primary border border-primary/20 px-10 py-4 rounded-2xl text-xs uppercase font-bold hover:bg-muted transition-all">
+                <button className="bg-card text-primary border border-primary/20 px-10 py-4 rounded-2xl text-sm font-semibold hover:bg-muted transition-all">
                   Tư vấn AI
                 </button>
               </Link>
@@ -185,14 +185,14 @@ export default function HomePage() {
                       </div>
 
                       {/* Name */}
-                      <h3 className="font-bold text-foreground text-sm line-clamp-1 mb-2">{product.name}</h3>
+                      <h3 className="font-bold text-foreground text-base line-clamp-1 mb-2">{product.name}</h3>
 
                       {/* Price */}
                       <div className="flex flex-col">
                         <span className="text-red-600 font-bold text-xl">
                           {formatPrice(product.sale_price!)}
                         </span>
-                        <span className="text-muted-foreground text-xs line-through">
+                        <span className="text-muted-foreground text-sm line-through">
                           {formatPrice(product.price)}
                         </span>
                       </div>
@@ -350,11 +350,11 @@ export default function HomePage() {
                     <div className="mt-auto">
                       {/* Price */}
                       <div className="flex flex-col mb-4">
-                        <span className="text-2xl font-bold text-primary">
+                        <span className="text-xl font-bold text-primary">
                           {formatPrice(hasSale ? product.sale_price! : product.price)}
                         </span>
                         {hasSale && (
-                          <span className="text-muted-foreground text-xs line-through">
+                          <span className="text-muted-foreground text-sm line-through">
                             {formatPrice(product.price)}
                           </span>
                         )}
