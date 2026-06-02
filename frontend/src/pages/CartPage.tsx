@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -15,6 +16,7 @@ import type { Cart } from "@/types";
 function CartItemCardSkeleton() {
   return (
     <div className="flex items-center gap-5 p-5 bg-card rounded-2xl border border-border/60 shadow-sm">
+      <Skeleton className="w-5 h-5 rounded shrink-0" />
       <Skeleton className="w-[120px] h-[120px] rounded-xl shrink-0" />
       <div className="flex-1 space-y-3">
         <Skeleton className="h-5 w-2/3" />
@@ -30,7 +32,9 @@ function CartItemCardSkeleton() {
 }
 
 export default function CartPage() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data: cart, isLoading, error, refetch } = useQuery<Cart>({
     queryKey: ["cart"],
@@ -65,8 +69,55 @@ export default function CartPage() {
   };
 
   const items = cart?.items || [];
-  const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
   const itemCount = cart?.total_items || 0;
+
+  // Select all on initial load
+  useEffect(() => {
+    if (items.length > 0 && selectedIds.size === 0) {
+      setSelectedIds(new Set(items.map((i) => i.id)));
+    }
+  }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Remove deleted items from selection
+  useEffect(() => {
+    const itemIds = new Set(items.map((i) => i.id));
+    setSelectedIds((prev) => {
+      const next = new Set([...prev].filter((id) => itemIds.has(id)));
+      if (next.size === prev.size) return prev;
+      return next;
+    });
+  }, [items]);
+
+  const toggleItem = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map((i) => i.id)));
+    }
+  };
+
+  const selectedItems = items.filter((i) => selectedIds.has(i.id));
+  const selectedSubtotal = selectedItems.reduce((sum, item) => sum + item.subtotal, 0);
+  const allSelected = items.length > 0 && selectedIds.size === items.length;
+
+  const handleCheckout = () => {
+    if (selectedItems.length === 0) {
+      toast.error("Vui lòng chọn sản phẩm để thanh toán");
+      return;
+    }
+    // Store selected IDs for checkout page
+    sessionStorage.setItem("checkout_items", JSON.stringify(selectedItems.map((i) => i.id)));
+    navigate("/checkout");
+  };
 
   // ── Loading ──
   if (isLoading) {
@@ -86,7 +137,6 @@ export default function CartPage() {
             <div className="lg:col-span-2">
               <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6 space-y-4">
                 <Skeleton className="h-6 w-40" />
-                <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-12 w-full rounded-xl" />
@@ -112,9 +162,7 @@ export default function CartPage() {
               <p className="text-sm text-muted-foreground">Đã xảy ra lỗi, vui lòng thử lại.</p>
               <div className="flex gap-2 justify-center pt-2">
                 <Button variant="outline" onClick={() => refetch()}>Thử lại</Button>
-                <Link to="/products">
-                  <Button>Xem sản phẩm</Button>
-                </Link>
+                <Link to="/products"><Button>Xem sản phẩm</Button></Link>
               </div>
             </CardContent>
           </Card>
@@ -135,9 +183,7 @@ export default function CartPage() {
               </div>
               <h2 className="text-xl font-semibold">Giỏ hàng của bạn đang trống</h2>
               <p className="text-sm text-muted-foreground">Hãy khám phá các sản phẩm công nghệ mới nhất của chúng tôi.</p>
-              <Link to="/products">
-                <Button size="lg" className="mt-2">Mua sắm ngay</Button>
-              </Link>
+              <Link to="/products"><Button size="lg" className="mt-2">Mua sắm ngay</Button></Link>
             </CardContent>
           </Card>
         </div>
@@ -156,142 +202,166 @@ export default function CartPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* ── Left: Cart items (3/5) ── */}
+          {/* ── Left: Cart items ── */}
           <div className="lg:col-span-3 space-y-4">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center gap-5 p-4 sm:p-5 bg-card rounded-2xl border border-border/60 shadow-sm hover:shadow-md transition-shadow"
-            >
-              {/* Image */}
-              <Link to={`/products/${item.product_id}`} className="shrink-0">
-                <div className="w-24 h-24 sm:w-[120px] sm:h-[120px] bg-muted rounded-xl overflow-hidden">
-                  {item.image_url ? (
-                    <OptimizedImage src={item.image_url} alt={item.product_name} width={96} height={96} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl" aria-hidden="true">📦</div>
-                  )}
-                </div>
-              </Link>
+            {/* Select all */}
+            <label className="flex items-center gap-3 px-4 py-3 bg-card rounded-xl border border-border/40 cursor-pointer hover:bg-muted/30 transition-colors">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleAll}
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 accent-primary"
+              />
+              <span className="text-sm font-medium">
+                Chọn tất cả ({selectedIds.size}/{items.length} sản phẩm)
+              </span>
+            </label>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0 space-y-2">
-                <Link to={`/products/${item.product_id}`} className="font-semibold text-base hover:underline line-clamp-2 block">
-                  {item.product_name}
-                </Link>
-                <div className="flex items-center gap-2">
-                  {item.sale_price ? (
-                    <>
-                      <span className="font-bold text-destructive">{formatPrice(item.sale_price)}</span>
-                      <span className="text-sm text-muted-foreground line-through">{formatPrice(item.price)}</span>
-                    </>
-                  ) : (
-                    <span className="font-bold">{formatPrice(item.price)}</span>
-                  )}
-                </div>
-
-                {/* Quantity stepper */}
-                <div className="inline-flex items-center border rounded-lg overflow-hidden">
-                  <button
-                    className="w-9 h-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
-                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                    disabled={item.quantity <= 1 || updateMutation.isPending}
-                  >
-                    <Minus className="h-3.5 w-3.5" />
-                  </button>
-                  <span className="w-10 h-9 flex items-center justify-center text-sm font-medium border-x">{item.quantity}</span>
-                  <button
-                    className="w-9 h-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
-                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                    disabled={updateMutation.isPending}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                {/* Mobile: subtotal + delete inline */}
-                <div className="flex items-center justify-between sm:hidden">
-                  <p className="text-lg font-bold">{formatPrice(item.subtotal)}</p>
-                  <ConfirmDialog
-                    title="Xóa sản phẩm"
-                    description="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?"
-                    variant="destructive"
-                    onConfirm={() => deleteMutation.mutateAsync(item.id)}
-                  >
-                    <button
-                      className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </ConfirmDialog>
-                </div>
-              </div>
-
-              {/* Right: subtotal + delete */}
-              <div className="text-right shrink-0 space-y-2 hidden sm:block">
-                <p className="text-lg font-bold">{formatPrice(item.subtotal)}</p>
-                <ConfirmDialog
-                  title="Xóa sản phẩm"
-                  description="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?"
-                  variant="destructive"
-                  onConfirm={() => deleteMutation.mutateAsync(item.id)}
+            {/* Items */}
+            {items.map((item) => {
+              const isSelected = selectedIds.has(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className={`flex items-center gap-4 p-4 sm:p-5 bg-card rounded-2xl border shadow-sm hover:shadow-md transition-all ${
+                    isSelected ? "border-primary/40 ring-1 ring-primary/10" : "border-border/60"
+                  }`}
                 >
-                  <button
-                    className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </ConfirmDialog>
-              </div>
-            </div>
-          ))}
+                  {/* Checkbox */}
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleItem(item.id)}
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 accent-primary shrink-0"
+                  />
 
-          {/* Continue shopping */}
-          <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2">
-            <ArrowLeft className="h-4 w-4" />
-            Tiếp tục mua sắm
-          </Link>
-        </div>
+                  {/* Image */}
+                  <Link to={`/products/${item.product_id}`} className="shrink-0">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-xl overflow-hidden">
+                      {item.image_url ? (
+                        <OptimizedImage src={item.image_url} alt={item.product_name} width={96} height={96} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                      )}
+                    </div>
+                  </Link>
 
-        {/* ── Right: Order summary (2/5) ── */}
-        <div className="lg:col-span-2 lg:sticky lg:top-20 lg:self-start">
-          <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6 space-y-5">
-            <h2 className="text-lg font-semibold">Tóm tắt đơn hàng</h2>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Link to={`/products/${item.product_id}`} className="font-semibold text-sm sm:text-base hover:underline line-clamp-2 block">
+                      {item.product_name}
+                    </Link>
+                    <div className="flex items-center gap-2">
+                      {item.sale_price ? (
+                        <>
+                          <span className="font-bold text-destructive text-sm">{formatPrice(item.sale_price)}</span>
+                          <span className="text-xs text-muted-foreground line-through">{formatPrice(item.price)}</span>
+                        </>
+                      ) : (
+                        <span className="font-bold text-sm">{formatPrice(item.price)}</span>
+                      )}
+                    </div>
 
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tạm tính</span>
-                <span className="font-medium">{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Giảm giá</span>
-                <span className="font-medium">{formatPrice(0)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Phí vận chuyển</span>
-                <span className="font-medium text-green-600">Miễn phí</span>
-              </div>
-              <div className="border-t pt-3 flex justify-between items-baseline">
-                <span className="font-semibold text-base">Tổng cộng</span>
-                <span className="text-2xl font-bold">{formatPrice(subtotal)}</span>
-              </div>
-            </div>
+                    {/* Quantity stepper */}
+                    <div className="inline-flex items-center border rounded-lg overflow-hidden">
+                      <button
+                        className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
+                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                        disabled={item.quantity <= 1 || updateMutation.isPending}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="w-9 h-8 flex items-center justify-center text-xs font-medium border-x">{item.quantity}</span>
+                      <button
+                        className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
+                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                        disabled={updateMutation.isPending}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
 
-            <Link to="/checkout" className="block">
-              <Button size="lg" className="w-full h-12 text-base rounded-xl">
-                Tiến hành thanh toán
-              </Button>
+                    {/* Mobile: subtotal + delete */}
+                    <div className="flex items-center justify-between sm:hidden">
+                      <p className="text-base font-bold">{formatPrice(item.subtotal)}</p>
+                      <ConfirmDialog
+                        title="Xóa sản phẩm"
+                        description="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?"
+                        variant="destructive"
+                        onConfirm={() => deleteMutation.mutateAsync(item.id)}
+                      >
+                        <button className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </ConfirmDialog>
+                    </div>
+                  </div>
+
+                  {/* Right: subtotal + delete */}
+                  <div className="text-right shrink-0 space-y-2 hidden sm:block">
+                    <p className="text-base font-bold">{formatPrice(item.subtotal)}</p>
+                    <ConfirmDialog
+                      title="Xóa sản phẩm"
+                      description="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?"
+                      variant="destructive"
+                      onConfirm={() => deleteMutation.mutateAsync(item.id)}
+                    >
+                      <button className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </ConfirmDialog>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Continue shopping */}
+            <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2">
+              <ArrowLeft className="h-4 w-4" />
+              Tiếp tục mua sắm
             </Link>
+          </div>
 
-            <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Thanh toán an toàn & bảo mật
+          {/* ── Right: Order summary ── */}
+          <div className="lg:col-span-2 lg:sticky lg:top-20 lg:self-start">
+            <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-6 space-y-5">
+              <h2 className="text-lg font-semibold">Tóm tắt đơn hàng</h2>
+
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Sản phẩm đã chọn</span>
+                  <span className="font-medium">{selectedItems.length}/{items.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tạm tính</span>
+                  <span className="font-medium">{formatPrice(selectedSubtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Phí vận chuyển</span>
+                  <span className="font-medium text-green-600">Miễn phí</span>
+                </div>
+                <div className="border-t pt-3 flex justify-between items-baseline">
+                  <span className="font-semibold text-base">Tổng cộng</span>
+                  <span className="text-2xl font-bold">{formatPrice(selectedSubtotal)}</span>
+                </div>
+              </div>
+
+              <Button
+                size="lg"
+                className="w-full h-12 text-base rounded-xl"
+                disabled={selectedItems.length === 0}
+                onClick={handleCheckout}
+              >
+                Tiến hành thanh toán ({selectedItems.length})
+              </Button>
+
+              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Thanh toán an toàn & bảo mật
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

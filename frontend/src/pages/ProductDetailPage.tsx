@@ -115,7 +115,17 @@ export default function ProductDetailPage() {
       return;
     }
     await addToCartMutation.mutateAsync();
-    navigate("/cart");
+    // Chỉ thanh toán sản phẩm vừa thêm, không lấy toàn bộ giỏ hàng
+    try {
+      const res = await axiosClient.get("/api/cart");
+      const cartItem = res.data.items?.find((i: any) => i.product_id === Number(id));
+      if (cartItem) {
+        sessionStorage.setItem("checkout_items", JSON.stringify([cartItem.id]));
+      }
+    } catch {
+      // fallback: để trống → CheckoutPage lấy tất cả
+    }
+    navigate("/checkout");
   };
 
   if (isLoading) {
@@ -155,7 +165,7 @@ export default function ProductDetailPage() {
   ];
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-10">
       {/* ═══════════════════════════════════════════════════════
           BREADCRUMB
           ═══════════════════════════════════════════════════════ */}
@@ -173,7 +183,7 @@ export default function ProductDetailPage() {
       {/* ═══════════════════════════════════════════════════════
           PRODUCT OVERVIEW
           ═══════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* ── Left: Image Gallery ── */}
         <div className="lg:col-span-7">
           <ImageGallery
@@ -188,15 +198,15 @@ export default function ProductDetailPage() {
         </div>
 
         {/* ── Right: Product Info (sticky) ── */}
-        <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
+        <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-28">
           {/* Title + Rating */}
           <div>
-            <h1 className="text-2xl md:text-3xl lg:text-2xl font-bold leading-tight mb-2">
+            <h1 className="text-xl md:text-2xl font-bold leading-tight mb-1.5">
               {product.name}
             </h1>
-            <p className="text-muted-foreground text-sm mb-3">
+            <p className="text-muted-foreground text-xs mb-2 line-clamp-2">
               {product.description
-                ? product.description.slice(0, 120) + (product.description.length > 120 ? "..." : "")
+                ? product.description.slice(0, 150) + (product.description.length > 150 ? "..." : "")
                 : "Sản phẩm chính hãng, bảo hành toàn quốc."}
             </p>
             {product.average_rating != null && product.average_rating > 0 && (
@@ -210,17 +220,17 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Price */}
-          <div className="space-y-1">
-            <div className="flex items-end gap-3">
-              <span className="text-[28px] leading-8 font-bold text-primary tracking-tight">
+          <div>
+            <div className="flex items-end gap-2">
+              <span className="text-2xl font-bold text-primary">
                 {formatPrice(hasSale ? product.sale_price! : product.price)}
               </span>
               {hasSale && (
                 <>
-                  <span className="text-muted-foreground line-through text-base mb-0.5">
+                  <span className="text-muted-foreground line-through text-sm">
                     {formatPrice(product.price)}
                   </span>
-                  <span className="bg-destructive/10 text-destructive text-xs font-bold px-2 py-0.5 rounded">
+                  <span className="bg-destructive/10 text-destructive text-[11px] font-bold px-1.5 py-0.5 rounded">
                     -{discount}%
                   </span>
                 </>
@@ -269,42 +279,42 @@ export default function ProductDetailPage() {
           {product.stock > 0 && product.status === "ACTIVE" && (
             <div className="space-y-3">
               {/* Quantity */}
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">Số lượng:</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Số lượng:</span>
                 <div className="flex items-center border border-border rounded-lg">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 hover:bg-muted transition-colors"
+                    className="px-2.5 py-1.5 hover:bg-muted transition-colors"
                     disabled={quantity <= 1}
                   >
-                    <Minus className="h-4 w-4" />
+                    <Minus className="h-3.5 w-3.5" />
                   </button>
-                  <span className="px-4 py-2 text-sm font-medium min-w-[3rem] text-center">
+                  <span className="px-3 py-1.5 text-sm font-medium min-w-[2.5rem] text-center">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="px-3 py-2 hover:bg-muted transition-colors"
+                    className="px-2.5 py-1.5 hover:bg-muted transition-colors"
                     disabled={quantity >= product.stock}
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
 
-              {/* Buy buttons — theo example: font-headline-md (24px), w-full */}
-              <div className="flex flex-col gap-3">
+              {/* Buy buttons */}
+              <div className="flex flex-col gap-2.5">
                 <button
                   onClick={handleBuyNow}
                   disabled={addToCartMutation.isPending}
-                  className="w-full py-4 bg-primary text-primary-foreground rounded-xl text-lg font-bold hover:bg-primary/90 transition-all active:scale-[0.98] shadow-md shadow-primary/20"
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all active:scale-[0.98] shadow-md shadow-primary/20"
                 >
-                  Mua Ngay
+                  Mua ngay
                 </button>
                 <button
                   onClick={() => addToCartMutation.mutate()}
                   disabled={addToCartMutation.isPending}
-                  className="w-full py-4 border border-primary text-primary rounded-xl text-lg font-bold hover:bg-primary/5 transition-all"
+                  className="w-full py-3 border border-primary text-primary rounded-lg text-sm font-semibold hover:bg-primary/5 transition-all"
                 >
                   {addToCartMutation.isPending ? "Đang thêm..." : "Thêm vào giỏ hàng"}
                 </button>
@@ -313,7 +323,7 @@ export default function ProductDetailPage() {
               {/* Wishlist */}
               <HeartButton
                 productId={product.id}
-                className="w-full justify-center py-3 border rounded-xl text-sm hover:bg-accent"
+                className="w-full justify-center py-2 border rounded-lg text-xs hover:bg-accent"
                 showLabel
               />
             </div>
@@ -326,44 +336,50 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* AI Consultation Box — theo example: glass-panel, rounded-2xl */}
-          <div className="p-6 rounded-2xl bg-card/70 backdrop-blur-sm border border-primary/20 shadow-sm relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+          {/* AI Consultation Box */}
+          <div className="p-4 rounded-xl bg-card/70 backdrop-blur-sm border border-primary/15 relative overflow-hidden">
+            <div className="absolute -right-3 -top-3 w-20 h-20 bg-primary/5 rounded-full blur-2xl" />
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                  <Sparkles className="h-4 w-4 text-primary-foreground" />
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/20">
+                  <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-primary">Tư vấn AI cho {product.name.split(" ")[0]}</h3>
-                  <p className="text-xs text-muted-foreground">Hỏi AI về hiệu năng cho nhu cầu của bạn</p>
+                  <h3 className="font-semibold text-sm text-primary">Tư vấn AI</h3>
+                  <p className="text-[11px] text-muted-foreground">Hỏi AI về sản phẩm này</p>
                 </div>
               </div>
-              <div className="space-y-2 mb-3">
+              <div className="space-y-1.5 mb-2.5">
                 {suggestions.map((s) => (
                   <button
                     key={s}
-                    onClick={() => navigate("/chat")}
-                    className="w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-sm border border-border/10"
+                    onClick={() => navigate(`/chat?q=${encodeURIComponent(s)}`)}
+                    className="w-full text-left px-3 py-2 rounded-lg bg-muted/40 hover:bg-muted transition-colors text-xs border border-border/10"
                   >
                     "{s}"
                   </button>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <input
                   type="text"
                   placeholder="Hỏi AI về sản phẩm..."
-                  className="flex-1 bg-card border border-border/40 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-primary transition-colors"
+                  className="flex-1 bg-card border border-border/40 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors"
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") navigate("/chat");
+                    if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                      navigate(`/chat?q=${encodeURIComponent(e.currentTarget.value.trim())}`);
+                    }
                   }}
                 />
                 <button
-                  onClick={() => navigate("/chat")}
-                  className="bg-primary text-primary-foreground p-2.5 rounded-lg hover:scale-105 transition-transform active:scale-95"
+                  onClick={() => {
+                    const input = document.querySelector('input[placeholder="Hỏi AI về sản phẩm..."]') as HTMLInputElement;
+                    if (input?.value.trim()) navigate(`/chat?q=${encodeURIComponent(input.value.trim())}`);
+                    else navigate("/chat");
+                  }}
+                  className="bg-primary text-primary-foreground p-2 rounded-lg hover:scale-105 transition-transform active:scale-95"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
@@ -381,7 +397,7 @@ export default function ProductDetailPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-8 py-4 whitespace-nowrap font-medium transition-colors ${
+              className={`px-5 py-3 whitespace-nowrap text-sm transition-colors ${
                 activeTab === tab.key
                   ? "border-b-2 border-primary text-primary font-bold"
                   : "text-muted-foreground hover:text-primary"
@@ -393,7 +409,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Tab content */}
-        <div className="py-10">
+        <div className="py-6">
           {/* Specs tab — 2-column grid theo example */}
           {activeTab === "specs" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-6">
