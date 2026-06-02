@@ -1,7 +1,8 @@
+import json
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 ProductStatus = Literal["ACTIVE", "INACTIVE", "OUT_OF_STOCK"]
 
@@ -13,6 +14,8 @@ class ProductCreate(BaseModel):
     slug: str
     description: Optional[str] = None
     image_url: Optional[str] = None
+    extra_images: Optional[list[str]] = None
+    colors: Optional[list[dict[str, Any]]] = None
     price: float
     sale_price: Optional[float] = None
     stock: int = 0
@@ -75,6 +78,8 @@ class ProductUpdate(BaseModel):
     slug: Optional[str] = None
     description: Optional[str] = None
     image_url: Optional[str] = None
+    extra_images: Optional[list[str]] = None
+    colors: Optional[list[dict[str, Any]]] = None
     price: Optional[float] = None
     sale_price: Optional[float] = None
     stock: Optional[int] = None
@@ -112,6 +117,8 @@ class ProductResponse(BaseModel):
     slug: str
     description: Optional[str] = None
     image_url: Optional[str] = None
+    extra_images: Optional[list[str]] = None
+    colors: Optional[list[dict[str, Any]]] = None
     price: float
     sale_price: Optional[float] = None
     stock: int
@@ -120,6 +127,26 @@ class ProductResponse(BaseModel):
     review_count: int = 0
     created_at: datetime
     updated_at: datetime
+
+    @field_validator("extra_images", mode="before")
+    @classmethod
+    def parse_extra_images(cls, v: Any) -> Optional[list[str]]:
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return v
+
+    @field_validator("colors", mode="before")
+    @classmethod
+    def parse_colors(cls, v: Any) -> Optional[list[dict[str, Any]]]:
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return v
 
 
 class BulkStockUpdateItem(BaseModel):

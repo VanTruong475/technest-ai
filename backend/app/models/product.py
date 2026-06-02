@@ -27,6 +27,8 @@ class Product(SQLModel, table=True):
     description: Optional[str] = None
 
     image_url: Optional[str] = None
+    extra_images: Optional[str] = None  # JSON array of image URLs
+    colors: Optional[str] = None  # JSON array of {name, hex, image}
 
     price: Decimal = Field(sa_column=Column(Numeric(10, 2), nullable=False))
     sale_price: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(10, 2)))

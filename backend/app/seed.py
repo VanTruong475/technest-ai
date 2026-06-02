@@ -143,6 +143,11 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             continue
 
         existing = session.exec(select(Product).where(Product.slug == data["slug"])).first()
+
+        # Serialize JSON fields
+        extra_images_json = json.dumps(data.get("extra_images"), ensure_ascii=False) if data.get("extra_images") else None
+        colors_json = json.dumps(data.get("colors"), ensure_ascii=False) if data.get("colors") else None
+
         if existing:
             changed = False
             for field in ("name", "description", "image_url", "price", "sale_price", "stock", "status"):
@@ -150,6 +155,13 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
                 if getattr(existing, field) != new_val:
                     setattr(existing, field, new_val)
                     changed = True
+            # JSON fields — compare serialized strings
+            if existing.extra_images != extra_images_json:
+                existing.extra_images = extra_images_json
+                changed = True
+            if existing.colors != colors_json:
+                existing.colors = colors_json
+                changed = True
             if existing.category_id != category.id:
                 existing.category_id = category.id
                 changed = True
@@ -173,6 +185,8 @@ def seed_products(session: Session, categories: dict, brands: dict) -> None:
             slug=data["slug"],
             description=data["description"],
             image_url=data.get("image_url"),
+            extra_images=extra_images_json,
+            colors=colors_json,
             price=data["price"],
             sale_price=data.get("sale_price"),
             stock=data.get("stock", 0),
