@@ -9,11 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Search, Laptop, LayoutDashboard,
   MessageSquare, ShieldCheck, Truck, RotateCcw, ArrowRight,
-  Sparkles, CreditCard, Package,
+  Sparkles, CreditCard, Package, Clock,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
 import { ProductGridSkeleton } from "@/components/common/Skeleton";
-import { SaleBadge } from "@/components/common/SaleBadge";
+import ProductCard from "@/components/common/ProductCard";
+import { useCountdown } from "@/hooks/useCountdown";
 import type { Product, Brand, Category } from "@/types";
 
 // Category emoji map — icons cho category showcase
@@ -109,54 +110,10 @@ const TRUST_STRIP = [
   },
 ];
 
-function ProductCard({ product }: { product: Product }) {
-  return (
-    <Link to={`/products/${product.id}`} className="group">
-      <Card className="h-full transition-all duration-300 cursor-pointer relative overflow-hidden border-border/60 hover:border-border hover:shadow-xl hover:-translate-y-1 rounded-2xl">
-        {product.sale_price && product.sale_price < product.price && (
-          <SaleBadge price={product.price} salePrice={product.sale_price} />
-        )}
-        <div className="aspect-[4/3] bg-muted/50 flex items-center justify-center rounded-t-2xl overflow-hidden">
-          {product.image_url ? (
-            <OptimizedImage
-              src={product.image_url}
-              alt={product.name}
-              width={400}
-              height={300}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-          ) : (
-            <span className="text-4xl" aria-hidden="true">📦</span>
-          )}
-        </div>
-        <CardContent className="space-y-2 p-4">
-          <h3 className="font-medium line-clamp-2 text-sm leading-snug min-h-[2.5rem]">{product.name}</h3>
-          <div className="flex items-baseline gap-2 flex-wrap">
-            {product.sale_price ? (
-              <>
-                <span className="text-base font-bold text-destructive">
-                  {formatPrice(product.sale_price)}
-                </span>
-                <span className="text-xs text-muted-foreground line-through">
-                  {formatPrice(product.price)}
-                </span>
-              </>
-            ) : (
-              <span className="text-base font-bold">{formatPrice(product.price)}</span>
-            )}
-          </div>
-          <p className={`text-xs ${product.stock > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
-            {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
-          </p>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
-
 export default function HomePage() {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
+  const countdown = useCountdown();
 
   // Batch endpoint — replaces 4 separate API calls with 1
   const { data: homepageData, isLoading: productsLoading, error: productsError } = useQuery<{
@@ -457,7 +414,15 @@ export default function HomePage() {
                 <span className="text-xl" aria-hidden="true">🔥</span>
               </div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Ưu đãi hôm nay</h2>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Ưu đãi hôm nay</h2>
+                  {!countdown.isExpired && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-destructive/10 text-destructive text-sm font-semibold tabular-nums">
+                      <Clock className="h-3.5 w-3.5" />
+                      {countdown.display}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground mt-0.5">Sản phẩm đang giảm giá sốc</p>
               </div>
             </div>

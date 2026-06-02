@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/common/Skeleton";
-import { SaleBadge } from "@/components/common/SaleBadge";
-import HeartButton from "@/components/common/HeartButton";
+import ProductCard from "@/components/common/ProductCard";
 import Pagination from "@/components/common/Pagination";
 import SearchAutocomplete from "@/components/common/SearchAutocomplete";
 import {
   Search, ChevronRight, X, SlidersHorizontal, Home,
-  Smartphone, Laptop, Tablet, Headphones, Cable, ArrowUpDown,
+  Smartphone, Laptop, Tablet, Headphones, Cable, ArrowUpDown, Star,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
 import type { Category, Brand, ProductsResponse } from "@/types";
@@ -21,6 +19,7 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Mới nhất" },
   { value: "price_asc", label: "Giá thấp → cao" },
   { value: "price_desc", label: "Giá cao → thấp" },
+  { value: "rating_desc", label: "Đánh giá cao" },
 ];
 
 const PRICE_PRESETS = [
@@ -29,6 +28,14 @@ const PRICE_PRESETS = [
   { label: "5 - 10 triệu", min: "5000000", max: "10000000" },
   { label: "10 - 20 triệu", min: "10000000", max: "20000000" },
   { label: "Trên 20 triệu", min: "20000000", max: "" },
+];
+
+const RATING_OPTIONS = [
+  { label: "Tất cả", value: "" },
+  { label: "4★ trở lên", value: "4" },
+  { label: "3★ trở lên", value: "3" },
+  { label: "2★ trở lên", value: "2" },
+  { label: "1★ trở lên", value: "1" },
 ];
 
 const CATEGORY_ICONS: Record<string, typeof Smartphone> = {
@@ -46,6 +53,7 @@ function ProductCardSkeleton() {
       <div className="p-4 space-y-3">
         <Skeleton className="h-3 w-16" />
         <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-3 w-24" />
         <Skeleton className="h-5 w-24" />
         <Skeleton className="h-3 w-20" />
       </div>
@@ -56,6 +64,7 @@ function ProductCardSkeleton() {
 export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [mobileSortOpen, setMobileSortOpen] = useState(false);
 
   const page = parseInt(searchParams.get("page") || "1");
   const limit = 12;
@@ -65,9 +74,10 @@ export default function ProductListPage() {
   const sort = searchParams.get("sort") || "newest";
   const minPrice = searchParams.get("min_price") || "";
   const maxPrice = searchParams.get("max_price") || "";
+  const minRating = searchParams.get("min_rating") || "";
 
   const { data, isLoading, error } = useQuery<ProductsResponse>({
-    queryKey: ["products", page, search, categoryId, brandId, sort, minPrice, maxPrice],
+    queryKey: ["products", page, search, categoryId, brandId, sort, minPrice, maxPrice, minRating],
     queryFn: async () => {
       const params: Record<string, string | number> = { page, limit };
       if (search) params.search = search;
@@ -76,6 +86,7 @@ export default function ProductListPage() {
       if (sort && sort !== "newest") params.sort = sort;
       if (minPrice) params.min_price = minPrice;
       if (maxPrice) params.max_price = maxPrice;
+      if (minRating) params.min_rating = minRating;
       const res = await axiosClient.get("/api/products", { params });
       return res.data;
     },
@@ -133,11 +144,12 @@ export default function ProductListPage() {
   const selectedCategoryName = categoryId ? getCategoryName(Number(categoryId)) : null;
   const selectedBrandName = brandId ? getBrandName(Number(brandId)) : null;
 
-  const hasActiveFilters = search || categoryId || brandId || minPrice || maxPrice;
+  const hasActiveFilters = search || categoryId || brandId || minPrice || maxPrice || minRating;
   const currentPricePreset = PRICE_PRESETS.find(
     (p) => p.min === minPrice && p.max === maxPrice
   );
   const currentSortLabel = SORT_OPTIONS.find((s) => s.value === sort)?.label || "Mới nhất";
+  const currentRatingLabel = RATING_OPTIONS.find((r) => r.value === minRating)?.label || "Tất cả";
   const fromItem = (page - 1) * limit + 1;
   const toItem = Math.min(page * limit, total);
 
@@ -176,6 +188,12 @@ export default function ProductListPage() {
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-medium">
                 {currentPricePreset?.label || `${minPrice ? formatPrice(Number(minPrice)) : "0"} - ${maxPrice ? formatPrice(Number(maxPrice)) : "∞"}`}
                 <button onClick={() => updateParams({ min_price: "", max_price: "" })}><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {minRating && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">
+                {currentRatingLabel}
+                <button onClick={() => updateParams({ min_rating: "" })}><X className="h-3 w-3" /></button>
               </span>
             )}
             {sort !== "newest" && (
@@ -243,11 +261,30 @@ export default function ProductListPage() {
           ))}
         </div>
       </div>
+
+      {/* Rating filter */}
+      <div>
+        <h3 className="text-sm font-semibold mb-3">Đánh giá</h3>
+        <div className="space-y-1">
+          {RATING_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => updateParams({ min_rating: opt.value })}
+              className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                minRating === opt.value ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
+              }`}
+            >
+              {opt.value && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />}
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4">
+    <div className="max-w-6xl mx-auto px-4 pb-20 lg:pb-0">
       {/* ── Breadcrumb ── */}
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6">
         <Link to="/" className="hover:text-foreground flex items-center gap-1">
@@ -268,15 +305,6 @@ export default function ProductListPage() {
             </p>
           )}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="lg:hidden"
-          onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-        >
-          <SlidersHorizontal className="h-4 w-4 mr-1.5" />
-          Bộ lọc
-        </Button>
       </div>
 
       {/* ── Mobile filter overlay ── */}
@@ -294,6 +322,39 @@ export default function ProductListPage() {
             <Button className="w-full" onClick={() => setMobileFilterOpen(false)}>
               Xem {total} sản phẩm
             </Button>
+          </div>
+        </>
+      )}
+
+      {/* ── Mobile sort dropdown ── */}
+      {mobileSortOpen && (
+        <>
+          <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setMobileSortOpen(false)} />
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-2xl shadow-xl p-5">
+            <div className="flex items-center justify-between pb-3 border-b">
+              <h2 className="text-lg font-semibold">Sắp xếp</h2>
+              <button onClick={() => setMobileSortOpen(false)} className="p-2 hover:bg-muted rounded-lg">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-1 pt-2">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    updateParams({ sort: opt.value });
+                    setMobileSortOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-colors ${
+                    sort === opt.value
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
         </>
       )}
@@ -319,8 +380,8 @@ export default function ProductListPage() {
             />
           </div>
 
-          {/* Sort + Price presets */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+          {/* Sort + Price presets (desktop) */}
+          <div className="hidden lg:flex items-center gap-3 mb-6">
             {/* Sort dropdown */}
             <div className="relative">
               <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -354,6 +415,26 @@ export default function ProductListPage() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Price presets (mobile — inline, no sort since it's in sticky bar) */}
+          <div className="flex flex-wrap gap-2 mb-6 lg:hidden">
+            {PRICE_PRESETS.map((preset) => {
+              const isActive = preset.min === minPrice && preset.max === maxPrice;
+              return (
+                <button
+                  key={preset.label}
+                  onClick={() => updateParams({ min_price: preset.min, max_price: preset.max })}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    isActive
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-muted-foreground border-border hover:border-primary/50"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Loading */}
@@ -394,53 +475,17 @@ export default function ProductListPage() {
           {/* Product grid */}
           {!isLoading && !error && products.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {products.map((product) => {
-                const categoryName = getCategoryName(product.category_id);
-                const brandName = getBrandName(product.brand_id);
-                return (
-                  <Link key={product.id} to={`/products/${product.id}`}>
-                    <Card className="h-full hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer relative overflow-hidden border-border/60 shadow-sm rounded-2xl group">
-                      {product.sale_price && product.sale_price < product.price && (
-                        <SaleBadge price={product.price} salePrice={product.sale_price} />
-                      )}
-                      <div className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <HeartButton productId={product.id} />
-                      </div>
-                      <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
-                        {product.image_url ? (
-                          <OptimizedImage src={product.image_url} alt={product.name} width={400} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <span className="text-5xl" aria-hidden="true">📦</span>
-                        )}
-                      </div>
-                      <CardContent className="p-4 space-y-2">
-                        <div className="flex items-center gap-2">
-                          {brandName && (
-                            <span className="text-xs font-semibold text-primary">{brandName}</span>
-                          )}
-                          {categoryName && (
-                            <span className="text-xs text-muted-foreground">· {categoryName}</span>
-                          )}
-                        </div>
-                        <h3 className="font-semibold line-clamp-2 text-sm leading-snug">{product.name}</h3>
-                        <div className="flex items-center gap-2">
-                          {product.sale_price && product.sale_price < product.price ? (
-                            <>
-                              <span className="text-lg font-bold text-destructive">{formatPrice(product.sale_price)}</span>
-                              <span className="text-sm text-muted-foreground line-through">{formatPrice(product.price)}</span>
-                            </>
-                          ) : (
-                            <span className="text-lg font-bold">{formatPrice(product.price)}</span>
-                          )}
-                        </div>
-                        <p className={`text-xs font-medium ${product.stock > 0 ? "text-green-600" : "text-destructive"}`}>
-                          {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  showBrandCategory
+                  showWishlist
+                  showRating
+                  brandName={getBrandName(product.brand_id)}
+                  categoryName={getCategoryName(product.category_id)}
+                />
+              ))}
             </div>
           )}
 
@@ -450,6 +495,30 @@ export default function ProductListPage() {
               <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ── Mobile sticky bottom bar ── */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-border shadow-lg">
+        <div className="flex">
+          <button
+            onClick={() => setMobileFilterOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-medium hover:bg-muted transition-colors"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Lọc
+            {hasActiveFilters && (
+              <span className="w-2 h-2 rounded-full bg-primary" />
+            )}
+          </button>
+          <div className="w-px bg-border" />
+          <button
+            onClick={() => setMobileSortOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-medium hover:bg-muted transition-colors"
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            Sắp xếp
+          </button>
         </div>
       </div>
     </div>

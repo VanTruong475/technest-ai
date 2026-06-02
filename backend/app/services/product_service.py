@@ -10,14 +10,26 @@ from app.models.user import User
 from app.repositories.brand_repository import BrandRepository
 from app.repositories.category_repository import CategoryRepository
 from app.repositories.product_repository import ProductRepository
+from app.repositories.review_repository import ReviewRepository
 from app.schemas.common import PaginatedResponse
 from app.schemas.product import (
     BulkStockUpdateRequest,
     BulkStockUpdateResponse,
     ProductCreate,
+    ProductResponse,
     ProductUpdate,
 )
 from app.services.audit_service import log_action
+
+
+def _enrich_product(session: Session, product: Product) -> dict:
+    """Enrich a single product with rating data, return as dict."""
+    review_repo = ReviewRepository(session)
+    summary = review_repo.get_product_rating_summary(product.id)
+    item = ProductResponse.model_validate(product).model_dump()
+    item["average_rating"] = summary["rating_average"]
+    item["review_count"] = summary["rating_count"]
+    return item
 
 
 def get_all_products(
@@ -31,6 +43,7 @@ def get_all_products(
     max_price: Optional[float] = None,
     search: Optional[str] = None,
     sort: str = "newest",
+    min_rating: Optional[float] = None,
 ) -> PaginatedResponse[Product]:
     repo = ProductRepository(session)
     items, total = repo.find_all(
@@ -43,6 +56,7 @@ def get_all_products(
         max_price=max_price,
         search=search,
         sort=sort,
+        min_rating=min_rating,
     )
     total_pages = math.ceil(total / limit) if total > 0 else 0
 
@@ -55,7 +69,38 @@ def get_all_products(
     )
 
 
-def get_product_by_id(product_id: int, session: Session) -> Product:
+def get_all_products_with_ratings(
+    session: Session,
+    page: int = 1,
+    limit: int = 10,
+    category_id: Optional[int] = None,
+    brand_id: Optional[int] = None,
+    status_filter: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    search: Optional[str] = None,
+    sort: str = "newest",
+    min_rating: Optional[float] = None,
+) -> dict:
+    """Same as get_all_products but enriches items with rating data.
+
+    Returns a plain dict (not PaginatedResponse) since items are dicts, not Product models.
+    """
+    result = get_all_products(
+        session, page, limit, category_id, brand_id, status_filter,
+        min_price, max_price, search, sort, min_rating,
+    )
+    enriched_items = [_enrich_product(session, p) for p in result.items]
+    return {
+        "items": enriched_items,
+        "total": result.total,
+        "page": result.page,
+        "limit": result.limit,
+        "total_pages": result.total_pages,
+    }
+
+
+def get_product_by_id(product_id: int, session: Session) -> dict:
     repo = ProductRepository(session)
     product = repo.find_by_id(product_id)
     if not product:
@@ -63,7 +108,7 @@ def get_product_by_id(product_id: int, session: Session) -> Product:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Product not found"
         )
-    return product
+    return _enrich_product(session, product)
 
 
 def create_product(

@@ -11,12 +11,14 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 
 export function ProductCardSkeleton() {
   return (
-    <div className="space-y-3">
-      <Skeleton className="aspect-square w-full rounded-t-xl" />
-      <div className="space-y-2 px-1 pb-1">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-5 w-1/2" />
-        <Skeleton className="h-3 w-1/3" />
+    <div className="bg-card rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+      <Skeleton className="aspect-[4/3] w-full rounded-none" />
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-3 w-20" />
       </div>
     </div>
   );

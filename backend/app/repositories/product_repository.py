@@ -1,14 +1,16 @@
 from typing import Optional
 
 from sqlalchemy import update
-from sqlmodel import Session, select, func, and_
+from sqlmodel import Session, select, func, and_, col
 
 from app.models.product import Product
+from app.models.review import Review
 
 SORT_MAP = {
     "newest": Product.created_at.desc(),
     "price_asc": Product.price.asc(),
     "price_desc": Product.price.desc(),
+    "rating_desc": Product.created_at.desc(),  # actual sort done post-query with rating data
 }
 
 VALID_SORTS = list(SORT_MAP.keys())
@@ -29,6 +31,7 @@ class ProductRepository:
         max_price: Optional[float] = None,
         search: Optional[str] = None,
         sort: str = "newest",
+        min_rating: Optional[float] = None,
     ) -> tuple[list[Product], int]:
         offset = (page - 1) * limit
         conditions = []
@@ -45,6 +48,15 @@ class ProductRepository:
             conditions.append(Product.price <= max_price)
         if search is not None:
             conditions.append(Product.name.ilike(f"%{search}%"))
+
+        # min_rating filter: subquery to exclude products below threshold
+        if min_rating is not None:
+            rating_subq = (
+                select(Review.product_id)
+                .group_by(Review.product_id)
+                .having(func.avg(Review.rating) >= min_rating)
+            )
+            conditions.append(col(Product.id).in_(rating_subq))
 
         order_by = SORT_MAP.get(sort, Product.created_at.desc())
 

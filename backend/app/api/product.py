@@ -21,6 +21,7 @@ from app.services.product_service import (
     create_product,
     delete_product,
     get_all_products,
+    get_all_products_with_ratings,
     get_product_by_id,
     update_product,
 )
@@ -37,6 +38,7 @@ def list_products(
     status: Optional[str] = Query(None),
     min_price: Optional[float] = Query(None),
     max_price: Optional[float] = Query(None),
+    min_rating: Optional[float] = Query(None, ge=0, le=5),
     search: Optional[str] = Query(None),
     sort: str = Query("newest"),
     session: Session = Depends(get_session),
@@ -49,12 +51,12 @@ def list_products(
 
     ck = cache_key("products", page=page, limit=limit, category_id=category_id,
                     brand_id=brand_id, status=status, min_price=min_price,
-                    max_price=max_price, search=search, sort=sort)
+                    max_price=max_price, min_rating=min_rating, search=search, sort=sort)
     cached = get_cached(ck)
     if cached is not None:
         return cached
 
-    result = get_all_products(
+    result = get_all_products_with_ratings(
         session,
         page=page,
         limit=limit,
@@ -65,8 +67,9 @@ def list_products(
         max_price=max_price,
         search=search,
         sort=sort,
+        min_rating=min_rating,
     )
-    response = result.model_dump()
+    response = result
     set_cached(ck, response, ttl=300)
     return response
 
