@@ -1,10 +1,18 @@
 // ── Product ──
+export interface ColorVariant {
+  name: string;
+  hex: string;
+  image: string;
+}
+
 export interface Product {
   id: number;
   name: string;
   slug: string;
   description: string | null;
   image_url: string | null;
+  extra_images?: string[] | null;
+  colors?: ColorVariant[] | null;
   price: number;
   sale_price: number | null;
   stock: number;
