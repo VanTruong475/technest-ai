@@ -57,7 +57,8 @@ export default function MainLayout() {
 
   const navLinks = useMemo(() => {
     const links = [
-      { to: "/products", label: "Tất cả sản phẩm" },
+      { to: "/", label: "Trang chủ" },
+      { to: "/products", label: "Sản phẩm" },
     ];
     for (const cat of CATEGORY_NAV) {
       const id = getCategoryIdBySlug(categories, cat.slug);
@@ -332,7 +333,7 @@ export default function MainLayout() {
           <Outlet />
         </main>
       ) : (
-        <main className={isHomePage ? "" : "max-w-7xl mx-auto px-6 mt-32 pb-6"}>
+        <main className={isHomePage ? "" : "max-w-7xl mx-auto px-6 mt-36 pb-6"}>
           <Outlet />
         </main>
       )}
