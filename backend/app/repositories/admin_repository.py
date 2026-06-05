@@ -68,7 +68,11 @@ class AdminRepository:
                 func.date(Order.created_at).label("date"),
                 func.sum(Order.total_amount).label("revenue"),
             )
-            .where(Order.status != "CANCELLED", Order.created_at >= cutoff)
+            .where(
+                Order.status != "CANCELLED",
+                Order.payment_status == "PAID",
+                Order.created_at >= cutoff,
+            )
             .group_by(func.date(Order.created_at))
             .order_by(func.date(Order.created_at))
         )

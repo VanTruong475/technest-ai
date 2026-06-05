@@ -27,7 +27,10 @@
 | **Root Directory** | `backend` |
 | **Runtime** | Python |
 | **Build Command** | `pip install -r requirements.txt` |
+| **Pre-Deploy Command** | `alembic upgrade head` |
 | **Start Command** | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+
+> ⚠️ **Bắt buộc:** đặt `alembic upgrade head` ở **Pre-Deploy Command** (chạy sau build, trước khi nhận traffic). Không để ở Start Command — mỗi lần Render scale/restart sẽ chạy lại migration thừa và có thể race giữa nhiều instance.
 
 ### Environment variables
 
