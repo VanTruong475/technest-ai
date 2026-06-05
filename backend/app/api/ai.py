@@ -1,7 +1,9 @@
 from typing import Optional
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.responses import StreamingResponse
 from jose import JWTError, jwt
 from sqlmodel import Session
 
@@ -24,6 +26,7 @@ from app.services.ai_service import (
     recommend_co_occurrence,
     recommend_popular,
     chat_with_ai,
+    stream_chat,
 )
 from app.services.llm.metrics import llm_metrics
 
@@ -147,6 +150,40 @@ def chat(
     Nếu không tìm thấy kết quả, fallback sang sản phẩm phổ biến/mới nhất.
     """
     return chat_with_ai(body, session)
+
+
+@router.post("/chat/stream")
+@limiter.limit("10/minute")
+def chat_stream(
+    request: Request,
+    body: ChatRequest,
+    session: Session = Depends(get_session),
+):
+    """Chatbot tư vấn — streaming token-by-token qua Server-Sent Events.
+
+    Mỗi event là 1 dòng `data: {...}\\n\\n`:
+    - `{"type":"token","text":"..."}` cho mỗi mảnh reply.
+    - `{"type":"done","products":[...],"suggestions":[...],"total":N}` ở cuối.
+
+    Products/giá/tồn kho luôn từ DB. Lỗi LLM → fallback rule-based reply.
+    Endpoint non-stream `/chat` vẫn giữ nguyên làm fallback cho client cũ.
+    """
+
+    def event_stream():
+        try:
+            for event in stream_chat(body, session):
+                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+        except Exception:  # noqa: BLE001 — không để stream crash giữa chừng
+            yield f'data: {json.dumps({"type": "done", "products": [], "suggestions": [], "total": 0})}\n\n'
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # tắt buffering của reverse proxy (nginx)
+        },
+    )
 
 
 @router.get("/stats")

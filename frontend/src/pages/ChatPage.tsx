@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,17 +12,10 @@ import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import { streamChat } from "@/lib/aiStream";
 import type { AISearchResult, ChatMessage } from "@/types";
 
 const CHAT_STORAGE_KEY = "techsphere-chat-messages";
-
-interface ChatResponse {
-  message: string;
-  reply: string;
-  products: AISearchResult[];
-  total: number;
-  suggestions: string[];
-}
 
 const QUICK_PROMPTS = [
   { icon: "💻", text: "Tư vấn laptop Dell cho học tập" },
@@ -42,11 +33,21 @@ export default function ChatPage() {
     } catch { return []; }
   });
   const [input, setInput] = useState("");
+  // Token AI đang được stream về (chưa commit vào messages). isStreaming bật
+  // từ lúc gửi tới lúc done — dùng để disable input & hiện bubble live.
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingText, setStreamingText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef(messages);
-  messagesRef.current = messages;
   const autoSendRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Mirror messages vào ref để handleSend (async, ngoài render) đọc context
+  // mới nhất mà không cần thêm vào dependency.
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   // Persist messages to localStorage (keep last 100)
   useEffect(() => {
@@ -58,57 +59,91 @@ export default function ChatPage() {
     }
   }, [messages]);
 
+  // Hủy stream đang chạy khi rời trang để tránh setState trên unmounted component.
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
+
   const clearChat = () => {
+    abortRef.current?.abort();
     setMessages([]);
+    setStreamingText("");
+    setIsStreaming(false);
     localStorage.removeItem(CHAT_STORAGE_KEY);
   };
-
-  const chatMutation = useMutation({
-    mutationFn: async (message: string) => {
-      // Gửi 10 tin nhắn gần nhất (bao gồm user message vừa thêm) làm context
-      const history = messagesRef.current.slice(-10).map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-      const res = await axiosClient.post("/api/ai/chat", { message, limit: 5, history });
-      return res.data as ChatResponse;
-    },
-    onSuccess: (data) => {
-      // Chỉ thêm assistant reply (user message đã được thêm trong handleSend)
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.reply,
-          products: data.products,
-          suggestions: data.suggestions,
-        },
-      ]);
-    },
-    onError: (err: unknown) => {
-      // Rollback: xóa user message cuối cùng nếu API fail
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "user") return prev.slice(0, -1);
-        return prev;
-      });
-      toast.error(getErrorMessage(err, "Không thể kết nối AI"));
-    },
-  });
 
   // Auto scroll TRONG container chat (không scroll page) — block:"nearest"
   // giữ scroll context local, không bubble lên window/document.
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [messages, chatMutation.isPending]);
+  }, [messages, isStreaming, streamingText]);
 
-  const handleSend = (text?: string) => {
+  const handleSend = async (text?: string) => {
     const message = text || input.trim();
-    if (!message || chatMutation.isPending) return;
+    if (!message || isStreaming) return;
     setInput("");
-    // Thêm user message ngay lập tức để AI có context câu trước
+
+    // Context = 10 tin gần nhất TRƯỚC câu mới (message gửi riêng qua body).
+    const history = messagesRef.current.slice(-10).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+    // Thêm user message ngay lập tức (optimistic).
     setMessages((prev) => [...prev, { role: "user", content: message }]);
-    chatMutation.mutate(message);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setIsStreaming(true);
+    setStreamingText("");
+
+    let acc = "";
+    let committed = false;
+    const commit = (
+      products: AISearchResult[] = [],
+      suggestions: string[] = []
+    ) => {
+      if (committed || !acc) return;
+      committed = true;
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: acc, products, suggestions },
+      ]);
+    };
+
+    try {
+      await streamChat(
+        message,
+        history,
+        {
+          onToken: (t) => {
+            acc += t;
+            setStreamingText(acc);
+          },
+          onDone: ({ products, suggestions }) => commit(products, suggestions),
+        },
+        controller.signal
+      );
+      commit(); // an toàn: stream kết thúc mà chưa nhận event done
+    } catch (err) {
+      if (controller.signal.aborted) return; // người dùng hủy — bỏ qua im lặng
+      if (acc) {
+        commit(); // đã có token → giữ lại phần đã nhận, không rollback
+      } else {
+        // Chưa có gì → rollback user message cuối cùng
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "user") return prev.slice(0, -1);
+          return prev;
+        });
+        toast.error(getErrorMessage(err, "Không thể kết nối AI"));
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsStreaming(false);
+        setStreamingText("");
+      }
+      if (abortRef.current === controller) abortRef.current = null;
+    }
   };
 
   // Auto-send from URL param ?q=... (e.g. from HomePage suggestions)
@@ -202,16 +237,24 @@ export default function ChatPage() {
             ))
           )}
 
-          {/* Loading: 3 chấm bouncing thay vì "Đang suy nghĩ..." text */}
-          {chatMutation.isPending && (
+          {/* Streaming bubble: chấm bouncing khi chưa có token, rồi text live
+              kèm con trỏ nhấp nháy khi token đang chảy về. */}
+          {isStreaming && (
             <div className="flex items-end gap-2.5">
               <AssistantAvatar />
-              <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3">
-                <div className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "300ms" }} />
-                </div>
+              <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3 max-w-[85%]">
+                {streamingText ? (
+                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                    {streamingText}
+                    <span className="inline-block w-1.5 h-4 ml-0.5 -mb-0.5 bg-muted-foreground/70 animate-pulse" aria-hidden="true" />
+                  </p>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -230,13 +273,13 @@ export default function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={chatMutation.isPending}
+              disabled={isStreaming}
               className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
               aria-label="Câu hỏi cho AI Assistant"
             />
             <Button
               onClick={() => handleSend()}
-              disabled={!input.trim() || chatMutation.isPending}
+              disabled={!input.trim() || isStreaming}
               size="icon"
               className="h-9 w-9 rounded-full shrink-0"
               aria-label="Gửi tin nhắn"

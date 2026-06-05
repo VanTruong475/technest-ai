@@ -69,6 +69,24 @@ app.add_middleware(
 )
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
+
+@app.middleware("http")
+async def _disable_gzip_for_sse(request: Request, call_next):
+    """SSE (/api/ai/chat/stream) không được nén — GZip buffer sẽ phá streaming.
+
+    Bỏ 'gzip' khỏi Accept-Encoding cho path stream để GZipMiddleware skip,
+    giữ nguyên nén cho mọi response khác. Middleware này nằm ngoài cùng nên
+    chỉnh request trước khi GZip nhìn thấy.
+    """
+    if request.url.path == "/api/ai/chat/stream":
+        headers = [
+            (k, v)
+            for (k, v) in request.scope.get("headers", [])
+            if k != b"accept-encoding"
+        ]
+        request.scope["headers"] = headers
+    return await call_next(request)
+
 app.include_router(health_router)
 
 

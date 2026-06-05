@@ -8,6 +8,7 @@ Redis down → cache layer skip im lặng (graceful, theo pattern app/core/cache
 """
 import hashlib
 import logging
+from typing import Iterator
 
 from app.core.cache import get_cached, set_cached
 from app.services.llm.base import BaseLLMProvider
@@ -45,6 +46,32 @@ class CachedProvider(BaseLLMProvider):
         logger.info("LLM cache MISS key=%s (cached for %ds)", key[-12:], self._ttl)
         llm_metrics.record_cache_miss()
         return result
+
+    def stream_generate(
+        self, system: str, user: str, *, timeout: float = 10.0
+    ) -> Iterator[str]:
+        # Streaming bỏ qua cache (cache chỉ lưu full-text). Phát thẳng từ inner;
+        # khi xong, lưu lại bản ghép để lần non-stream sau hit cache.
+        if self._ttl <= 0:
+            yield from self._inner.stream_generate(system, user, timeout=timeout)
+            return
+
+        key = _build_cache_key(system, user)
+        cached = get_cached(key)
+        if isinstance(cached, str) and cached:
+            logger.info("LLM cache HIT (stream) key=%s", key[-12:])
+            llm_metrics.record_cache_hit()
+            yield cached
+            return
+
+        chunks: list[str] = []
+        for chunk in self._inner.stream_generate(system, user, timeout=timeout):
+            chunks.append(chunk)
+            yield chunk
+        full = "".join(chunks).strip()
+        if full:
+            set_cached(key, full, ttl=self._ttl)
+            llm_metrics.record_cache_miss()
 
 
 def _build_cache_key(system: str, user: str) -> str:

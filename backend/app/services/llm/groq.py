@@ -3,7 +3,9 @@
 Free tier rộng + latency rất thấp (LPU). Dùng làm fallback khi Gemini hết
 quota hoặc lỗi. Cùng pattern error handling như GeminiProvider.
 """
+import json
 import logging
+from typing import Iterator
 
 import httpx
 
@@ -67,3 +69,58 @@ class GroqProvider(BaseLLMProvider):
             raise LLMError("Groq returned empty text")
 
         return text
+
+    def stream_generate(
+        self, system: str, user: str, *, timeout: float = 10.0
+    ) -> Iterator[str]:
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json",
+        }
+        body = {
+            "model": self._model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "temperature": 0.4,
+            "max_tokens": 512,
+            "stream": True,
+        }
+
+        try:
+            with httpx.Client(timeout=timeout) as client:
+                with client.stream(
+                    "POST", _GROQ_API_URL, headers=headers, json=body
+                ) as response:
+                    if response.status_code != 200:
+                        response.read()
+                        logger.warning(
+                            "Groq stream returned non-200 status=%s", response.status_code
+                        )
+                        raise LLMError(f"Groq API returned status {response.status_code}")
+                    for line in response.iter_lines():
+                        text = _parse_groq_sse_line(line)
+                        if text:
+                            yield text
+        except httpx.TimeoutException as e:
+            raise LLMError(f"Groq stream timed out after {timeout}s") from e
+        except httpx.RequestError as e:
+            raise LLMError(f"Groq stream failed: {e}") from e
+
+
+def _parse_groq_sse_line(line: str) -> str:
+    """Parse 1 dòng SSE OpenAI-compatible → delta.content (rỗng nếu không có)."""
+    if not line or not line.startswith("data:"):
+        return ""
+    payload = line[len("data:"):].strip()
+    if not payload or payload == "[DONE]":
+        return ""
+    try:
+        data = json.loads(payload)
+    except ValueError:
+        return ""
+    choices = data.get("choices") or []
+    if not choices:
+        return ""
+    return choices[0].get("delta", {}).get("content") or ""

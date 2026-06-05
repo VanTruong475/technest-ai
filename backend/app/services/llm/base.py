@@ -4,6 +4,7 @@ Tất cả provider (Gemini, sau này Groq/OpenRouter) phải implement interfac
 này để chat_with_ai có thể swap provider qua env mà không sửa code gọi.
 """
 from abc import ABC, abstractmethod
+from typing import Iterator
 
 
 class LLMError(Exception):
@@ -40,3 +41,16 @@ class BaseLLMProvider(ABC):
         Raises:
             LLMError: Khi bất kỳ lỗi nào xảy ra (network, API, parse).
         """
+
+    def stream_generate(
+        self, system: str, user: str, *, timeout: float = 10.0
+    ) -> Iterator[str]:
+        """Sinh phản hồi dạng stream (yield từng mảnh text).
+
+        Default: gọi generate() rồi yield toàn bộ 1 lần (non-streaming
+        fallback). Provider hỗ trợ streaming thật nên override method này.
+
+        Raises:
+            LLMError: Khi lỗi (network, API, parse).
+        """
+        yield self.generate(system, user, timeout=timeout)

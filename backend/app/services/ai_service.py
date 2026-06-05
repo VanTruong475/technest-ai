@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Optional
+from typing import Optional, Iterator
 
 from sqlmodel import Session, select, func, or_, col
 
@@ -788,6 +788,73 @@ def chat_with_ai(request: ChatRequest, session: Session) -> ChatResponse:
     )
 
 
+def stream_chat(request: ChatRequest, session: Session) -> Iterator[dict]:
+    """Streaming version của chat_with_ai cho SSE.
+
+    Yield các dict event:
+    - {"type": "token", "text": "..."} cho mỗi mảnh reply từ LLM.
+    - {"type": "done", "products": [...], "suggestions": [...], "total": N}
+      ở cuối, kèm products/suggestions THẬT từ rule-based (DB).
+
+    Mọi lỗi LLM → fallback: yield nguyên reply rule-based 1 lần rồi done.
+    Products/giá/tồn kho luôn từ DB, không bao giờ do LLM bịa.
+    """
+    rule_response = _chat_rule_based(request, session)
+
+    _is_fallback = rule_response.reply.startswith("Không tìm thấy")
+    if _is_fallback and request.history:
+        prev_products = _extract_products_from_history(request.history, session)
+        if prev_products:
+            rule_response = ChatResponse(
+                message=rule_response.message,
+                reply=rule_response.reply,
+                products=prev_products,
+                total=len(prev_products),
+                suggestions=rule_response.suggestions,
+            )
+
+    def _done_event() -> dict:
+        return {
+            "type": "done",
+            "products": [p.model_dump(mode="json") for p in rule_response.products],
+            "suggestions": rule_response.suggestions,
+            "total": rule_response.total,
+        }
+
+    from app.core.config import settings
+    from app.services.llm import get_llm_provider, LLMError
+    from app.services.llm.metrics import llm_metrics
+
+    provider = get_llm_provider()
+    if provider is None:
+        llm_metrics.record_no_provider()
+        yield {"type": "token", "text": rule_response.reply}
+        yield _done_event()
+        return
+
+    try:
+        system_prompt, user_prompt = _build_chat_prompts(request, rule_response, session)
+        produced = False
+        for chunk in provider.stream_generate(
+            system_prompt, user_prompt, timeout=settings.AI_LLM_TIMEOUT_SECONDS
+        ):
+            if chunk:
+                produced = True
+                yield {"type": "token", "text": chunk}
+        if not produced:
+            # LLM không sinh token nào → fallback rule-based reply.
+            yield {"type": "token", "text": rule_response.reply}
+    except LLMError as e:
+        logger.warning("LLM stream failed, using rule-based: %s", e)
+        llm_metrics.record_chain_failure()
+        yield {"type": "token", "text": rule_response.reply}
+    except Exception as e:
+        logger.exception("Unexpected LLM stream error, using rule-based: %s", e)
+        yield {"type": "token", "text": rule_response.reply}
+
+    yield _done_event()
+
+
 def _extract_products_from_history(
     history: list, session: Session
 ) -> list[ChatProductResult]:
@@ -850,7 +917,23 @@ def _generate_llm_reply(
     rule_response: ChatResponse,
     session: Session,
 ) -> str:
-    """Build prompt từ rule-based products và gọi LLM. Raise LLMError khi lỗi.
+    """Build prompt và gọi LLM (non-stream). Raise LLMError khi lỗi."""
+    from app.core.config import settings
+
+    system_prompt, user_prompt = _build_chat_prompts(request, rule_response, session)
+    return provider.generate(
+        system_prompt,
+        user_prompt,
+        timeout=settings.AI_LLM_TIMEOUT_SECONDS,
+    )
+
+
+def _build_chat_prompts(
+    request: ChatRequest,
+    rule_response: ChatResponse,
+    session: Session,
+) -> tuple[str, str]:
+    """Build (system_prompt, user_prompt) từ rule-based products.
 
     Prompt được thiết kế để Gemini trả lời tự nhiên như nhân viên tư vấn:
     - Tránh sáo ngữ marketing (siêu phẩm, giá sốc, đó ạ).
@@ -859,7 +942,6 @@ def _generate_llm_reply(
       câu "muốn xem hãng khác không" vô nghĩa khi cửa hàng chỉ có 1 hãng).
     - Brand list được pass tường minh để Gemini không lặp/bịa thương hiệu.
     """
-    from app.core.config import settings
     from app.models.brand import Brand
 
     if rule_response.products:
@@ -950,11 +1032,7 @@ def _generate_llm_reply(
         "với cuộc trò chuyện — không giới thiệu lại từ đầu."
     )
 
-    return provider.generate(
-        system_prompt,
-        user_prompt,
-        timeout=settings.AI_LLM_TIMEOUT_SECONDS,
-    )
+    return system_prompt, user_prompt
 
 
 def _chat_rule_based(request: ChatRequest, session: Session) -> ChatResponse:
