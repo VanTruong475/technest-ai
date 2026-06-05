@@ -1,5 +1,7 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/motion";
 import { useAuthStore } from "@/store/authStore";
 import MainLayout from "@/layouts/MainLayout";
 import AdminLayout from "@/layouts/AdminLayout";
@@ -63,12 +65,20 @@ function RouteFallback() {
   );
 }
 
-export default function AppRoutes() {
+function AnimatedRoutes() {
+  const location = useLocation();
+  const { pageTransition } = useReducedMotionSafe();
   return (
-    <BrowserRouter>
-      <ScrollToTopOnNavigate />
-      <Routes>
-        {/* Auth pages — no header/footer */}
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        variants={pageTransition}
+        initial="initial"
+        animate="enter"
+        exit="exit"
+      >
+        <Routes location={location}>
+          {/* Auth pages — no header/footer */}
         <Route path="/login" element={<Suspense fallback={<RouteFallback />}><LoginPage /></Suspense>} />
         <Route path="/register" element={<Suspense fallback={<RouteFallback />}><RegisterPage /></Suspense>} />
         <Route path="/forgot-password" element={<Suspense fallback={<RouteFallback />}><ForgotPasswordPage /></Suspense>} />
@@ -107,7 +117,17 @@ export default function AppRoutes() {
           {/* 404 */}
           <Route path="*" element={<Suspense fallback={<RouteFallback />}><NotFoundPage /></Suspense>} />
         </Route>
-      </Routes>
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+export default function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <ScrollToTopOnNavigate />
+      <AnimatedRoutes />
     </BrowserRouter>
   );
 }

@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/motion";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { SaleBadge } from "@/components/common/SaleBadge";
@@ -30,10 +32,16 @@ export default function ProductCard({
 }: ProductCardProps) {
   const hasSale = product.sale_price != null && product.sale_price < product.price;
   const hasRating = showRating && product.average_rating != null && product.average_rating > 0;
+  const { hoverLift } = useReducedMotionSafe();
 
   return (
     <Link to={`/products/${product.id}`} className="group block h-full">
-      <Card className="h-full transition-all duration-300 cursor-pointer relative overflow-hidden border-border/60 hover:border-border hover:shadow-xl hover:-translate-y-1 rounded-2xl">
+      <motion.div
+        whileHover={{ y: hoverLift }}
+        transition={{ type: "spring", stiffness: 300, damping: 22 }}
+        className="h-full"
+      >
+      <Card className="h-full transition-shadow duration-300 cursor-pointer relative overflow-hidden border-border/60 hover:border-border hover:shadow-xl rounded-2xl">
         {/* Sale badge */}
         {hasSale && (
           <SaleBadge price={product.price} salePrice={product.sale_price!} />
@@ -120,6 +128,7 @@ export default function ProductCard({
           </p>
         </CardContent>
       </Card>
+      </motion.div>
     </Link>
   );
 }

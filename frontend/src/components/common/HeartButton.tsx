@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +18,7 @@ export default function HeartButton({ productId, className = "", showLabel = fal
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [justAdded, setJustAdded] = useState(false);
 
   const { data } = useQuery<{ is_favorited: boolean }>({
     queryKey: ["wishlist-check", productId],
@@ -36,6 +39,8 @@ export default function HeartButton({ productId, className = "", showLabel = fal
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wishlist-check", productId] });
       queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      setJustAdded(true);
+      window.setTimeout(() => setJustAdded(false), 600);
       toast.success("Đã thêm vào yêu thích");
     },
     onError: (err: unknown) => {
@@ -91,13 +96,48 @@ export default function HeartButton({ productId, className = "", showLabel = fal
       {isLoading ? (
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       ) : (
-        <Heart
-          className={`h-5 w-5 transition-colors ${
-            isFavorited
-              ? "fill-red-500 text-red-500"
-              : "text-muted-foreground hover:text-red-400"
-          }`}
-        />
+        <span className="relative inline-flex">
+          <motion.span
+            animate={justAdded ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="inline-flex"
+          >
+            <Heart
+              className={`h-5 w-5 transition-colors ${
+                isFavorited
+                  ? "fill-red-500 text-red-500"
+                  : "text-muted-foreground hover:text-red-400"
+              }`}
+            />
+          </motion.span>
+          {/* Burst particles khi vừa thêm vào yêu thích */}
+          <AnimatePresence>
+            {justAdded && (
+              <motion.span
+                key="burst"
+                className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {[0, 72, 144, 216, 288].map((deg) => (
+                  <motion.span
+                    key={deg}
+                    className="absolute h-1 w-1 rounded-full bg-red-500"
+                    initial={{ x: 0, y: 0, opacity: 0.9 }}
+                    animate={{
+                      x: Math.cos((deg * Math.PI) / 180) * 12,
+                      y: Math.sin((deg * Math.PI) / 180) * 12,
+                      opacity: 0,
+                    }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
+                ))}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </span>
       )}
       {showLabel && (
         <span className="ml-1">{isFavorited ? "Đã yêu thích" : "Yêu thích"}</span>

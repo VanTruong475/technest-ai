@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { flyToCart } from "@/lib/flyToCart";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
@@ -93,6 +94,8 @@ export default function ProductDetailPage() {
     }
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const imageRef = useRef<HTMLDivElement>(null);
+
   const addToCartMutation = useMutation({
     mutationFn: async () => {
       await axiosClient.post("/api/cart/items", {
@@ -102,6 +105,7 @@ export default function ProductDetailPage() {
     },
     onSuccess: () => {
       toast.success("Đã thêm vào giỏ hàng!");
+      flyToCart(imageRef.current, product?.image_url);
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
     onError: (err: unknown) => {
@@ -185,7 +189,7 @@ export default function ProductDetailPage() {
           ═══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* ── Left: Image Gallery ── */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-7" ref={imageRef}>
           <ImageGallery
             mainImage={product.image_url}
             extraImages={product.extra_images}
