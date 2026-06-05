@@ -26,6 +26,7 @@ function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 import ScrollToTop from "@/components/common/ScrollToTop";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import CommandPalette from "@/components/common/CommandPalette";
 import { useCategories, getCategoryIdBySlug } from "@/hooks/useCategories";
 
 const CATEGORY_NAV = [
@@ -128,10 +129,13 @@ export default function MainLayout() {
               <div className="absolute inset-y-0 right-2 flex items-center">
                 <button
                   type="button"
-                  onClick={() => navigate("/products")}
-                  className="bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1 rounded-lg text-xs font-bold transition-colors"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+                  className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1 rounded-lg text-xs font-bold transition-colors"
+                  aria-label="Mở tìm kiếm nhanh (Ctrl K)"
                 >
+                  <Sparkles className="h-3 w-3" />
                   AI Search
+                  <kbd className="ml-1 hidden lg:inline-block text-[10px] font-mono border border-primary/30 rounded px-1">⌘K</kbd>
                 </button>
               </div>
             </div>
@@ -148,7 +152,7 @@ export default function MainLayout() {
 
               {/* Cart */}
               {isAuthenticated && (
-                <Link to="/cart" className="relative p-2 text-foreground hover:bg-muted rounded-full transition-colors">
+                <Link to="/cart" id="cart-icon" className="relative p-2 text-foreground hover:bg-muted rounded-full transition-colors">
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
                     <span className="absolute top-0 right-0 bg-destructive text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-card">
@@ -325,6 +329,9 @@ export default function MainLayout() {
           </nav>
         )}
       </header>
+
+      {/* Command Palette ⌘K — mount toàn cục */}
+      <CommandPalette />
 
       {/* Main content */}
       {isAdminPage ? (
