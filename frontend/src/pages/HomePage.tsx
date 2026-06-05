@@ -1,9 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { useAuthStore } from "@/store/authStore";
+import { useRecommendations } from "@/hooks/useRecommendations";
+import { fadeUp, staggerContainer } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SaleBadge } from "@/components/common/SaleBadge";
@@ -78,6 +81,14 @@ export default function HomePage() {
 
   const products = homepageData?.products || [];
   const categories = homepageData?.categories || [];
+
+  // Gợi ý cá nhân hoá (có reason). Fallback về sản phẩm homepage nếu rỗng/lỗi.
+  const { data: recommendData, isLoading: isRecommendLoading } = useRecommendations(4);
+  const recommendations =
+    recommendData?.results && recommendData.results.length > 0
+      ? recommendData.results
+      : products.slice(0, 4).map((p) => ({ product: p, score: 0, reason: "" }));
+  const recommendLoading = isRecommendLoading && isLoading;
   const flashSaleProducts = (flashSaleData?.items || []).filter(
     (p) => p.sale_price && p.sale_price < p.price
   );
@@ -300,7 +311,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {isLoading ? (
+        {recommendLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="bg-card rounded-2xl border border-border/60 overflow-hidden animate-pulse">
@@ -315,11 +326,17 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.slice(0, 4).map((product) => {
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            {recommendations.map(({ product, reason }) => {
               const hasSale = product.sale_price != null && product.sale_price < product.price;
               return (
-                <div key={product.id} className="bg-card rounded-2xl overflow-hidden border border-border/60 hover:shadow-2xl transition-all duration-500 group flex flex-col h-full">
+                <motion.div key={product.id} variants={fadeUp} className="bg-card rounded-2xl overflow-hidden border border-border/60 hover:shadow-2xl transition-all duration-500 group flex flex-col h-full">
                   {/* Image */}
                   <div className="relative aspect-square">
                     {product.image_url ? (
@@ -354,6 +371,14 @@ export default function HomePage() {
 
                   {/* Content */}
                   <div className="p-5 flex flex-col flex-1">
+                    {/* Lý do gợi ý từ AI */}
+                    {reason && (
+                      <div className="inline-flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-medium">
+                        <Sparkles className="h-3 w-3 shrink-0" />
+                        <span className="line-clamp-1">{reason}</span>
+                      </div>
+                    )}
+
                     <h3 className="font-semibold text-base mb-2 group-hover:text-primary transition-colors line-clamp-2">
                       {product.name}
                     </h3>
@@ -388,10 +413,10 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </section>
 

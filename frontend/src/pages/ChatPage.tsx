@@ -317,6 +317,13 @@ function MessageRow({ msg, onSuggestion }: { msg: ChatMessage; onSuggestion: (s:
                       ) : (
                         <p className="text-sm font-bold mt-0.5">{formatPrice(item.product.price)}</p>
                       )}
+                      {/* Lý do gợi ý từ AI */}
+                      {item.reason && (
+                        <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium max-w-full">
+                          <Sparkles className="h-2.5 w-2.5 shrink-0" />
+                          <span className="line-clamp-1">{item.reason}</span>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
