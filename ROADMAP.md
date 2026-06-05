@@ -7,10 +7,33 @@ Thời gian phát triển: 3 tháng (Tháng 5 - Tháng 8 2026).
 
 ---
 
-## Trạng thái hiện tại (01/06/2026) — **~98% portfolio-ready**
+## Trạng thái hiện tại (06/06/2026) — **~99% portfolio-ready**
 
-**Backend**: 370/370 tests pass, 87% coverage. Security review + architecture improvements hoàn thành.
-**Frontend**: ~405 KB initial (gzip 128 KB). Recharts lazy-loaded separate chunk. Security + logic + performance fixes.
+**Backend**: 387/387 tests pass, 87% coverage. Security review + architecture improvements + streaming AI hoàn thành.
+**Frontend**: 62/62 tests pass. ~405 KB initial (gzip 128 KB). Recharts lazy-loaded separate chunk. Security + logic + performance fixes.
+
+### ✅ Pha 4 — Streaming AI Chatbot (SSE) — 06/06/2026
+
+Chatbot trả lời **token-by-token** qua Server-Sent Events thay vì chờ full response — UX "chữ chảy dần" như ChatGPT.
+
+**Backend:**
+- [x] `POST /api/ai/chat/stream` (SSE): event `{"type":"token","text":...}` cho mỗi mảnh + `{"type":"done","products":[...],"suggestions":[...],"total":N}` cuối. Products/giá/tồn kho luôn từ DB.
+- [x] `BaseLLMProvider.stream_generate()` — default delegate về `generate()` (yield 1 lần); Gemini override (`:streamGenerateContent?alt=sse`), Groq override (`stream:true`, OpenAI delta).
+- [x] `ChainProvider.stream_generate()` — fail-over chỉ **trước token đầu** (đã phát token → raise, không lặp text từ provider khác).
+- [x] `CachedProvider.stream_generate()` — stream từ inner, lưu bản ghép full-text để non-stream sau hit cache; cache hit → yield nguyên text 1 lần.
+- [x] `stream_chat()` trong `ai_service.py` — rule-based products + LLM stream, fallback rule-based reply khi no provider/LLMError/exception/empty output.
+- [x] Middleware tắt gzip cho path `/api/ai/chat/stream` (GZip buffer phá streaming).
+- [x] Fix lỗi syntax: `def _extract_products_from_history` bị nuốt khi chèn `stream_chat`.
+- Files sửa: `api/ai.py`, `main.py`, `services/ai_service.py`, `services/llm/{base,chain,cache,gemini,groq}.py`
+- Files tạo: `tests/test_chat_stream.py` (17 tests)
+
+**Frontend:**
+- [x] `lib/aiStream.ts` — `fetch` + `ReadableStream` + `parseSSEEvent` (tách riêng để test).
+- [x] `ChatPage.tsx` — bỏ `useMutation`, render token live + con trỏ nhấp nháy, dots khi chưa có token đầu, abort khi clear chat/unmount, rollback an toàn khi lỗi.
+- Files tạo: `lib/aiStream.ts`, `lib/aiStream.test.ts` (7 tests)
+- Files sửa: `pages/ChatPage.tsx`
+
+**Kết quả:** Backend 387/387 pass (370 + 17), Frontend 62/62 pass (55 + 7). `tsc` + `eslint` sạch.
 
 ### ✅ Sprint completed 24-26/05/2026
 
