@@ -33,6 +33,16 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(), nullable=False),
     )
     op.create_index("ix_users_email", "users", ["email"], unique=True)
+    op.create_table(
+        "audit_logs",
+        sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
+        sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=True),
+        sa.Column("action", sa.String(length=100), nullable=False),
+        sa.Column("target_type", sa.String(length=100), nullable=False),
+        sa.Column("target_id", sa.Integer(), nullable=True),
+        sa.Column("details", sa.String(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+    )
 
     op.create_table(
         "categories",
@@ -133,5 +143,6 @@ def downgrade() -> None:
     op.drop_table("brands")
     op.drop_index("ix_categories_slug", table_name="categories")
     op.drop_table("categories")
+    op.drop_table("audit_logs")
     op.drop_index("ix_users_email", table_name="users")
     op.drop_table("users")
