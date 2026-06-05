@@ -27,10 +27,11 @@
 | **Root Directory** | `backend` |
 | **Runtime** | Python |
 | **Build Command** | `pip install -r requirements.txt` |
-| **Pre-Deploy Command** | `alembic upgrade head` |
-| **Start Command** | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| **Start Command (free tier)** | `alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
 
-> ⚠️ **Bắt buộc:** đặt `alembic upgrade head` ở **Pre-Deploy Command** (chạy sau build, trước khi nhận traffic). Không để ở Start Command — mỗi lần Render scale/restart sẽ chạy lại migration thừa và có thể race giữa nhiều instance.
+> **Free tier:** Render **không hỗ trợ Pre-Deploy Command** → chạy migrate + seed ngay trong Start Command. `app.seed` idempotent (check tồn tại theo slug/email) nên restart nhiều lần không tạo dữ liệu trùng. Đánh đổi: cold-start chậm thêm vài giây và nếu seed lỗi thì app không boot.
+>
+> **Plan trả phí:** chuyển `alembic upgrade head` (và `python -m app.seed` nếu muốn) sang **Pre-Deploy Command**, để Start Command chỉ còn `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Migrate chạy 1 lần/deploy, cold-start nhanh hơn và tránh race khi scale nhiều instance.
 
 ### Environment variables
 

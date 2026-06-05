@@ -1,7 +1,12 @@
 # Render Blueprint — TechSphere AI backend
 # Deploy bằng cách: Render Dashboard → New → Blueprint → trỏ tới repo này.
-# Migration chạy ở preDeployCommand: tự động `alembic upgrade head` mỗi lần deploy,
-# sau build và trước khi instance nhận traffic (tránh race khi scale nhiều instance).
+#
+# Free tier KHÔNG hỗ trợ preDeployCommand → chạy migrate + seed ngay trong
+# startCommand. `app.seed` idempotent (check tồn tại theo slug/email) nên chạy
+# lại mỗi lần restart không tạo dữ liệu trùng.
+#
+# Khi nâng lên plan trả phí: bỏ `alembic upgrade head && python -m app.seed` khỏi
+# startCommand, chuyển sang `preDeployCommand` (chạy 1 lần/deploy, cold-start nhanh hơn).
 services:
   - type: web
     name: techsphere-ai
@@ -9,8 +14,7 @@ services:
     rootDir: backend
     plan: free
     buildCommand: pip install -r requirements.txt
-    preDeployCommand: alembic upgrade head
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
