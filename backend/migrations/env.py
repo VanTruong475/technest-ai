@@ -23,8 +23,10 @@ from app.models import (
 # this is the Alembic Config object
 config = context.config
 
-# Đọc DATABASE_URL từ settings thay vì hardcode
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Đọc DATABASE_URL từ settings thay vì hardcode.
+# Escape '%' thành '%%' vì configparser của Alembic hiểu '%' là cú pháp nội suy
+# (URL Supabase chứa '%3D' trong ?options=-csearch_path%3Dpublic sẽ làm nổ ValueError).
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
