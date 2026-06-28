@@ -3,9 +3,9 @@
 ## 1. Kiến trúc deploy
 
 ```
-┌──────────────┐     HTTPS      ┌──────────────────┐     Internal     ┌──────────────────┐
-│   Vercel     │ ──────────────> │  Render Backend  │ ──────────────> │ Render PostgreSQL│
-│  (Frontend)  │   VITE_API_URL  │  (Web Service)   │   DATABASE_URL  │   (Database)     │
+┌──────────────┐     HTTPS      ┌──────────────────┐    SSL/pooler    ┌──────────────────┐
+│   Vercel     │ ──────────────> │  Render Backend  │ ──────────────> │     Supabase     │
+│  (Frontend)  │   VITE_API_URL  │  (Web Service)   │   DATABASE_URL  │   (PostgreSQL)   │
 └──────────────┘                 └──────────────────┘                 └──────────────────┘
 ```
 
@@ -13,7 +13,7 @@
 |-----------|----------|-----|
 | Frontend | Vercel | `https://techsphere-ai.vercel.app` |
 | Backend | Render Web Service | `https://techsphere-ai.onrender.com` |
-| Database | Render PostgreSQL | Internal connection |
+| Database | Supabase PostgreSQL | Connection Pooler (port 6543) |
 
 ---
 
@@ -37,7 +37,7 @@
 
 | Variable | Value | Ghi chú |
 |----------|-------|---------|
-| `DATABASE_URL` | `postgresql://...` | Render tự inject khi link Internal Database |
+| `DATABASE_URL` | `postgresql://postgres.<ref>:<pwd>@aws-1-<region>.pooler.supabase.com:6543/postgres?options=-csearch_path%3Dpublic` | **Supabase** — copy từ Dashboard → Connect → Transaction pooler. Phải **sửa thủ công** (render.yaml không khai báo DB) |
 | `SECRET_KEY` | `<random 64 chars>` | `openssl rand -hex 32` |
 | `ALGORITHM` | `HS256` | |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | |
@@ -103,33 +103,30 @@ File `frontend/vercel.json` đã cấu hình rewrite cho React Router:
 
 ---
 
-## 4. Database setup
+## 4. Database setup (Supabase)
 
-### Bước 1: Tạo PostgreSQL trên Render
+### Bước 1: Tạo project Supabase
 
-1. Render Dashboard > New > PostgreSQL
-2. Chọn Free tier
-3. Note **Internal Database URL**
+1. [supabase.com](https://supabase.com) > New project (chọn region gần, vd `ap-northeast-2`)
+2. Đặt **Database Password** mạnh và lưu lại
 
-### Bước 2: Link database vào Web Service
+### Bước 2: Lấy connection string
 
-Khi tạo Web Service, chọn PostgreSQL database vừa tạo. Render tự inject `DATABASE_URL`.
+Dashboard > **Connect** > chọn tab phù hợp:
+- **Transaction pooler (port 6543)** — dùng cho `DATABASE_URL` runtime của app. OK với `psycopg2`.
+- **Session pooler (port 5432)** — dùng khi cần chạy migration/DDL nếu pooler 6543 báo lỗi.
 
-### Bước 3: Chạy migration
+Gắn thêm `?options=-csearch_path%3Dpublic` vào cuối URL để cố định schema.
 
-Sau khi deploy backend thành công, vào Render Shell:
+### Bước 3: Set `DATABASE_URL` trên Render
 
-```bash
-alembic upgrade head
-```
+Render Dashboard > service `techsphere-ai` > **Environment** > sửa `DATABASE_URL` thành chuỗi Supabase ở Bước 2. (render.yaml **không** khai báo DB nên bắt buộc set thủ công.)
 
-### Bước 4: Seed data (manual)
+### Bước 4: Migration + seed
 
-```bash
-python -m app.seed
-```
+Đã nằm trong Start Command (`alembic upgrade head && python -m app.seed`), tự chạy mỗi lần deploy. Seed idempotent nên an toàn.
 
-> **Lưu ý:** Không chạy seed trong start command. Seed chỉ chạy 1 lần khi setup database lần đầu.
+> **Lưu ý:** Khi đổi từ DB cũ sang Supabase, nếu Supabase đã có sẵn data thì `alembic upgrade head` là no-op. Muốn migrate thủ công từ máy local: `cd backend && DATABASE_URL=<supabase-url> alembic upgrade head` (Windows: set `PYTHONIOENCODING=utf-8`).
 
 ---
 
@@ -335,16 +332,24 @@ Sau khi đổi env var, phải **redeploy** frontend.
 
 ---
 
-### DATABASE_URL credential cũ
+### DATABASE_URL sai / data trống sau khi đổi DB
 
-**Triệu chứng:** Login admin bị fail dù đã seed.
+**Triệu chứng:** Login admin fail, hoặc trang chủ không có sản phẩm sau khi chuyển sang Supabase.
 
-**Nguyên nhân:** Render rotate credential khi reconnect database.
+**Nguyên nhân:** `DATABASE_URL` trên Render vẫn trỏ DB cũ, hoặc Supabase chưa được seed.
 
-**Cách sửa:** Vào Render Shell chạy lại seed:
-```bash
-python -m app.seed
-```
+**Cách sửa:**
+1. Kiểm tra Render > Environment > `DATABASE_URL` đúng chuỗi Supabase (pooler 6543).
+2. Trigger redeploy (Start Command tự chạy `alembic upgrade head && python -m app.seed`), hoặc seed thủ công từ local:
+   ```bash
+   cd backend && DATABASE_URL=<supabase-url> python -m app.seed   # Windows: set PYTHONIOENCODING=utf-8
+   ```
+
+### Lỗi prepared statement (nếu đổi sang psycopg3/asyncpg)
+
+**Triệu chứng:** `prepared statement "__asyncpg_..." already exists` trên pooler 6543.
+
+**Cách sửa:** Transaction pooler không hỗ trợ prepared statements. Thêm `?prepared_statement_cache_size=0` (asyncpg) hoặc dùng Session pooler port `5432`. Với `psycopg2` hiện tại thì không gặp lỗi này.
 
 ---
 
