@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { StarRating } from "./StarRating";
 import { getErrorMessage } from "@/utils/api";
 import {
@@ -31,6 +32,9 @@ interface ReviewSectionProps {
   mode?: "display" | "full";
 }
 
+/** Số review hiển thị mỗi lần; bấm "Xem thêm" sẽ tăng thêm bấy nhiêu. */
+const REVIEW_PAGE_SIZE = 5;
+
 export function ReviewSection({ productId, mode = "full" }: ReviewSectionProps) {
   const isDisplayOnly = mode === "display";
   const { user, isAuthenticated } = useAuthStore();
@@ -40,6 +44,8 @@ export function ReviewSection({ productId, mode = "full" }: ReviewSectionProps) 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editRating, setEditRating] = useState(0);
   const [editComment, setEditComment] = useState("");
+  // Số review hiển thị — "Xem thêm" tăng dần client-side (không đổi API)
+  const [visibleCount, setVisibleCount] = useState(REVIEW_PAGE_SIZE);
 
   // Fetch reviews
   const { data: reviews = [], isLoading } = useQuery<Review[]>({
@@ -186,12 +192,12 @@ export function ReviewSection({ productId, mode = "full" }: ReviewSectionProps) 
                       {star}
                       <Star className="inline h-3 w-3 ml-0.5 fill-yellow-400 text-yellow-400" />
                     </span>
-                    <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-yellow-400 rounded-full transition-all duration-500"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
+                    <Progress
+                      value={percentage}
+                      className="flex-1"
+                      indicatorClassName="bg-yellow-400"
+                      aria-label={`${star} sao: ${count} đánh giá`}
+                    />
                     <span className="text-xs text-muted-foreground w-8">
                       {count}
                     </span>
@@ -343,7 +349,7 @@ export function ReviewSection({ productId, mode = "full" }: ReviewSectionProps) 
         </Card>
       ) : (
         <div className="space-y-3">
-          {reviews.map((review) => (
+          {reviews.slice(0, visibleCount).map((review) => (
             <Card key={review.id} className="ring-1 ring-foreground/10">
               <CardContent className="p-5">
                 {editingId === review.id ? (
@@ -448,6 +454,18 @@ export function ReviewSection({ productId, mode = "full" }: ReviewSectionProps) 
               </CardContent>
             </Card>
           ))}
+
+          {/* Xem thêm — tăng số review hiển thị (client-side) */}
+          {reviews.length > visibleCount && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setVisibleCount((c) => c + REVIEW_PAGE_SIZE)}
+              >
+                Xem thêm đánh giá ({reviews.length - visibleCount})
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </section>

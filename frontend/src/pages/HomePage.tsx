@@ -10,6 +10,7 @@ import { fadeUp, staggerContainer } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SaleBadge } from "@/components/common/SaleBadge";
+import { ProductGridSkeleton } from "@/components/common/Skeleton";
 import { useCountdown } from "@/hooks/useCountdown";
 import { formatPrice } from "@/utils/format";
 import {
@@ -99,8 +100,9 @@ export default function HomePage() {
           HERO SECTION
           ═══════════════════════════════════════════════════════ */}
       <section className="relative h-[calc(100vh-128px)] flex items-center overflow-hidden">
-        {/* Background image */}
-        <div className="absolute inset-0 z-0">
+        {/* Background image — bg-muted giữ chỗ tránh CLS khi ảnh tải chậm,
+            aspect-ratio cố định 16/9 khớp khung hero */}
+        <div className="absolute inset-0 z-0 bg-muted aspect-[16/9]">
           <OptimizedImage
             src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1920&q=80"
             alt="Công nghệ"
@@ -109,7 +111,9 @@ export default function HomePage() {
             className="w-full h-full object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
+          {/* Overlay 2 lớp: ngang cho desktop + dọc cho mobile → chữ rõ trên cả light/dark */}
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent md:hidden" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
@@ -148,7 +152,7 @@ export default function HomePage() {
           FLASH SALE SECTION
           ═══════════════════════════════════════════════════════ */}
       {flashSaleProducts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-12 md:py-16">
+        <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
           <div className="bg-[#ba1a1a] rounded-[2rem] p-6 md:p-8 shadow-2xl">
             {/* Header */}
             <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
@@ -241,7 +245,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════
           AI SHOP ASSISTANT
           ═══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
         <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl p-8 md:p-12 relative overflow-hidden border border-primary/10">
           {/* Decorative icon */}
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
@@ -300,11 +304,11 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════
           PRODUCT RECOMMENDATIONS
           ═══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 py-12 md:py-16">
-        <div className="flex items-center justify-between mb-10">
+      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Sparkles className="h-7 w-7 text-primary" />
-            <h2 className="text-2xl md:text-3xl font-bold">Gợi ý riêng cho bạn</h2>
+            <Sparkles className="h-6 w-6 text-primary" />
+            <h2 className="font-semibold text-xl md:text-2xl">Gợi ý riêng cho bạn</h2>
           </div>
           <Link to="/products" className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
             Xem tất cả <ArrowRight className="h-4 w-4" />
@@ -424,31 +428,33 @@ export default function HomePage() {
           CATEGORIES
           ═══════════════════════════════════════════════════════ */}
       {categories.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 py-12 md:py-16">
-          <h2 className="text-2xl md:text-3xl font-bold mb-10 text-center uppercase tracking-widest">
+        <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
+          <h2 className="font-semibold text-xl md:text-2xl mb-8 text-center">
             Danh mục hàng đầu
           </h2>
 
-          <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
-            {categories.filter((c) => c.is_active !== false).slice(0, 6).map((cat) => {
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {categories.filter((c) => c.is_active !== false).slice(0, 5).map((cat) => {
               const img = CATEGORY_IMAGES[cat.slug] || CATEGORY_IMAGES.default;
               return (
                 <Link
                   key={cat.id}
                   to={`/products?category_id=${cat.id}`}
-                  className="group relative rounded-xl overflow-hidden aspect-[3/4] cursor-pointer"
+                  className="group flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 text-center hover:bg-muted transition-colors"
                 >
-                  <OptimizedImage
-                    src={img}
-                    alt={cat.name}
-                    width={300}
-                    height={400}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <h3 className="text-white text-sm font-bold">{cat.name}</h3>
-                    <span className="text-white/70 text-[11px] flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                  {/* Thumbnail đại diện danh mục */}
+                  <div className="aspect-square w-full overflow-hidden rounded-xl bg-muted">
+                    <OptimizedImage
+                      src={img}
+                      alt={cat.name}
+                      width={300}
+                      height={300}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold text-foreground line-clamp-1">{cat.name}</h3>
+                    <span className="text-[11px] text-muted-foreground flex items-center justify-center gap-1 group-hover:gap-1.5 transition-all">
                       Khám phá <ArrowRight className="h-3 w-3" />
                     </span>
                   </div>
@@ -462,9 +468,9 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════
           FEATURED PRODUCTS GRID
           ═══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 py-12 md:py-16 border-t border-border/30">
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold border-l-4 border-primary pl-6">
+      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16 border-t border-border/30">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="font-semibold text-xl md:text-2xl border-l-4 border-primary pl-4">
             Sản phẩm nổi bật
           </h2>
           <Link to="/products" className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
@@ -472,55 +478,66 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {products.slice(0, 8).map((product) => {
-            const hasSale = product.sale_price != null && product.sale_price < product.price;
-            return (
-              <Link key={product.id} to={`/products/${product.id}`} className="group">
-                <Card className="h-full border-border/60 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  <div className="relative aspect-[4/3] bg-muted/50 overflow-hidden">
-                    {product.image_url ? (
-                      <OptimizedImage
-                        src={product.image_url}
-                        alt={product.name}
-                        width={400}
-                        height={300}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Smartphone className="h-16 w-16 text-muted-foreground/20" />
-                      </div>
-                    )}
-                    {hasSale && <SaleBadge price={product.price} salePrice={product.sale_price!} />}
-                  </div>
-                  <CardContent className="p-4 space-y-2">
-                    <h3 className="font-medium line-clamp-2 text-sm leading-snug min-h-[2.5rem]">{product.name}</h3>
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      {hasSale ? (
-                        <>
-                          <span className="text-base font-bold text-destructive">{formatPrice(product.sale_price!)}</span>
-                          <span className="text-xs text-muted-foreground line-through">{formatPrice(product.price)}</span>
-                        </>
+        {isLoading ? (
+          <ProductGridSkeleton count={8} />
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {products.slice(0, 8).map((product) => {
+              const hasSale = product.sale_price != null && product.sale_price < product.price;
+              return (
+                <Link key={product.id} to={`/products/${product.id}`} className="group block h-full">
+                  {/* Pattern ProductCard (UI_PATTERNS.md): aspect 4/3, badge top-2 left-2,
+                      hover shadow-md + scale-[1.02], giá font-bold text-primary */}
+                  <Card className="h-full border-border/60 rounded-2xl overflow-hidden hover:shadow-md hover:scale-[1.02] transition-all duration-200">
+                    <div className="relative aspect-[4/3] bg-muted/50 overflow-hidden">
+                      {product.image_url ? (
+                        <OptimizedImage
+                          src={product.image_url}
+                          alt={product.name}
+                          width={400}
+                          height={300}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
                       ) : (
-                        <span className="text-base font-bold">{formatPrice(product.price)}</span>
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Smartphone className="h-16 w-16 text-muted-foreground/20" />
+                        </div>
+                      )}
+                      {hasSale && <SaleBadge price={product.price} salePrice={product.sale_price!} />}
+                      {product.stock <= 0 && (
+                        <span className="absolute top-2 right-2 bg-muted text-muted-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                          Hết hàng
+                        </span>
                       )}
                     </div>
-                    <p className={`text-xs font-medium ${product.stock > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}>
-                      {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
+                    <CardContent className="p-4 space-y-2">
+                      <h3 className="font-medium line-clamp-2 text-sm leading-snug min-h-[2.5rem]">{product.name}</h3>
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        {hasSale ? (
+                          <>
+                            <span className="text-base font-bold text-primary">{formatPrice(product.sale_price!)}</span>
+                            <span className="text-xs text-muted-foreground line-through">{formatPrice(product.price)}</span>
+                          </>
+                        ) : (
+                          <span className="text-base font-bold text-primary">{formatPrice(product.price)}</span>
+                        )}
+                      </div>
+                      <p className={`text-xs font-medium ${product.stock > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}>
+                        {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* ═══════════════════════════════════════════════════════
           TRUST STRIP
           ═══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 py-12 md:py-16 border-t border-border/30">
+      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16 border-t border-border/30">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { icon: ShieldCheck, title: "Bảo hành chính hãng", sub: "Đầy đủ giấy tờ · hỗ trợ 24/7", color: "text-emerald-600 bg-emerald-500/10" },

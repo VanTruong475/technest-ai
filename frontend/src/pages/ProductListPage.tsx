@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/common/Skeleton";
 import ProductCard from "@/components/common/ProductCard";
 import Pagination from "@/components/common/Pagination";
@@ -65,6 +69,7 @@ export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [mobileSortOpen, setMobileSortOpen] = useState(false);
+  const listTopRef = useRef<HTMLDivElement>(null);
 
   const page = parseInt(searchParams.get("page") || "1");
   const limit = 12;
@@ -130,7 +135,8 @@ export default function ProductListPage() {
     const params = new URLSearchParams(searchParams);
     params.set("page", String(newPage));
     setSearchParams(params);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Cuộn lên đầu danh sách sản phẩm (không phải đầu trang) khi đổi trang
+    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const products = data?.items || [];
@@ -145,6 +151,14 @@ export default function ProductListPage() {
   const selectedBrandName = brandId ? getBrandName(Number(brandId)) : null;
 
   const hasActiveFilters = search || categoryId || brandId || minPrice || maxPrice || minRating;
+  const activeFilterCount = [
+    search,
+    categoryId,
+    brandId,
+    minPrice || maxPrice,
+    minRating,
+    sort !== "newest" ? sort : "",
+  ].filter(Boolean).length;
   const currentPricePreset = PRICE_PRESETS.find(
     (p) => p.min === minPrice && p.max === maxPrice
   );
@@ -160,10 +174,17 @@ export default function ProductListPage() {
       {hasActiveFilters && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Đang lọc</span>
-            <button onClick={clearAllFilters} className="text-xs text-destructive hover:underline">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Đang lọc: {activeFilterCount} bộ lọc
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="h-7 px-2 text-destructive hover:text-destructive"
+            >
               Xóa tất cả
-            </button>
+            </Button>
           </div>
           <div className="flex flex-wrap gap-2">
             {search && (
@@ -203,6 +224,7 @@ export default function ProductListPage() {
               </span>
             )}
           </div>
+          <Separator className="mt-4" />
         </div>
       )}
 
@@ -236,6 +258,8 @@ export default function ProductListPage() {
         </div>
       </div>
 
+      <Separator />
+
       {/* Brands */}
       <div>
         <h3 className="text-sm font-semibold mb-3">Thương hiệu</h3>
@@ -261,6 +285,8 @@ export default function ProductListPage() {
           ))}
         </div>
       </div>
+
+      <Separator />
 
       {/* Rating filter */}
       <div>
@@ -307,24 +333,22 @@ export default function ProductListPage() {
         </div>
       </div>
 
-      {/* ── Mobile filter overlay ── */}
-      {mobileFilterOpen && (
-        <>
-          <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setMobileFilterOpen(false)} />
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-y-auto bg-card rounded-t-2xl shadow-xl p-5 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b">
-              <h2 className="text-lg font-semibold">Bộ lọc</h2>
-              <button onClick={() => setMobileFilterOpen(false)} className="p-2 hover:bg-muted rounded-lg">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      {/* ── Mobile filter (Sheet collapsible) ── */}
+      <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+        <SheetContent side="left" className="w-[88vw] max-w-sm flex flex-col p-0 lg:hidden">
+          <SheetHeader className="p-5 pb-3 border-b border-border">
+            <SheetTitle>Bộ lọc</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto p-5">
             {filterContent}
+          </div>
+          <SheetFooter className="p-5 pt-3 border-t border-border">
             <Button className="w-full" onClick={() => setMobileFilterOpen(false)}>
               Xem {total} sản phẩm
             </Button>
-          </div>
-        </>
-      )}
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* ── Mobile sort dropdown ── */}
       {mobileSortOpen && (
@@ -369,7 +393,7 @@ export default function ProductListPage() {
         </aside>
 
         {/* Product grid area */}
-        <div className="flex-1 min-w-0">
+        <div ref={listTopRef} className="flex-1 min-w-0 scroll-mt-24">
           {/* Search bar with autocomplete */}
           <div className="mb-4">
             <SearchAutocomplete
@@ -437,6 +461,16 @@ export default function ProductListPage() {
             })}
           </div>
 
+          {/* Results count — ở đầu kết quả */}
+          {!isLoading && !error && total > 0 && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Tìm thấy <span className="font-semibold text-foreground">{total}</span> sản phẩm
+              {search && (
+                <> cho “<span className="font-semibold text-foreground">{search}</span>”</>
+              )}
+            </p>
+          )}
+
           {/* Loading */}
           {isLoading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -456,20 +490,16 @@ export default function ProductListPage() {
             </Card>
           )}
 
-          {/* Empty */}
+          {/* Empty — pattern empty state theo UI_PATTERNS.md */}
           {!isLoading && !error && products.length === 0 && (
-            <Card className="border-border/60 shadow-sm">
-              <CardContent className="py-16 text-center space-y-3">
-                <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
-                  <Search className="h-7 w-7 text-muted-foreground" />
-                </div>
-                <p className="text-lg font-semibold">Không tìm thấy sản phẩm phù hợp</p>
-                <p className="text-sm text-muted-foreground">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
-                {hasActiveFilters && (
-                  <Button variant="outline" onClick={clearAllFilters} className="mt-2">Xóa bộ lọc</Button>
-                )}
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center py-16 text-muted-foreground">
+              <Search className="h-12 w-12" />
+              <p className="mt-4 text-lg font-medium text-foreground">Không tìm thấy sản phẩm phù hợp</p>
+              <p className="mt-1 text-sm">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearAllFilters} className="mt-4">Xóa bộ lọc</Button>
+              )}
+            </div>
           )}
 
           {/* Product grid */}
@@ -484,6 +514,7 @@ export default function ProductListPage() {
                   showRating
                   brandName={getBrandName(product.brand_id)}
                   categoryName={getCategoryName(product.category_id)}
+                  highlight={search}
                 />
               ))}
             </div>

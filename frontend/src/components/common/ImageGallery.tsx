@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { SaleBadge } from "@/components/common/SaleBadge";
-import { Package } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { Package, ZoomIn } from "lucide-react";
 
 interface ImageGalleryProps {
   mainImage: string | null;
@@ -13,6 +14,9 @@ interface ImageGalleryProps {
   /** Override displayed image (e.g. from color selection) */
   activeImage?: string | null;
 }
+
+/** Tối đa số thumbnail hiển thị; nhiều hơn sẽ scroll ngang. */
+const THUMB_MAX = 5;
 
 export default function ImageGallery({
   mainImage,
@@ -47,38 +51,73 @@ export default function ImageGallery({
 
   return (
     <div className="space-y-4">
-      {/* Main image */}
-      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted border border-border/20 shadow-sm relative group">
-        {displayImage ? (
-          <OptimizedImage
-            key={displayImage}
-            src={displayImage}
-            alt={productName}
-            width={800}
-            height={600}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            priority
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="h-24 w-24 text-muted-foreground/20" />
-          </div>
-        )}
-        {hasSale && price != null && salePrice != null && (
-          <div className="absolute top-4 left-4">
-            <SaleBadge price={price} salePrice={salePrice} />
-          </div>
-        )}
-      </div>
+      {/* Main image — click để phóng to (Dialog) */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <button
+            type="button"
+            aria-label="Phóng to ảnh sản phẩm"
+            className="block w-full aspect-[4/3] rounded-xl overflow-hidden bg-muted border border-border/20 shadow-sm relative group cursor-zoom-in"
+          >
+            {displayImage ? (
+              <OptimizedImage
+                /* key đổi theo ảnh → React remount → fade-in 150ms khi đổi ảnh */
+                key={displayImage}
+                src={displayImage}
+                alt={productName}
+                width={800}
+                height={600}
+                className="w-full h-full object-cover transition-transform group-hover:scale-105 animate-in fade-in-0 duration-150"
+                priority
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Package className="h-24 w-24 text-muted-foreground/20" />
+              </div>
+            )}
+            {hasSale && price != null && salePrice != null && (
+              <div className="absolute top-4 left-4">
+                <SaleBadge price={price} salePrice={salePrice} />
+              </div>
+            )}
+            {/* Gợi ý zoom */}
+            {displayImage && (
+              <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-lg bg-background/80 backdrop-blur-sm px-2 py-1 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                <ZoomIn className="h-3.5 w-3.5" />
+                Phóng to
+              </span>
+            )}
+          </button>
+        </DialogTrigger>
+        <DialogContent className="max-w-3xl p-2 bg-card">
+          <DialogTitle className="sr-only">{productName}</DialogTitle>
+          {displayImage ? (
+            <OptimizedImage
+              src={displayImage}
+              alt={productName}
+              width={1200}
+              height={900}
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+              priority
+            />
+          ) : (
+            <div className="aspect-[4/3] flex items-center justify-center">
+              <Package className="h-24 w-24 text-muted-foreground/20" />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
-      {/* Thumbnails */}
+      {/* Thumbnails — strip ngang, tối đa 5, scroll ngang nếu nhiều hơn */}
       {uniqueThumbnails.length > 1 && (
-        <div className="grid grid-cols-4 gap-3">
-          {uniqueThumbnails.slice(0, 4).map((img, idx) => (
+        <div className="flex gap-3 overflow-x-auto snap-x pb-1 -mx-1 px-1">
+          {uniqueThumbnails.slice(0, THUMB_MAX).map((img, idx) => (
             <button
               key={idx}
+              type="button"
               onClick={() => handleThumbnailClick(idx)}
-              className={`aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${
+              aria-label={`Xem ảnh ${idx + 1}`}
+              className={`snap-start shrink-0 w-20 aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${
                 idx === highlightIndex
                   ? "ring-2 ring-primary border-primary"
                   : "border border-border/30 hover:border-primary/50"

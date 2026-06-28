@@ -8,8 +8,9 @@ import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import {
   ChevronRight, Home, Sparkles, Send,
-  Package, Minus, Plus,
+  Package, Minus, Plus, ShoppingCart,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatPrice } from "@/utils/format";
 import { ProductDetailSkeleton } from "@/components/common/Skeleton";
 import { StarRating } from "@/components/common/StarRating";
@@ -61,15 +62,12 @@ function getAISuggestions(slug: string): string[] {
   ];
 }
 
-type TabKey = "specs" | "reviews" | "description";
-
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<TabKey>("specs");
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   const { data: product, isLoading, error } = useQuery<Product>({
@@ -162,14 +160,8 @@ export default function ProductDetailPage() {
   const colors = product.colors || [];
   const activeColorImage = colors.find((c) => c.name === selectedColor)?.image || null;
 
-  const TABS: { key: TabKey; label: string }[] = [
-    { key: "specs", label: "Thông số kỹ thuật" },
-    { key: "reviews", label: "Đánh giá khách hàng" },
-    { key: "description", label: "Tính năng chi tiết" },
-  ];
-
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 pb-24 lg:pb-0">
       {/* ═══════════════════════════════════════════════════════
           BREADCRUMB
           ═══════════════════════════════════════════════════════ */}
@@ -225,13 +217,13 @@ export default function ProductDetailPage() {
 
           {/* Price */}
           <div>
-            <div className="flex items-end gap-2">
-              <span className="text-2xl font-bold text-primary">
+            <div className="flex items-end gap-2 flex-wrap">
+              <span className="text-3xl font-bold text-primary">
                 {formatPrice(hasSale ? product.sale_price! : product.price)}
               </span>
               {hasSale && (
                 <>
-                  <span className="text-muted-foreground line-through text-sm">
+                  <span className="text-muted-foreground line-through text-lg ml-2">
                     {formatPrice(product.price)}
                   </span>
                   <span className="bg-destructive/10 text-destructive text-[11px] font-bold px-1.5 py-0.5 rounded">
@@ -392,96 +384,119 @@ export default function ProductDetailPage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════
-          TABS SECTION — theo example
+          TABS SECTION — shadcn/ui Tabs
           ═══════════════════════════════════════════════════════ */}
-      <div>
-        {/* Tab headers */}
-        <div className="flex border-b border-border/30 overflow-x-auto">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-5 py-3 whitespace-nowrap text-sm transition-colors ${
-                activeTab === tab.key
-                  ? "border-b-2 border-primary text-primary font-bold"
-                  : "text-muted-foreground hover:text-primary"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <Tabs defaultValue="description">
+        <TabsList className="flex w-full max-w-md overflow-x-auto">
+          <TabsTrigger value="description" className="flex-1">Mô tả</TabsTrigger>
+          <TabsTrigger value="specs" className="flex-1">Thông số</TabsTrigger>
+          <TabsTrigger value="reviews" className="flex-1">
+            Đánh giá ({product.review_count ?? 0})
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Tab content */}
-        <div className="py-6">
-          {/* Specs tab — 2-column grid theo example */}
-          {activeTab === "specs" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-6">
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold">Thông tin sản phẩm</h2>
-                <dl className="space-y-3">
+        {/* Mô tả */}
+        <TabsContent value="description" className="py-6">
+          <div className="max-w-3xl">
+            {product.description ? (
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                {product.description}
+              </p>
+            ) : (
+              <p className="text-muted-foreground">Chưa có mô tả chi tiết cho sản phẩm này.</p>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Thông số — 2-column grid */}
+        <TabsContent value="specs" className="py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-6">
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold">Thông tin sản phẩm</h2>
+              <dl className="space-y-3">
+                <div className="flex justify-between py-2.5 border-b border-border/10">
+                  <dt className="text-muted-foreground text-sm">Tên sản phẩm</dt>
+                  <dd className="font-semibold text-sm text-right">{product.name}</dd>
+                </div>
+                <div className="flex justify-between py-2.5 border-b border-border/10">
+                  <dt className="text-muted-foreground text-sm">Tình trạng</dt>
+                  <dd className="font-semibold text-sm">
+                    {product.stock > 0 ? (
+                      <span className="text-emerald-600 dark:text-emerald-400">Còn hàng ({product.stock})</span>
+                    ) : (
+                      <span className="text-destructive">Hết hàng</span>
+                    )}
+                  </dd>
+                </div>
+                <div className="flex justify-between py-2.5 border-b border-border/10">
+                  <dt className="text-muted-foreground text-sm">Giá gốc</dt>
+                  <dd className="font-semibold text-sm">{formatPrice(product.price)}</dd>
+                </div>
+                {hasSale && (
                   <div className="flex justify-between py-2.5 border-b border-border/10">
-                    <dt className="text-muted-foreground text-sm">Tên sản phẩm</dt>
-                    <dd className="font-semibold text-sm text-right">{product.name}</dd>
-                  </div>
-                  <div className="flex justify-between py-2.5 border-b border-border/10">
-                    <dt className="text-muted-foreground text-sm">Tình trạng</dt>
-                    <dd className="font-semibold text-sm">
-                      {product.stock > 0 ? (
-                        <span className="text-emerald-600">Còn hàng ({product.stock})</span>
-                      ) : (
-                        <span className="text-destructive">Hết hàng</span>
-                      )}
+                    <dt className="text-muted-foreground text-sm">Giá khuyến mãi</dt>
+                    <dd className="font-semibold text-sm text-destructive">
+                      {formatPrice(product.sale_price!)} (-{discount}%)
                     </dd>
                   </div>
-                  <div className="flex justify-between py-2.5 border-b border-border/10">
-                    <dt className="text-muted-foreground text-sm">Giá gốc</dt>
-                    <dd className="font-semibold text-sm">{formatPrice(product.price)}</dd>
-                  </div>
-                  {hasSale && (
-                    <div className="flex justify-between py-2.5 border-b border-border/10">
-                      <dt className="text-muted-foreground text-sm">Giá khuyến mãi</dt>
-                      <dd className="font-semibold text-sm text-destructive">
-                        {formatPrice(product.sale_price!)} (-{discount}%)
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-              <div className="space-y-4">
-                <h2 className="text-lg font-bold">Mô tả chi tiết</h2>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {product.description || "Chưa có mô tả chi tiết cho sản phẩm này."}
-                </p>
-              </div>
+                )}
+              </dl>
             </div>
-          )}
-
-          {/* Reviews tab */}
-          {activeTab === "reviews" && (
-            <ReviewSection productId={Number(id)} mode="full" />
-          )}
-
-          {/* Description tab */}
-          {activeTab === "description" && (
-            <div className="max-w-3xl">
-              {product.description ? (
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {product.description}
-                </p>
-              ) : (
-                <p className="text-muted-foreground">Chưa có mô tả chi tiết cho sản phẩm này.</p>
-              )}
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold">Mô tả chi tiết</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {product.description || "Chưa có mô tả chi tiết cho sản phẩm này."}
+              </p>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </TabsContent>
+
+        {/* Đánh giá */}
+        <TabsContent value="reviews" className="py-6">
+          <ReviewSection productId={Number(id)} mode="full" />
+        </TabsContent>
+      </Tabs>
 
       {/* ═══════════════════════════════════════════════════════
           RECOMMENDATIONS
           ═══════════════════════════════════════════════════════ */}
       <CustomersAlsoBought productId={Number(id)} limit={4} />
       <RecentlyViewed currentProductId={Number(id)} />
+
+      {/* ═══════════════════════════════════════════════════════
+          STICKY CTA — chỉ hiện trên mobile (< lg)
+          ═══════════════════════════════════════════════════════ */}
+      {product.stock > 0 && product.status === "ACTIVE" && (
+        <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3">
+          <div className="flex items-center gap-3">
+            {/* Giá gọn */}
+            <div className="shrink-0">
+              <p className="text-lg font-bold text-primary leading-none">
+                {formatPrice(hasSale ? product.sale_price! : product.price)}
+              </p>
+              {hasSale && (
+                <p className="text-xs text-muted-foreground line-through">
+                  {formatPrice(product.price)}
+                </p>
+              )}
+            </div>
+            {/* Wishlist */}
+            <HeartButton
+              productId={product.id}
+              className="shrink-0 h-11 w-11 border border-border hover:bg-accent"
+            />
+            {/* Thêm vào giỏ — gọi đúng mutation hiện có */}
+            <button
+              onClick={() => addToCartMutation.mutate()}
+              disabled={addToCartMutation.isPending}
+              className="flex-1 flex items-center justify-center gap-2 h-11 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-60"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {addToCartMutation.isPending ? "Đang thêm..." : "Thêm vào giỏ"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -53,6 +53,7 @@ export interface CartItem {
   sale_price: number | null;
   quantity: number;
   subtotal: number;
+  stock?: number;
 }
 
 export interface Cart {
@@ -138,6 +139,7 @@ export interface ChatMessage {
   content: string;
   products?: AISearchResult[];
   suggestions?: string[];
+  createdAt?: number; // epoch ms — hiển thị timestamp HH:mm (optional: tin cũ không có)
 }
 
 // ── Paginated response aliases ──

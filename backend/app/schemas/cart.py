@@ -40,6 +40,7 @@ class CartItemResponse(BaseModel):
     sale_price: Optional[float] = None
     quantity: int
     subtotal: float
+    stock: int  # tồn kho hiện tại của sản phẩm — display-only, để FE chặn nút "+"
 
 
 class CartResponse(BaseModel):

@@ -8,6 +8,14 @@
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="TechSphere AI — AI-powered e-commerce platform for electronic products, built with React, FastAPI, PostgreSQL, Redis, VNPay, and Gemini/Groq AI." />
 
+    <!-- Preload ảnh hero LCP — fetch sớm, ưu tiên cao để giảm LCP/CLS -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1920&q=80"
+      fetchpriority="high"
+    />
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="TechSphere AI — AI-powered E-commerce Platform" />

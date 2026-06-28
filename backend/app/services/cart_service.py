@@ -43,6 +43,7 @@ def _build_cart_response(cart: Cart, session: Session) -> CartResponse:
             sale_price=product.sale_price,
             quantity=item.quantity,
             subtotal=subtotal,
+            stock=product.stock,
         ))
         total_items += item.quantity
         total_amount += subtotal

@@ -6,13 +6,63 @@ import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { useAuthStore } from "@/store/authStore";
 import { Skeleton } from "@/components/common/Skeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  CreditCard, ShoppingCart, Truck, Zap, ShieldCheck,
-  RotateCcw, Award, Lock, ArrowLeft,
+  ShoppingCart, Truck, Zap, ShieldCheck,
+  RotateCcw, Award, Lock, ArrowLeft, Loader2, Shield, Check, ChevronDown,
 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
+import { cn } from "@/lib/utils";
 import type { Cart } from "@/types";
+
+/** Progress stepper trình bày — checkout 1 trang nên bước hiện tại cố định. */
+const CHECKOUT_STEPS = ["Thông tin", "Thanh toán", "Xác nhận"] as const;
+
+function CheckoutStepper({ currentStep }: { currentStep: number }) {
+  return (
+    <nav aria-label="Tiến trình thanh toán" className="flex items-center gap-2 sm:gap-4">
+      {CHECKOUT_STEPS.map((label, idx) => {
+        const isCurrent = idx === currentStep;
+        const isPast = idx < currentStep;
+        return (
+          <div key={label} className="flex items-center gap-2 sm:gap-4 flex-1 last:flex-none">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition-colors",
+                  isCurrent
+                    ? "border-primary text-primary"
+                    : isPast
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground"
+                )}
+                aria-current={isCurrent ? "step" : undefined}
+              >
+                {isPast ? <Check className="h-4 w-4" /> : idx + 1}
+              </span>
+              <span
+                className={cn(
+                  "text-sm font-medium whitespace-nowrap hidden sm:inline",
+                  isCurrent ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                {label}
+              </span>
+            </div>
+            {/* Connector */}
+            {idx < CHECKOUT_STEPS.length - 1 && (
+              <span className={cn("h-px flex-1 min-w-4", isPast ? "bg-primary" : "bg-border")} />
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -27,6 +77,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay">("cod");
   const [errors, setErrors] = useState<{ fullName?: string; phone?: string; shippingAddress?: string }>({});
   const clearError = (field: keyof typeof errors) => setErrors((p) => ({ ...p, [field]: undefined }));
+  const [summaryOpen, setSummaryOpen] = useState(false); // collapsible đơn hàng trên mobile
 
   const { data: cart, isLoading, error: cartError } = useQuery<Cart>({
     queryKey: ["cart"],
@@ -138,6 +189,11 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-7xl mx-auto px-6">
       <form onSubmit={handleSubmit}>
+        {/* Progress stepper */}
+        <div className="mb-8">
+          <CheckoutStepper currentStep={0} />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* ═══ Left: Checkout Details ═══ */}
           <div className="lg:col-span-8 space-y-8">
@@ -152,46 +208,59 @@ export default function CheckoutPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Họ tên</label>
-                  <input
+                  <Label htmlFor="checkout-fullname">
+                    Họ tên <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="checkout-fullname"
                     type="text"
                     placeholder="Nguyễn Văn A"
                     value={fullName}
                     onChange={(e) => { setFullName(e.target.value); clearError("fullName"); }}
-                    className={`w-full bg-muted/30 border rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all ${errors.fullName ? "border-destructive" : "border-border/40"}`}
+                    aria-invalid={!!errors.fullName}
+                    aria-describedby={errors.fullName ? "err-fullname" : undefined}
                   />
-                  {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
+                  {errors.fullName && <p id="err-fullname" className="text-xs text-destructive mt-1">{errors.fullName}</p>}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Số điện thoại</label>
-                  <input
+                  <Label htmlFor="checkout-phone">
+                    Số điện thoại <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="checkout-phone"
                     type="tel"
                     placeholder="0901 234 567"
                     value={phone}
                     onChange={(e) => { setPhone(e.target.value); clearError("phone"); }}
-                    className={`w-full bg-muted/30 border rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all ${errors.phone ? "border-destructive" : "border-border/40"}`}
+                    aria-invalid={!!errors.phone}
+                    aria-describedby={errors.phone ? "err-phone" : undefined}
                   />
-                  {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                  {errors.phone && <p id="err-phone" className="text-xs text-destructive mt-1">{errors.phone}</p>}
                 </div>
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Địa chỉ nhận hàng</label>
-                  <textarea
+                  <Label htmlFor="checkout-address">
+                    Địa chỉ nhận hàng <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="checkout-address"
                     placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện, Tỉnh/Thành phố"
                     value={shippingAddress}
                     onChange={(e) => { setShippingAddress(e.target.value); clearError("shippingAddress"); }}
                     rows={3}
-                    className={`w-full bg-muted/30 border rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all resize-none ${errors.shippingAddress ? "border-destructive" : "border-border/40"}`}
+                    className="resize-none"
+                    aria-invalid={!!errors.shippingAddress}
+                    aria-describedby={errors.shippingAddress ? "err-address" : undefined}
                   />
-                  {errors.shippingAddress && <p className="text-xs text-destructive">{errors.shippingAddress}</p>}
+                  {errors.shippingAddress && <p id="err-address" className="text-xs text-destructive mt-1">{errors.shippingAddress}</p>}
                 </div>
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Ghi chú</label>
-                  <input
+                  <Label htmlFor="checkout-note">Ghi chú</Label>
+                  <Input
+                    id="checkout-note"
                     type="text"
                     placeholder="Giao giờ hành chính, gọi trước khi giao..."
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full bg-muted/30 border border-border/40 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                   />
                 </div>
               </div>
@@ -258,31 +327,52 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {[
-                  { key: "cod" as const, label: "COD", desc: "Thanh toán khi nhận hàng", icon: ShoppingCart },
-                  { key: "vnpay" as const, label: "VNPay", desc: "ATM, Visa, MasterCard, QR", icon: CreditCard },
-                ].map((opt) => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    onClick={() => setPaymentMethod(opt.key)}
-                    className={`flex flex-col items-center gap-3 p-6 rounded-2xl transition-all relative overflow-hidden ${
-                      paymentMethod === opt.key
-                        ? "border-2 border-primary bg-primary/5"
-                        : "border-2 border-border/30 hover:border-primary/50 hover:bg-muted/30"
-                    }`}
-                  >
-                    {paymentMethod === opt.key && (
-                      <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-primary" />
-                    )}
-                    <opt.icon className={`h-8 w-8 ${paymentMethod === opt.key ? "text-primary" : "text-muted-foreground"}`} />
-                    <span className={`font-bold text-sm ${paymentMethod === opt.key ? "text-primary" : ""}`}>
-                      {opt.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{opt.desc}</span>
-                  </button>
-                ))}
+                {/* COD */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("cod")}
+                  aria-pressed={paymentMethod === "cod"}
+                  className={`flex flex-col items-center gap-3 p-6 rounded-2xl transition-all relative overflow-hidden ${
+                    paymentMethod === "cod"
+                      ? "border-2 border-primary bg-primary/5"
+                      : "border-2 border-border/30 hover:border-primary/50 hover:bg-muted/30"
+                  }`}
+                >
+                  {paymentMethod === "cod" && (
+                    <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-primary" />
+                  )}
+                  <ShoppingCart className={`h-8 w-8 ${paymentMethod === "cod" ? "text-primary" : "text-muted-foreground"}`} />
+                  <span className={`font-bold text-sm ${paymentMethod === "cod" ? "text-primary" : ""}`}>COD</span>
+                  <span className="text-xs text-muted-foreground">Thanh toán khi nhận hàng</span>
+                </button>
+
+                {/* VNPay — logo từ public/ */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("vnpay")}
+                  aria-pressed={paymentMethod === "vnpay"}
+                  className={`flex flex-col items-center gap-3 p-6 rounded-2xl transition-all relative overflow-hidden ${
+                    paymentMethod === "vnpay"
+                      ? "border-2 border-primary bg-primary/5"
+                      : "border-2 border-border/30 hover:border-primary/50 hover:bg-muted/30"
+                  }`}
+                >
+                  {paymentMethod === "vnpay" && (
+                    <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-primary" />
+                  )}
+                  <img src="/vnpay.webp" alt="VNPay" className="h-8 object-contain" />
+                  <span className={`font-bold text-sm ${paymentMethod === "vnpay" ? "text-primary" : ""}`}>VNPay</span>
+                  <span className="text-xs text-muted-foreground">ATM, Visa, MasterCard, QR</span>
+                </button>
               </div>
+
+              {/* Thông điệp an toàn khi chọn VNPay */}
+              {paymentMethod === "vnpay" && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Shield className="h-4 w-4 text-primary shrink-0" />
+                  Thanh toán an toàn qua VNPay
+                </div>
+              )}
             </div>
 
             {/* Back link */}
@@ -295,12 +385,31 @@ export default function CheckoutPage() {
           {/* ═══ Right: Order Summary ═══ */}
           <aside className="lg:col-span-4 lg:sticky lg:top-28">
             <div className="bg-card rounded-2xl border border-border/40 shadow-xl overflow-hidden">
-              {/* Header */}
-              <div className="bg-muted/50 px-6 py-4 border-b border-border/20">
-                <h3 className="text-lg font-semibold">Đơn hàng của bạn</h3>
-              </div>
+              {/* Header — bấm để mở/đóng trên mobile */}
+              <button
+                type="button"
+                onClick={() => setSummaryOpen((o) => !o)}
+                aria-expanded={summaryOpen}
+                aria-controls="checkout-summary-body"
+                className="w-full flex items-center justify-between bg-muted/50 px-6 py-4 border-b border-border/20 lg:cursor-default"
+              >
+                <h3 className="text-lg font-semibold">
+                  <span className="lg:hidden">Xem đơn hàng ({items.length} sản phẩm)</span>
+                  <span className="hidden lg:inline">Đơn hàng của bạn</span>
+                </h3>
+                <ChevronDown
+                  className={cn(
+                    "h-5 w-5 text-muted-foreground transition-transform lg:hidden",
+                    summaryOpen && "rotate-180"
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
 
-              <div className="p-6 space-y-5">
+              <div
+                id="checkout-summary-body"
+                className={cn("p-6 space-y-5", summaryOpen ? "block" : "hidden", "lg:block")}
+              >
                 {/* Product items */}
                 <div className="space-y-4 max-h-64 overflow-y-auto">
                   {items.map((item) => (
@@ -350,14 +459,24 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Submit button */}
-                  <button
+                  <Button
                     type="submit"
+                    size="lg"
                     disabled={orderMutation.isPending}
-                    className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:bg-primary/90 hover:-translate-y-0.5 transition-all active:scale-95 shadow-lg shadow-primary/30 flex items-center justify-center gap-2"
+                    className="w-full h-12 text-base font-bold rounded-xl shadow-lg shadow-primary/30"
                   >
-                    <Lock className="h-4 w-4" />
-                    {orderMutation.isPending ? "Đang đặt hàng..." : "ĐẶT HÀNG NGAY"}
-                  </button>
+                    {orderMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Đang xử lý...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-4 w-4" />
+                        Đặt hàng
+                      </>
+                    )}
+                  </Button>
 
                   <p className="text-center text-[11px] text-muted-foreground leading-relaxed">
                     Bằng cách xác nhận đơn hàng, bạn đồng ý tuân thủ{" "}

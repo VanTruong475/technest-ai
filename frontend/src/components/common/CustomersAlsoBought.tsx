@@ -51,11 +51,11 @@ export default function CustomersAlsoBought({ productId, limit = 4 }: Props) {
     return (
       <section>
         <h2 className="text-xl font-bold mb-4">Có thể bạn cũng thích</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="flex gap-4 overflow-x-auto snap-x pb-1 -mx-1 px-1 md:grid md:grid-cols-4 md:overflow-visible md:mx-0 md:px-0">
           {Array.from({ length: limit }).map((_, i) => (
             <div
               key={i}
-              className="aspect-[4/3] bg-muted rounded-2xl animate-pulse"
+              className="shrink-0 w-[45%] sm:w-[31%] md:w-auto aspect-[4/3] bg-muted rounded-2xl animate-pulse"
               aria-hidden="true"
             />
           ))}
@@ -69,9 +69,9 @@ export default function CustomersAlsoBought({ productId, limit = 4 }: Props) {
   return (
     <section aria-label="Sản phẩm gợi ý">
       <h2 className="text-xl font-bold mb-4">Có thể bạn cũng thích</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="flex gap-4 overflow-x-auto snap-x pb-1 -mx-1 px-1 md:grid md:grid-cols-4 md:overflow-visible md:mx-0 md:px-0">
         {data.results.map(({ product: p }) => (
-          <Link key={p.id} to={`/products/${p.id}`}>
+          <Link key={p.id} to={`/products/${p.id}`} className="snap-start shrink-0 w-[45%] sm:w-[31%] md:w-auto">
             <Card className="h-full hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer relative overflow-hidden border-border/60 shadow-sm rounded-2xl group">
               {p.sale_price && p.sale_price < p.price && (
                 <SaleBadge price={p.price} salePrice={p.sale_price} />

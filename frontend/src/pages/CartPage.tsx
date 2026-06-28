@@ -7,10 +7,13 @@ import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, ShieldCheck, Loader2 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
 import { Skeleton } from "@/components/common/Skeleton";
+import CustomersAlsoBought from "@/components/common/CustomersAlsoBought";
 import type { Cart } from "@/types";
 
 function CartItemCardSkeleton() {
@@ -70,6 +73,8 @@ export default function CartPage() {
 
   const items = cart?.items || [];
   const itemCount = cart?.total_items || 0;
+  // Item đang được cập nhật số lượng (để hiện spinner & disable đúng item đó)
+  const updatingId = updateMutation.isPending ? updateMutation.variables?.itemId : null;
 
   // Select all on initial load
   useEffect(() => {
@@ -171,21 +176,19 @@ export default function CartPage() {
     );
   }
 
-  // ── Empty ──
+  // ── Empty ── (empty-state pattern theo UI_PATTERNS.md)
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-muted/30 -mx-4 -my-6 px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <Card className="max-w-md mx-auto mt-12 text-center border-border/60 shadow-sm">
-            <CardContent className="pt-8 pb-6 space-y-4">
-              <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center">
-                <ShoppingCart className="h-10 w-10 text-muted-foreground" />
-              </div>
-              <h2 className="text-xl font-semibold">Giỏ hàng của bạn đang trống</h2>
-              <p className="text-sm text-muted-foreground">Hãy khám phá các sản phẩm công nghệ mới nhất của chúng tôi.</p>
-              <Link to="/products"><Button size="lg" className="mt-2">Mua sắm ngay</Button></Link>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center py-16 text-muted-foreground">
+            <ShoppingCart className="h-16 w-16" />
+            <p className="mt-4 text-lg font-medium text-foreground">Giỏ hàng của bạn đang trống</p>
+            <p className="mt-1 text-sm">Hãy khám phá các sản phẩm công nghệ mới nhất của chúng tôi.</p>
+            <Link to="/products">
+              <Button size="lg" className="mt-5">Tiếp tục mua sắm</Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -237,9 +240,9 @@ export default function CartPage() {
 
                   {/* Image */}
                   <Link to={`/products/${item.product_id}`} className="shrink-0">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-xl overflow-hidden">
+                    <div className="w-20 h-20 aspect-square bg-muted rounded-md overflow-hidden">
                       {item.image_url ? (
-                        <OptimizedImage src={item.image_url} alt={item.product_name} width={96} height={96} className="w-full h-full object-cover" />
+                        <OptimizedImage src={item.image_url} alt={item.product_name} width={80} height={80} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
                       )}
@@ -248,7 +251,7 @@ export default function CartPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0 space-y-2">
-                    <Link to={`/products/${item.product_id}`} className="font-semibold text-sm sm:text-base hover:underline line-clamp-2 block">
+                    <Link to={`/products/${item.product_id}`} className="font-medium text-sm sm:text-base hover:underline line-clamp-2 block">
                       {item.product_name}
                     </Link>
                     <div className="flex items-center gap-2">
@@ -267,19 +270,40 @@ export default function CartPage() {
                       <button
                         className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
                         onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1 || updateMutation.isPending}
+                        disabled={item.quantity <= 1 || updatingId === item.id}
+                        aria-label="Giảm số lượng"
                       >
                         <Minus className="h-3 w-3" />
                       </button>
-                      <span className="w-9 h-8 flex items-center justify-center text-xs font-medium border-x">{item.quantity}</span>
+                      {updatingId === item.id ? (
+                        <span className="w-12 h-8 flex items-center justify-center border-x">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                        </span>
+                      ) : (
+                        <Input
+                          readOnly
+                          value={item.quantity}
+                          aria-label="Số lượng"
+                          className="w-12 h-8 text-center text-xs font-medium px-0 border-0 border-x rounded-none focus-visible:ring-0"
+                        />
+                      )}
                       <button
                         className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
                         onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        disabled={updateMutation.isPending}
+                        disabled={
+                          updatingId === item.id ||
+                          (item.stock != null && item.quantity >= item.stock)
+                        }
+                        aria-label="Tăng số lượng"
                       >
                         <Plus className="h-3 w-3" />
                       </button>
                     </div>
+                    {item.stock != null && item.quantity >= item.stock && (
+                      <p className="text-xs text-muted-foreground">
+                        Đã đạt số lượng tồn kho tối đa ({item.stock})
+                      </p>
+                    )}
 
                     {/* Mobile: subtotal + delete */}
                     <div className="flex items-center justify-between sm:hidden">
@@ -332,15 +356,17 @@ export default function CartPage() {
                   <span className="text-muted-foreground">Sản phẩm đã chọn</span>
                   <span className="font-medium">{selectedItems.length}/{items.length}</span>
                 </div>
+                <Separator />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tạm tính</span>
                   <span className="font-medium">{formatPrice(selectedSubtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Phí vận chuyển</span>
-                  <span className="font-medium text-green-600">Miễn phí</span>
+                  <span className="font-medium text-green-600 dark:text-green-400">Miễn phí</span>
                 </div>
-                <div className="border-t pt-3 flex justify-between items-baseline">
+                <Separator />
+                <div className="flex justify-between items-baseline">
                   <span className="font-semibold text-base">Tổng cộng</span>
                   <span className="text-2xl font-bold">{formatPrice(selectedSubtotal)}</span>
                 </div>
@@ -362,6 +388,13 @@ export default function CartPage() {
             </div>
           </div>
         </div>
+
+        {/* Mini gợi ý — dựa trên sản phẩm đầu trong giỏ (API recommend có sẵn) */}
+        {items[0] && (
+          <div className="mt-12">
+            <CustomersAlsoBought productId={items[0].product_id} limit={3} />
+          </div>
+        )}
       </div>
     </div>
   );
