@@ -9,17 +9,94 @@ import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/common/Skeleton";
-import { ArrowLeft, Package, Home, ChevronRight, Star, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Package, Home, ChevronRight, Star, CheckCircle2, RotateCcw, Loader2, Check, XCircle } from "lucide-react";
 import { formatPrice, formatDate } from "@/utils/format";
 import { ORDER_STATUS_MAP, ORDER_STATUS_OPTIONS, PAYMENT_STATUS_MAP, PAYMENT_METHOD_MAP } from "@/constants/orderStatus";
 import { getErrorMessage } from "@/utils/api";
+import { useReorder } from "@/hooks/useReorder";
+import { cn } from "@/lib/utils";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import type { Order, CanReviewResult } from "@/types";
+
+// Các mốc tiến trình đơn hàng (CANCELLED xử lý riêng).
+const TIMELINE_STEPS = [
+  { key: "PENDING", label: "Đặt hàng" },
+  { key: "CONFIRMED", label: "Xác nhận" },
+  { key: "SHIPPING", label: "Đang giao" },
+  { key: "COMPLETED", label: "Hoàn thành" },
+] as const;
+
+function OrderTimeline({ status }: { status: string }) {
+  if (status === "CANCELLED") {
+    return (
+      <Card className="border-destructive/30 bg-destructive/5 shadow-sm rounded-2xl">
+        <CardContent className="p-5 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+            <XCircle className="h-5 w-5 text-destructive" />
+          </div>
+          <div>
+            <p className="font-semibold text-destructive">Đơn hàng đã hủy</p>
+            <p className="text-sm text-muted-foreground">Đơn hàng này không còn được xử lý.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const currentIndex = TIMELINE_STEPS.findIndex((s) => s.key === status);
+
+  return (
+    <Card className="border-border/60 shadow-sm rounded-2xl">
+      <CardContent className="p-5 sm:p-6">
+        <div className="flex items-start">
+          {TIMELINE_STEPS.map((step, idx) => {
+            const done = idx <= currentIndex;
+            const isLast = idx === TIMELINE_STEPS.length - 1;
+            return (
+              <div key={step.key} className="flex-1 flex flex-col items-center relative">
+                {/* Connector */}
+                {!isLast && (
+                  <span
+                    className={cn(
+                      "absolute top-4 left-1/2 w-full h-0.5",
+                      idx < currentIndex ? "bg-primary" : "bg-border"
+                    )}
+                    aria-hidden="true"
+                  />
+                )}
+                <span
+                  className={cn(
+                    "relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors",
+                    done
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-muted-foreground"
+                  )}
+                  aria-current={idx === currentIndex ? "step" : undefined}
+                >
+                  {done ? <Check className="h-4 w-4" /> : idx + 1}
+                </span>
+                <span
+                  className={cn(
+                    "mt-2 text-xs font-medium text-center",
+                    done ? "text-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const isAdmin = useAuthStore((s) => s.isAdmin);
   const queryClient = useQueryClient();
+  const reorder = useReorder();
 
   const [reviewTarget, setReviewTarget] = useState<{
     productId: number;
@@ -115,12 +192,29 @@ export default function OrderDetailPage() {
       </nav>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Đơn hàng #{order.id}</h1>
-        <span className={`text-sm px-3 py-1 rounded-full font-medium ${statusInfo.color}`}>
-          {statusInfo.label}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className={`text-sm px-3 py-1 rounded-full font-medium ${statusInfo.color}`}>
+            {statusInfo.label}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-lg gap-1.5"
+            disabled={reorder.isPending}
+            onClick={() =>
+              reorder.mutate(order.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })))
+            }
+          >
+            {reorder.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+            Mua lại
+          </Button>
+        </div>
       </div>
+
+      {/* Tiến trình đơn hàng */}
+      <OrderTimeline status={order.status} />
 
       {/* Order info */}
       <Card className="border-border/60 shadow-sm rounded-2xl">

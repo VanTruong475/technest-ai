@@ -17,7 +17,6 @@ const ProductListPage = lazy(() => import("@/pages/ProductListPage"));
 const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
 const CartPage = lazy(() => import("@/pages/CartPage"));
 const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
-const OrderListPage = lazy(() => import("@/pages/OrderListPage"));
 const OrderDetailPage = lazy(() => import("@/pages/OrderDetailPage"));
 const ChatPage = lazy(() => import("@/pages/ChatPage"));
 const AdminProductPage = lazy(() => import("@/pages/AdminProductPage"));
@@ -27,7 +26,6 @@ const AdminDashboardPage = lazy(() => import("@/pages/AdminDashboardPage"));
 const AdminReviewsPage = lazy(() => import("@/pages/AdminReviewsPage"));
 const AdminAuditPage = lazy(() => import("@/pages/AdminAuditPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
-const WishlistPage = lazy(() => import("@/pages/WishlistPage"));
 const PaymentResultPage = lazy(() => import("@/pages/PaymentResultPage"));
 const BlogListPage = lazy(() => import("@/pages/BlogListPage"));
 const BlogDetailPage = lazy(() => import("@/pages/BlogDetailPage"));
@@ -108,10 +106,11 @@ function AnimatedRoutes() {
           {/* Protected */}
           <Route path="/cart" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><CartPage /></Suspense></ProtectedRoute>} />
           <Route path="/checkout" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><CheckoutPage /></Suspense></ProtectedRoute>} />
-          <Route path="/orders" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><OrderListPage /></Suspense></ProtectedRoute>} />
+          {/* /orders & /wishlist gộp vào trang tài khoản dạng tab (redirect giữ link cũ chạy) */}
+          <Route path="/orders" element={<Navigate to="/profile?tab=orders" replace />} />
           <Route path="/orders/:id" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><OrderDetailPage /></Suspense></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><ProfilePage /></Suspense></ProtectedRoute>} />
-          <Route path="/wishlist" element={<ProtectedRoute><Suspense fallback={<RouteFallback />}><WishlistPage /></Suspense></ProtectedRoute>} />
+          <Route path="/wishlist" element={<Navigate to="/profile?tab=wishlist" replace />} />
           <Route path="/payment/result" element={<Suspense fallback={<RouteFallback />}><PaymentResultPage /></Suspense>} />
 
           {/* 404 */}
