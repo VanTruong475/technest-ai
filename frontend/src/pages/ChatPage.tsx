@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Send, Sparkles, Trash2, User as UserIcon, MessageSquareText,
-  Lightbulb,
+  Lightbulb, Bot, Square,
 } from "lucide-react";
-import { formatPrice } from "@/utils/format";
+import { formatPrice, formatTime } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -17,11 +17,12 @@ import type { AISearchResult, ChatMessage } from "@/types";
 
 const CHAT_STORAGE_KEY = "techsphere-chat-messages";
 
-const QUICK_PROMPTS = [
-  { icon: "💻", text: "Tư vấn laptop Dell cho học tập" },
-  { icon: "📱", text: "Điện thoại Apple chụp ảnh đẹp" },
-  { icon: "🎧", text: "Tai nghe chống ồn pin lâu" },
-  { icon: "💰", text: "Sản phẩm giá rẻ dưới 5 triệu" },
+// Chips gợi ý nhanh — chỉ hiện khi chat trống. Click → điền input + submit luôn.
+const QUICK_CHIPS = [
+  "Laptop gaming",
+  "Điện thoại dưới 10 triệu",
+  "Tai nghe không dây",
+  "Màn hình 4K",
 ];
 
 export default function ChatPage() {
@@ -42,6 +43,15 @@ export default function ChatPage() {
   const messagesRef = useRef(messages);
   const autoSendRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Textarea tự co giãn theo nội dung, tối đa ~4 dòng (112px) rồi scroll.
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = `${Math.min(ta.scrollHeight, 112)}px`;
+  }, [input]);
 
   // Mirror messages vào ref để handleSend (async, ngoài render) đọc context
   // mới nhất mà không cần thêm vào dependency.
@@ -89,7 +99,7 @@ export default function ChatPage() {
       content: m.content,
     }));
     // Thêm user message ngay lập tức (optimistic).
-    setMessages((prev) => [...prev, { role: "user", content: message }]);
+    setMessages((prev) => [...prev, { role: "user", content: message, createdAt: Date.now() }]);
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -106,7 +116,7 @@ export default function ChatPage() {
       committed = true;
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: acc, products, suggestions },
+        { role: "assistant", content: acc, products, suggestions, createdAt: Date.now() },
       ]);
     };
 
@@ -144,6 +154,21 @@ export default function ChatPage() {
       }
       if (abortRef.current === controller) abortRef.current = null;
     }
+  };
+
+  // Dừng stream giữa chừng (nút Stop). Giữ lại phần text đã nhận làm tin assistant.
+  // Khi abort: handleSend bỏ qua commit + bỏ qua reset state trong finally (guard
+  // `!signal.aborted`) → ở đây tự commit & reset, không lo double-commit.
+  const handleStop = () => {
+    abortRef.current?.abort();
+    if (streamingText) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: streamingText, products: [], suggestions: [], createdAt: Date.now() },
+      ]);
+    }
+    setStreamingText("");
+    setIsStreaming(false);
   };
 
   // Auto-send from URL param ?q=... (e.g. from HomePage suggestions)
@@ -216,18 +241,19 @@ export default function ChatPage() {
                 mình sẽ gợi ý từ kho hàng TechSphere.
               </p>
 
-              {/* Quick prompts với icon emoji */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-xl">
-                {QUICK_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt.text}
-                    className="group flex items-center gap-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-sm hover:-translate-y-0.5 transition-all px-4 py-3 text-left"
-                    onClick={() => handleSend(prompt.text)}
+              {/* Quick suggestion chips — outline, rounded-full. Click → điền + gửi luôn. */}
+              <div className="flex flex-wrap justify-center gap-2 max-w-xl">
+                {QUICK_CHIPS.map((chip) => (
+                  <Button
+                    key={chip}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full text-sm"
+                    onClick={() => { setInput(chip); handleSend(chip); }}
                   >
-                    <span className="text-xl shrink-0" aria-hidden="true">{prompt.icon}</span>
-                    <span className="text-sm font-medium leading-snug">{prompt.text}</span>
-                    <Send className="h-3.5 w-3.5 ml-auto shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </button>
+                    {chip}
+                  </Button>
                 ))}
               </div>
             </div>
@@ -242,7 +268,7 @@ export default function ChatPage() {
           {isStreaming && (
             <div className="flex items-end gap-2.5">
               <AssistantAvatar />
-              <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3 max-w-[85%]">
+              <div className="bg-muted text-foreground rounded-[18px] rounded-bl-[4px] px-4 py-3 max-w-[85%]">
                 {streamingText ? (
                   <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                     {streamingText}
@@ -266,26 +292,40 @@ export default function ChatPage() {
       {/* Input bar sticky bottom — floating với shadow */}
       <div className="shrink-0 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
         <div className="max-w-3xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 rounded-full border border-border bg-background pl-4 pr-1.5 py-1.5 shadow-sm focus-within:border-primary/40 focus-within:shadow-md transition-all">
-            <input
-              type="text"
+          <div className="flex items-end gap-2 rounded-3xl border border-border bg-background pl-4 pr-1.5 py-1.5 shadow-sm focus-within:border-primary/40 focus-within:shadow-md transition-all">
+            <textarea
+              ref={textareaRef}
+              rows={1}
               placeholder="Hỏi mình về sản phẩm bạn quan tâm…"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isStreaming}
-              className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
+              className="flex-1 bg-transparent border-0 outline-none resize-none text-sm leading-relaxed placeholder:text-muted-foreground disabled:opacity-50 max-h-28 overflow-y-auto py-1.5"
               aria-label="Câu hỏi cho AI Assistant"
             />
-            <Button
-              onClick={() => handleSend()}
-              disabled={!input.trim() || isStreaming}
-              size="icon"
-              className="h-9 w-9 rounded-full shrink-0"
-              aria-label="Gửi tin nhắn"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            {isStreaming ? (
+              <Button
+                onClick={handleStop}
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="h-9 w-9 rounded-full shrink-0"
+                aria-label="Dừng tạo câu trả lời"
+              >
+                <Square className="h-4 w-4 fill-current" />
+              </Button>
+            ) : (
+              <Button
+                onClick={() => handleSend()}
+                disabled={!input.trim()}
+                size="icon"
+                className="h-9 w-9 rounded-full shrink-0"
+                aria-label="Gửi tin nhắn"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
           </div>
           <p className="text-[10px] text-muted-foreground text-center mt-1.5 flex items-center justify-center gap-1.5">
             <Lightbulb className="h-3 w-3" aria-hidden="true" />
@@ -302,8 +342,8 @@ export default function ChatPage() {
 
 function AssistantAvatar() {
   return (
-    <div className="shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-sm">
-      <Sparkles className="h-4 w-4 text-primary-foreground" />
+    <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+      <Bot className="h-4 w-4 text-primary" />
     </div>
   );
 }
@@ -322,56 +362,71 @@ function MessageRow({ msg, onSuggestion }: { msg: ChatMessage; onSuggestion: (s:
     <div className={`flex items-end gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}>
       {isUser ? <UserAvatar /> : <AssistantAvatar />}
       <div className={`flex-1 min-w-0 ${isUser ? "flex flex-col items-end" : ""}`}>
-        {/* Bubble — corner radius khác bên user/assistant để có chat feel */}
+        {/* Bubble — radius 18px, góc nhọn 4px phía đuôi (user: dưới-phải, bot: dưới-trái) */}
         <div
-          className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
+          className={`max-w-[85%] rounded-[18px] px-4 py-2.5 ${
             isUser
-              ? "bg-primary text-primary-foreground rounded-br-sm"
-              : "bg-muted rounded-bl-sm"
+              ? "bg-primary text-primary-foreground rounded-br-[4px]"
+              : "bg-muted text-foreground rounded-bl-[4px]"
           }`}
         >
           <p className="text-sm no-underline whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
         </div>
 
-        {/* Products grid — 1 col mobile, 2 col từ md để compact hơn */}
+        {/* Timestamp HH:mm dưới bubble */}
+        {msg.createdAt && (
+          <span className="mt-1 px-1 text-xs text-muted-foreground">
+            {formatTime(msg.createdAt)}
+          </span>
+        )}
+
+        {/* Products — scroll ngang, card 160px, snap-x mandatory */}
         {!isUser && msg.products && msg.products.length > 0 && (
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
-            {msg.products.map((item) => (
-              <Link key={item.product.id} to={`/products/${item.product.id}`}>
-                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer relative overflow-hidden border-border/60 h-full">
-                  {item.product.sale_price && item.product.sale_price < item.product.price && (
-                    <SaleBadge price={item.product.price} salePrice={item.product.sale_price} />
-                  )}
-                  <CardContent className="flex items-center gap-3 py-3 px-3">
-                    <div className="w-14 h-14 bg-muted flex items-center justify-center rounded-lg shrink-0 overflow-hidden">
-                      {item.product.image_url ? (
-                        <OptimizedImage src={item.product.image_url} alt={item.product.name} width={56} height={56} className="w-full h-full object-cover" />
-                      ) : (
-                        <MessageSquareText className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm line-clamp-1">{item.product.name}</p>
-                      {item.product.sale_price ? (
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-sm font-bold text-destructive">{formatPrice(item.product.sale_price)}</span>
-                          <span className="text-xs text-muted-foreground line-through">{formatPrice(item.product.price)}</span>
-                        </div>
-                      ) : (
-                        <p className="text-sm font-bold mt-0.5">{formatPrice(item.product.price)}</p>
-                      )}
-                      {/* Lý do gợi ý từ AI */}
-                      {item.reason && (
-                        <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium max-w-full">
-                          <Sparkles className="h-2.5 w-2.5 shrink-0" />
-                          <span className="line-clamp-1">{item.reason}</span>
-                        </div>
-                      )}
-                    </div>
+          <div className="mt-3 -mx-1 flex gap-3 overflow-x-auto snap-x snap-mandatory px-1 pb-1 w-full max-w-2xl">
+            {msg.products.map((item) => {
+              const p = item.product;
+              const hasSale = p.sale_price != null && p.sale_price < p.price;
+              return (
+                <Card
+                  key={p.id}
+                  className="snap-start shrink-0 w-40 overflow-hidden border-border/60 hover:shadow-md transition-all"
+                >
+                  <Link to={`/products/${p.id}`} className="block relative aspect-square bg-muted overflow-hidden">
+                    {hasSale && <SaleBadge price={p.price} salePrice={p.sale_price!} />}
+                    {p.image_url ? (
+                      <OptimizedImage src={p.image_url} alt={p.name} width={160} height={160} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <MessageSquareText className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+                      </div>
+                    )}
+                  </Link>
+                  <CardContent className="p-2.5 space-y-1.5">
+                    <Link to={`/products/${p.id}`} className="block">
+                      <p className="font-medium text-xs leading-snug line-clamp-2 min-h-[2rem] hover:text-primary transition-colors">{p.name}</p>
+                    </Link>
+                    {hasSale ? (
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-destructive">{formatPrice(p.sale_price!)}</span>
+                        <span className="text-[10px] text-muted-foreground line-through">{formatPrice(p.price)}</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm font-bold text-primary">{formatPrice(p.price)}</span>
+                    )}
+                    {/* Lý do gợi ý từ AI (nếu có) */}
+                    {item.reason && (
+                      <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium max-w-full">
+                        <Sparkles className="h-2.5 w-2.5 shrink-0" />
+                        <span className="line-clamp-1">{item.reason}</span>
+                      </div>
+                    )}
+                    <Link to={`/products/${p.id}`} className="block">
+                      <Button variant="outline" size="sm" className="w-full h-7 text-xs rounded-lg">Xem</Button>
+                    </Link>
                   </CardContent>
                 </Card>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
 
