@@ -18,11 +18,19 @@ from app.schemas.admin import (
     AdminReviewsResponse,
     DashboardCharts,
     DashboardSummary,
+    DashboardTrends,
     RecentOrder,
     RevenueByDay,
     OrdersByStatus,
     TopProduct,
 )
+
+
+def _pct_change(current: float, previous: float) -> Optional[float]:
+    """% thay đổi current vs previous. None khi previous=0 (không có cơ sở so sánh)."""
+    if previous == 0:
+        return None
+    return round((current - previous) / previous * 100, 1)
 
 
 class AdminService:
@@ -40,6 +48,27 @@ class AdminService:
             out_of_stock_products=self.repo.count_out_of_stock_products(),
             total_reviews=self.repo.count_reviews(),
             average_rating=self.repo.average_rating(),
+        )
+
+        # Trend % tháng này vs tháng trước (so sánh phần phát sinh trong kỳ).
+        last_start, this_start, now = self.repo.month_bounds()
+        trends = DashboardTrends(
+            revenue=_pct_change(
+                self.repo.revenue_between(this_start, now),
+                self.repo.revenue_between(last_start, this_start),
+            ),
+            orders=_pct_change(
+                self.repo.count_orders_between(this_start, now),
+                self.repo.count_orders_between(last_start, this_start),
+            ),
+            users=_pct_change(
+                self.repo.count_users_between(this_start, now),
+                self.repo.count_users_between(last_start, this_start),
+            ),
+            products=_pct_change(
+                self.repo.count_products_between(this_start, now),
+                self.repo.count_products_between(last_start, this_start),
+            ),
         )
 
         charts = DashboardCharts(
@@ -62,6 +91,7 @@ class AdminService:
 
         return AdminDashboardResponse(
             summary=summary,
+            trends=trends,
             charts=charts,
             recent_orders=recent_orders,
             top_products=top_products,

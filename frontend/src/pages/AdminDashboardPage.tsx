@@ -71,8 +71,16 @@ interface RecentOrder {
   created_at: string;
 }
 
+interface DashboardTrends {
+  revenue: number | null;
+  orders: number | null;
+  users: number | null;
+  products: number | null;
+}
+
 interface DashboardData {
   summary: DashboardSummary;
+  trends?: DashboardTrends;
   charts: {
     revenue_by_day: RevenueByDay[];
     orders_by_status: OrdersByStatus[];
@@ -92,6 +100,44 @@ const PIE_COLORS: Record<string, string> = {
 function formatShortDate(dateStr: string) {
   const d = new Date(dateStr);
   return `${d.getDate()}/${d.getMonth() + 1}`;
+}
+
+/** Tooltip custom — dùng token theme (bg-popover) nên đúng cả light/dark,
+    thay tooltip mặc định của Recharts (nền trắng cố định, vỡ dark mode). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ChartTooltip({ active, payload, label, kind }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-popover text-popover-foreground border rounded-md p-2 shadow-md text-xs">
+      {kind === "revenue" ? (
+        <>
+          <p className="font-medium mb-1">Ngày {formatShortDate(String(label))}</p>
+          <p className="text-muted-foreground">
+            Doanh thu:{" "}
+            <span className="font-semibold text-foreground">
+              {formatPrice(Number(payload[0].value))}
+            </span>
+          </p>
+        </>
+      ) : (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        payload.map((entry: any, i: number) => {
+          const info = ORDER_STATUS_MAP[entry.name as string];
+          return (
+            <p key={i} className="flex items-center gap-1.5">
+              <span
+                className="h-2 w-2 rounded-full shrink-0"
+                style={{ background: entry.payload?.fill || entry.color }}
+                aria-hidden="true"
+              />
+              <span className="text-muted-foreground">{info?.label || entry.name}:</span>
+              <span className="font-semibold">{entry.value}</span>
+            </p>
+          );
+        })
+      )}
+    </div>
+  );
 }
 
 export default function AdminDashboardPage() {
@@ -131,7 +177,7 @@ export default function AdminDashboardPage() {
 
   if (!data) return null;
 
-  const { summary, charts, recent_orders, top_products } = data;
+  const { summary, trends, charts, recent_orders, top_products } = data;
 
   // Stats cards với color identity riêng cho mỗi metric. iconBg + ring +
   // gradient subtle. Critical metrics (Chờ xử lý/Sắp hết/Hết hàng) dùng tone
@@ -143,6 +189,7 @@ export default function AdminDashboardPage() {
       icon: DollarSign,
       iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       gradient: "from-emerald-500/5 to-transparent",
+      trend: trends?.revenue,
     },
     {
       label: "Tổng đơn hàng",
@@ -150,6 +197,7 @@ export default function AdminDashboardPage() {
       icon: ShoppingCart,
       iconBg: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
       gradient: "from-sky-500/5 to-transparent",
+      trend: trends?.orders,
     },
     {
       label: "Tổng người dùng",
@@ -157,6 +205,7 @@ export default function AdminDashboardPage() {
       icon: Users,
       iconBg: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
       gradient: "from-violet-500/5 to-transparent",
+      trend: trends?.users,
     },
     {
       label: "Tổng sản phẩm",
@@ -164,6 +213,7 @@ export default function AdminDashboardPage() {
       icon: Package,
       iconBg: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
       gradient: "from-indigo-500/5 to-transparent",
+      trend: trends?.products,
     },
     {
       label: "Chờ xử lý",
@@ -203,26 +253,36 @@ export default function AdminDashboardPage() {
 
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
-      {/* Stats Cards — color identity riêng + gradient subtle + hover lift */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      {/* Stats Cards — icon trái 48px (color identity riêng) | số liệu + trend phải */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {statsCards.map((card) => {
           const Icon = card.icon;
           return (
             <Card
               key={card.label}
-              className={`relative overflow-hidden bg-gradient-to-br ${card.gradient} hover:shadow-md hover:-translate-y-0.5 transition-all border-border/60`}
+              className={`relative overflow-hidden bg-gradient-to-br ${card.gradient} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all border-border/60`}
             >
               <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{card.label}</p>
-                    <p className="text-2xl font-bold mt-2 truncate">{card.value}</p>
-                    {card.hint && (
-                      <p className="text-xs text-muted-foreground mt-1">{card.hint}</p>
-                    )}
+                <div className="flex items-center gap-3">
+                  <div className={`h-12 w-12 rounded-lg flex items-center justify-center shrink-0 ${card.iconBg}`}>
+                    <Icon className="h-6 w-6" />
                   </div>
-                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
-                    <Icon className="h-5 w-5" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">{card.label}</p>
+                    <p className="text-2xl font-bold mt-0.5 truncate">{card.value}</p>
+                    {typeof card.trend === "number" ? (
+                      <p
+                        className={`text-xs font-medium mt-1 truncate ${
+                          card.trend >= 0
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {card.trend >= 0 ? "↑" : "↓"} {Math.abs(card.trend)}% so tháng trước
+                      </p>
+                    ) : card.hint ? (
+                      <p className="text-xs text-muted-foreground mt-1 truncate">{card.hint}</p>
+                    ) : null}
                   </div>
                 </div>
               </CardContent>
@@ -253,7 +313,7 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={charts.revenue_by_day}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis
@@ -266,10 +326,10 @@ export default function AdminDashboardPage() {
                     tick={{ fontSize: 12 }}
                   />
                   <Tooltip
-                    formatter={(value) => [formatPrice(Number(value)), "Doanh thu"]}
-                    labelFormatter={(label) => `Ngày: ${label}`}
+                    content={<ChartTooltip kind="revenue" />}
+                    cursor={{ fill: "var(--muted)", opacity: 0.5 }}
                   />
-                  <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -296,7 +356,7 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
                     data={charts.orders_by_status}
@@ -318,12 +378,7 @@ export default function AdminDashboardPage() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip
-                    formatter={(value, name) => {
-                      const info = ORDER_STATUS_MAP[name as string];
-                      return [value, info?.label || name];
-                    }}
-                  />
+                  <Tooltip content={<ChartTooltip kind="status" />} />
                   <Legend
                     formatter={(value: string) => {
                       const info = ORDER_STATUS_MAP[value];
@@ -346,9 +401,15 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="p-0">
             {top_products.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Chưa có dữ liệu bán hàng.
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4">
+                  <Package className="h-7 w-7" />
+                </div>
+                <p className="text-sm font-medium mb-0.5">Chưa có dữ liệu bán hàng</p>
+                <p className="text-xs text-muted-foreground max-w-xs">
+                  Sản phẩm bán chạy sẽ xuất hiện khi có đơn hàng được tạo.
+                </p>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -362,7 +423,7 @@ export default function AdminDashboardPage() {
                   </thead>
                   <tbody>
                     {top_products.map((p, i) => (
-                      <tr key={p.product_id} className="border-b hover:bg-muted/30">
+                      <tr key={p.product_id} className="border-b hover:bg-muted/50 transition-colors">
                         <td className="p-3 text-muted-foreground">{i + 1}</td>
                         <td className="p-3 font-medium">{p.product_name}</td>
                         <td className="p-3 text-right">{p.total_quantity}</td>
@@ -385,55 +446,69 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="p-0">
             {recent_orders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Chưa có đơn hàng nào.
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="border-b bg-muted/50">
-                      <th className="text-left p-3 font-medium">ID</th>
-                      <th className="text-left p-3 font-medium">Ngày</th>
-                      <th className="text-right p-3 font-medium">Tổng tiền</th>
-                      <th className="text-center p-3 font-medium">Trạng thái</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recent_orders.map((order) => {
-                      const statusInfo = ORDER_STATUS_MAP[order.status] || {
-                        label: order.status,
-                        color: "text-gray-600 bg-gray-50",
-                      };
-                      return (
-                        <tr key={order.id} className="border-b hover:bg-muted/30">
-                          <td className="p-3">
-                            <Link
-                              to={`/orders/${order.id}`}
-                              className="text-blue-600 hover:underline"
-                            >
-                              #{order.id}
-                            </Link>
-                          </td>
-                          <td className="p-3 text-muted-foreground">
-                            {formatDate(order.created_at)}
-                          </td>
-                          <td className="p-3 text-right font-medium">
-                            {formatPrice(order.total_amount)}
-                          </td>
-                          <td className="p-3 text-center">
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusInfo.color}`}
-                            >
-                              {statusInfo.label}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="h-14 w-14 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-4">
+                  <ShoppingCart className="h-7 w-7" />
+                </div>
+                <p className="text-sm font-medium mb-0.5">Chưa có đơn hàng nào</p>
+                <p className="text-xs text-muted-foreground max-w-xs">
+                  Đơn hàng mới nhất sẽ hiển thị tại đây.
+                </p>
               </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-3 font-medium">ID</th>
+                        <th className="text-left p-3 font-medium">Ngày</th>
+                        <th className="text-right p-3 font-medium">Tổng tiền</th>
+                        <th className="text-center p-3 font-medium">Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recent_orders.map((order) => {
+                        const statusInfo = ORDER_STATUS_MAP[order.status] || {
+                          label: order.status,
+                          color: "text-muted-foreground bg-muted",
+                        };
+                        return (
+                          <tr key={order.id} className="border-b hover:bg-muted/50 transition-colors">
+                            <td className="p-3">
+                              <Link
+                                to={`/orders/${order.id}`}
+                                className="text-primary hover:underline font-medium"
+                              >
+                                #{order.id}
+                              </Link>
+                            </td>
+                            <td className="p-3 text-muted-foreground">
+                              {formatDate(order.created_at)}
+                            </td>
+                            <td className="p-3 text-right font-medium">
+                              {formatPrice(order.total_amount)}
+                            </td>
+                            <td className="p-3 text-center">
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusInfo.color}`}
+                              >
+                                {statusInfo.label}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Xem tất cả → trang quản lý đơn hàng */}
+                <div className="border-t p-3 text-center">
+                  <Button asChild variant="ghost" size="sm" className="text-primary">
+                    <Link to="/admin/orders">Xem tất cả đơn hàng</Link>
+                  </Button>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

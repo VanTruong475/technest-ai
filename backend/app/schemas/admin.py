@@ -46,8 +46,17 @@ class DashboardCharts(BaseModel):
     orders_by_status: list[OrdersByStatus]
 
 
+class DashboardTrends(BaseModel):
+    """% thay đổi tháng này so với tháng trước. None khi tháng trước = 0 (không có cơ sở so sánh)."""
+    revenue: Optional[float] = None
+    orders: Optional[float] = None
+    users: Optional[float] = None
+    products: Optional[float] = None
+
+
 class AdminDashboardResponse(BaseModel):
     summary: DashboardSummary
+    trends: DashboardTrends
     charts: DashboardCharts
     recent_orders: list[RecentOrder]
     top_products: list[TopProduct]

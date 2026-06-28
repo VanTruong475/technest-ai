@@ -61,6 +61,44 @@ class AdminRepository:
         statement = select(func.coalesce(func.avg(Review.rating), 0))
         return round(float(self.session.exec(statement).one()), 2)
 
+    # ── Month-over-month (cho trend indicator dashboard) ──
+    @staticmethod
+    def month_bounds() -> tuple[datetime, datetime, datetime]:
+        """(đầu tháng trước, đầu tháng này, hiện tại) — UTC."""
+        now = datetime.now(timezone.utc)
+        this_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        last_start = (this_start - timedelta(days=1)).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        return last_start, this_start, now
+
+    def revenue_between(self, start: datetime, end: datetime) -> float:
+        statement = select(func.coalesce(func.sum(Order.total_amount), 0)).where(
+            Order.status != "CANCELLED",
+            Order.payment_status == "PAID",
+            Order.created_at >= start,
+            Order.created_at < end,
+        )
+        return float(self.session.exec(statement).one())
+
+    def count_orders_between(self, start: datetime, end: datetime) -> int:
+        statement = select(func.count()).select_from(Order).where(
+            Order.created_at >= start, Order.created_at < end
+        )
+        return self.session.exec(statement).one()
+
+    def count_users_between(self, start: datetime, end: datetime) -> int:
+        statement = select(func.count()).select_from(User).where(
+            User.created_at >= start, User.created_at < end
+        )
+        return self.session.exec(statement).one()
+
+    def count_products_between(self, start: datetime, end: datetime) -> int:
+        statement = select(func.count()).select_from(Product).where(
+            Product.created_at >= start, Product.created_at < end
+        )
+        return self.session.exec(statement).one()
+
     def revenue_by_day(self, days: int = 7) -> list[dict]:
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         statement = (
