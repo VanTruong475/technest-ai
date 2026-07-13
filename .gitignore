@@ -11,6 +11,7 @@ backend/__pycache__/
 backend/.env
 backend/*.pyc
 backend/.pytest_cache/
+backend/data/cloudinary_url_cache.json
 
 # Python
 __pycache__/
