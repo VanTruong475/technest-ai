@@ -34,10 +34,10 @@
 
 | Phase | Tên | Status | Commit | Ngày |
 |-------|-----|--------|--------|------|
-| 0 | Chốt pattern docs | ✅ done | (chưa commit) | 2026-07-13 |
-| 1 | Hero polish | ⬜ todo | — | — |
-| 2 | Categories bento | ⬜ todo | — | — |
-| 3 | Recommendations consistency | ⬜ todo | — | — |
+| 0 | Chốt pattern docs | ✅ done | `37f51bd` | 2026-07-13 |
+| 1 | Hero polish | ✅ done | `a50c92d` | 2026-07-13 |
+| 2 | Categories bento | ✅ done | `a50c92d` | 2026-07-13 |
+| 3 | Recommendations consistency | ✅ done | `a50c92d` | 2026-07-13 |
 | 4 | Flash Sale polish | ⬜ todo | — | — |
 | 5 | Featured + Trust | ⬜ todo | — | — |
 | 6 | Landing glue + a11y | ⬜ todo | — | — |
@@ -71,15 +71,15 @@
 **Mục tiêu:** first impression product-forward, copy sạch, mobile có product.  
 **Effort:** 1–2 ngày · **Risk:** thấp–trung · **Files chính:** `HomePage.tsx`, (optional) asset URL
 
-- [ ] H1: bỏ em-dash (`—` → `.` hoặc `-` / viết lại câu)
-- [ ] Subtext: ≤ ~20 từ; giữ bind `totalProducts`
-- [ ] Type scale: cân nhắc `text-4xl md:text-5xl lg:text-6xl` nếu vẫn ≤ 2 dòng desktop
-- [ ] Hero background: đổi sang product-forward shot (giữ overlay + ambient glow pattern UI_PATTERNS)
-- [ ] Desktop showcase (`xl:`): giữ absolute zero-shift; polish hover/depth nếu cần
-- [ ] Mobile/tablet: mini product card dưới CTA (không chỉ stock bg)
-- [ ] Loading/empty hero product: skeleton hoặc ẩn an toàn (đã có — verify sau đổi)
-- [ ] Test light/dark + iOS `dvh` + CTA focus-ring
-- [ ] `npm run build` pass
+- [x] H1: bỏ em-dash (`—` → `.` hoặc `-` / viết lại câu)
+- [x] Subtext: ≤ ~20 từ; giữ bind `totalProducts`
+- [x] Type scale: cân nhắc `text-4xl md:text-5xl lg:text-6xl` nếu vẫn ≤ 2 dòng desktop
+- [x] Hero background: đổi sang product-forward shot (giữ overlay + ambient glow pattern UI_PATTERNS)
+- [x] Desktop showcase (`xl:`): giữ absolute zero-shift; polish hover/depth nếu cần
+- [x] Mobile/tablet: mini product card dưới CTA (không chỉ stock bg)
+- [x] Loading/empty hero product: skeleton hoặc ẩn an toàn (đã có — verify sau đổi)
+- [x] Test light/dark + iOS `dvh` + CTA focus-ring
+- [x] `npm run build` pass
 
 **Done khi:** phone + desktop đều thấy product thật trong hero; copy không em-dash; CTA visible above fold.
 
@@ -92,13 +92,13 @@
 **Mục tiêu:** phá equal grid 5 ô đều tay.  
 **Effort:** ~1 ngày · **Risk:** trung · **Files chính:** `HomePage.tsx`
 
-- [ ] Desktop: bento 1 large + 4 small **hoặc** 2+3 (N items → N cells, không ô trống)
-- [ ] Mobile `< md`: 2 cột đều, rõ ràng
-- [ ] Ảnh category + hover scale; semantic tokens only
-- [ ] Header giữ flag bar (đã chốt)
-- [ ] Test light/dark + 0 / 1 / 5 categories edge
-- [ ] `npm run build` pass
-- [ ] Cập nhật UI_PATTERNS nếu pattern bento chốt khác docs Phase 0
+- [x] Desktop: bento 1 large + 4 small **hoặc** 2+3 (N items → N cells, không ô trống)
+- [x] Mobile `< md`: 2 cột đều, rõ ràng
+- [x] Ảnh category + hover scale; semantic tokens only
+- [x] Header giữ flag bar (đã chốt)
+- [x] Test light/dark + 0 / 1 / 5 categories edge
+- [x] `npm run build` pass
+- [x] Cập nhật UI_PATTERNS nếu pattern bento chốt khác docs Phase 0
 
 **Done khi:** section không còn “5 tile catalog đều”; mobile không gãy.
 
@@ -111,13 +111,13 @@
 **Mục tiêu:** card đồng bộ ProductCard; bớt dead UI; giảm lặp CTA.  
 **Effort:** ~1 ngày · **Risk:** thấp · **Files chính:** `HomePage.tsx`
 
-- [ ] Card image: `aspect-square` → `aspect-[4/3]`
-- [ ] Wishlist hover button: **wire** (API wishlist) **hoặc remove** (không để dead control)
-- [ ] Icon “xem chi tiết”: không dùng `ShoppingCart` (đổi `ArrowUpRight` / tương đương lucide)
-- [ ] “Xem tất cả”: bỏ hoặc đổi wording (giảm lặp với Featured)
-- [ ] Giữ: reason chip, quick-buy Button + pending disable, motion stagger
-- [ ] Test quick-buy auth/unauth + loading skeleton
-- [ ] `npm run build` pass
+- [x] Card image: `aspect-square` → `aspect-[4/3]`
+- [x] Wishlist hover button: **wire** (API wishlist) **hoặc remove** (không để dead control)
+- [x] Icon “xem chi tiết”: không dùng `ShoppingCart` (đổi `ArrowUpRight` / tương đương lucide)
+- [x] “Xem tất cả”: bỏ hoặc đổi wording (giảm lặp với Featured)
+- [x] Giữ: reason chip, quick-buy Button + pending disable, motion stagger
+- [x] Test quick-buy auth/unauth + loading skeleton
+- [x] `npm run build` pass
 
 **Done khi:** Recs trông cùng “họ” với Featured; không dead button; icon semantics đúng.
 
@@ -232,13 +232,14 @@ Không làm lại trừ regression:
 | Ngày | Phase | Việc | Commit | Ghi chú |
 |------|-------|------|--------|---------|
 | 2026-07-13 | — | Tạo file task control + audit taste skill | — | — |
-| 2026-07-13 | 0 | Chốt pattern vào UI_PATTERNS + tick Phase 0 | (chưa commit) | Sẵn Phase 1 |
+| 2026-07-13 | 0 | Chốt pattern vào UI_PATTERNS + tick Phase 0 | `37f51bd` | Sẵn Phase 1 |
+| 2026-07-13 | 1–3 | Hero + Categories bento + Recs (1 commit code) | `a50c92d` | build pass |
 | | | | | |
 
 ---
 
 ## Next action
 
-**Recommend:** Phase 1 — Hero polish (copy, type scale, product-forward bg, mobile mini card).
+**Recommend:** Phase 4 — Flash Sale polish (hoặc commit Phase 1–3 trước).
 
 Khi bắt đầu phase: đổi status bảng tiến độ → 🔄, tick task con khi xong, ghi commit vào log.
