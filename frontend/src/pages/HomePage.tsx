@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import { ProductGridSkeleton } from "@/components/common/Skeleton";
+import HeartButton from "@/components/common/HeartButton";
 import { useCountdown } from "@/hooks/useCountdown";
 import { formatPrice } from "@/utils/format";
 import {
-  Sparkles, Zap, ArrowRight, ShoppingCart, Heart, MessageCircle,
+  Sparkles, Zap, ArrowRight, ArrowUpRight, MessageCircle,
   Smartphone, ShieldCheck, Truck, RotateCcw, CreditCard, Star,
 } from "lucide-react";
 import type { Product, Brand, Category } from "@/types";
@@ -108,34 +109,35 @@ export default function HomePage() {
           (b.review_count ?? 0) - (a.review_count ?? 0)
       )[0] ?? null;
 
+  // Categories bento: max 5 active; ≥3 → 1 large + rest, <3 → equal grid (không ô trống)
+  const activeCategories = categories
+    .filter((c) => c.is_active !== false)
+    .slice(0, 5);
+  const useCategoryBento = activeCategories.length >= 3;
+
   return (
     <div className="min-h-screen mt-32">
       {/* ═══════════════════════════════════════════════════════
           HERO SECTION
           ═══════════════════════════════════════════════════════ */}
       <section className="relative min-h-[calc(100dvh-128px)] flex items-center overflow-hidden">
-        {/* Background image — bg-muted giữ chỗ tránh CLS khi ảnh tải chậm,
-            aspect-ratio cố định 16/9 khớp khung hero */}
-        <div className="absolute inset-0 z-0 bg-muted aspect-[16/9]">
+        {/* Background — product-forward shot + overlay legibility + ambient glow (UI_PATTERNS) */}
+        <div className="absolute inset-0 z-0 bg-muted">
           <OptimizedImage
-            src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1920&q=80"
-            alt="Laptop và thiết bị công nghệ trên bàn làm việc"
+            src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1920&q=80"
+            alt="MacBook và thiết bị công nghệ trên bàn làm việc tối giản"
             width={1920}
             height={1080}
             className="w-full h-full object-cover"
             priority
           />
-          {/* Overlay legibility 2 lớp: ngang cho desktop + dọc cho mobile → chữ rõ trên cả light/dark */}
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent md:hidden" />
-          {/* Ambient glow tinted primary (B5) — phá gradient tuyến tính đều tay, thêm chiều sâu ở vùng phải trống; không đè lên chữ */}
           <div className="pointer-events-none absolute right-0 top-0 h-[32rem] w-[32rem] translate-x-1/4 -translate-y-1/4 rounded-full bg-primary/15 blur-[140px]" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 lg:px-8 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 lg:px-8 w-full py-10 md:py-12">
           <div className="max-w-2xl">
-            {/* Nhãn AI (B1) — bỏ pill + Sparkles cliché + uppercase; dùng flag bar accent
-                (đồng bộ motif border-l primary ở section "Sản phẩm nổi bật" bên dưới) */}
             <div className="inline-flex items-center gap-2.5 mb-6">
               <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
               <span className="text-sm font-medium tracking-wide text-foreground/80">
@@ -143,12 +145,12 @@ export default function HomePage() {
               </span>
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.15] mb-6 text-balance">
-              Laptop, điện thoại và phụ kiện — chọn đúng ngay từ đầu.
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-5 text-balance">
+              Laptop, điện thoại, phụ kiện. Chọn đúng ngay từ đầu.
             </h1>
 
-            <p className="text-lg text-muted-foreground mb-10 max-w-lg leading-relaxed text-pretty">
-              Mô tả nhu cầu và ngân sách của bạn, AI sẽ gợi ý sản phẩm phù hợp nhất từ{" "}
+            <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-lg leading-relaxed text-pretty">
+              Nói nhu cầu và ngân sách, AI gợi ý từ{" "}
               {totalProducts ? `${totalProducts} sản phẩm` : "hàng trăm sản phẩm"} chính hãng.
             </p>
 
@@ -167,15 +169,67 @@ export default function HomePage() {
                 <Link to="/chat">Tư vấn AI</Link>
               </Button>
             </div>
+
+            {/* Mobile/tablet product card — in-flow dưới CTA, không absolute (UI_PATTERNS Phase 1) */}
+            <div className="xl:hidden mt-8 max-w-sm">
+              {isLoading ? (
+                <div className="flex gap-3 rounded-2xl border border-border/60 bg-card/95 p-3 shadow-lg backdrop-blur-sm">
+                  <div className="aspect-[4/3] w-28 shrink-0 animate-pulse rounded-xl bg-muted" />
+                  <div className="flex flex-1 flex-col justify-center gap-2 py-1">
+                    <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                    <div className="h-5 w-24 animate-pulse rounded bg-muted" />
+                  </div>
+                </div>
+              ) : heroProduct ? (
+                <Link
+                  to={`/products/${heroProduct.id}`}
+                  className="group flex gap-3 rounded-2xl border border-border/60 bg-card/95 p-3 shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-md"
+                >
+                  <div className="aspect-[4/3] w-28 shrink-0 overflow-hidden rounded-xl bg-muted">
+                    <OptimizedImage
+                      src={heroProduct.image_url!}
+                      alt={heroProduct.name}
+                      width={160}
+                      height={120}
+                      className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1 py-0.5">
+                    <div className="mb-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+                      <Sparkles className="h-3 w-3 shrink-0" />
+                      Đề xuất bởi AI
+                    </div>
+                    <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+                      {heroProduct.name}
+                    </h3>
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                      {heroProduct.sale_price != null && heroProduct.sale_price < heroProduct.price ? (
+                        <>
+                          <span className="text-base font-bold text-primary">
+                            {formatPrice(heroProduct.sale_price)}
+                          </span>
+                          <span className="text-xs text-muted-foreground line-through">
+                            {formatPrice(heroProduct.price)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-base font-bold text-primary">
+                          {formatPrice(heroProduct.price)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ) : null}
+            </div>
           </div>
 
-          {/* HERO PRODUCT SHOWCASE (B6-a) — absolute nên KHÔNG đẩy khối text (zero layout shift
-              dù loading/empty). Chỉ hiện ≥xl; mobile/tablet giữ nguyên. */}
+          {/* Desktop showcase — absolute zero layout shift; chỉ ≥xl */}
           <div className="hidden xl:block absolute right-8 top-1/2 w-[300px] -translate-y-1/2">
             {isLoading ? (
-              /* Skeleton cùng khung → data về swap tại chỗ, không giật */
               <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-2xl shadow-primary/10">
-                <div className="aspect-square w-full animate-pulse rounded-2xl bg-muted" />
+                <div className="aspect-[4/3] w-full animate-pulse rounded-2xl bg-muted" />
                 <div className="mt-4 space-y-3">
                   <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
                   <div className="h-3 w-20 animate-pulse rounded bg-muted" />
@@ -187,18 +241,17 @@ export default function HomePage() {
                 to={`/products/${heroProduct.id}`}
                 className="group relative block -rotate-1 rounded-3xl border border-border/60 bg-card p-5 shadow-2xl shadow-primary/10 transition-all duration-300 hover:rotate-0 hover:shadow-primary/20"
               >
-                {/* Badge nổi lệch góc — tạo layering depth + nối mạch value-prop AI */}
                 <div className="absolute -right-3 -top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/30">
                   <Sparkles className="h-3.5 w-3.5" />
                   Đề xuất bởi AI
                 </div>
 
-                <div className="aspect-square w-full overflow-hidden rounded-2xl bg-muted">
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-muted">
                   <OptimizedImage
                     src={heroProduct.image_url!}
                     alt={heroProduct.name}
                     width={400}
-                    height={400}
+                    height={300}
                     className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
@@ -334,21 +387,17 @@ export default function HomePage() {
           PRODUCT RECOMMENDATIONS
           ═══════════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2.5">
-            <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
-            <h2 className="font-semibold text-xl md:text-2xl">Gợi ý riêng cho bạn</h2>
-          </div>
-          <Link to="/products" className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
-            Xem tất cả <ArrowRight className="h-4 w-4" />
-          </Link>
+        {/* Không “Xem tất cả” — primary browse CTA giữ ở Featured (UI_PATTERNS max 1–2) */}
+        <div className="flex items-center gap-2.5 mb-8">
+          <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
+          <h2 className="font-semibold text-xl md:text-2xl">Gợi ý riêng cho bạn</h2>
         </div>
 
         {recommendLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="bg-card rounded-2xl border border-border/60 overflow-hidden animate-pulse">
-                <div className="aspect-square bg-muted" />
+                <div className="aspect-[4/3] bg-muted" />
                 <div className="p-5 space-y-3">
                   <div className="h-3 w-20 bg-muted rounded" />
                   <div className="h-4 w-full bg-muted rounded" />
@@ -370,14 +419,14 @@ export default function HomePage() {
               const hasSale = product.sale_price != null && product.sale_price < product.price;
               return (
                 <motion.div key={product.id} variants={fadeUp} className="bg-card rounded-2xl overflow-hidden border border-border/60 hover:shadow-2xl transition-all duration-500 group flex flex-col h-full">
-                  {/* Image */}
-                  <div className="relative aspect-square">
+                  {/* Image — aspect 4/3 khớp ProductCard */}
+                  <div className="relative aspect-[4/3]">
                     {product.image_url ? (
                       <OptimizedImage
                         src={product.image_url}
                         alt={product.name}
                         width={400}
-                        height={400}
+                        height={300}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                     ) : (
@@ -396,20 +445,15 @@ export default function HomePage() {
                       )}
                     </div>
 
-                    {/* Wishlist */}
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      aria-label="Thêm vào danh sách yêu thích"
-                      className="absolute bottom-3 right-3 bg-card/90 backdrop-blur text-primary rounded-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all shadow-lg hover:bg-card"
-                    >
-                      <Heart className="h-4 w-4" />
-                    </Button>
+                    {/* Wishlist — HeartButton wire API (không dead control) */}
+                    <HeartButton
+                      productId={product.id}
+                      className="absolute bottom-3 right-3 h-9 w-9 bg-card/90 backdrop-blur text-primary rounded-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all shadow-lg hover:bg-card"
+                    />
                   </div>
 
                   {/* Content */}
                   <div className="p-5 flex flex-col flex-1">
-                    {/* Lý do gợi ý từ AI */}
                     {reason && (
                       <div className="inline-flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-medium">
                         <Sparkles className="h-3 w-3 shrink-0" />
@@ -422,7 +466,6 @@ export default function HomePage() {
                     </h3>
 
                     <div className="mt-auto">
-                      {/* Price */}
                       <div className="flex flex-col mb-4">
                         <span className="text-xl font-bold text-primary">
                           {formatPrice(hasSale ? product.sale_price! : product.price)}
@@ -434,7 +477,6 @@ export default function HomePage() {
                         )}
                       </div>
 
-                      {/* Action buttons */}
                       <div className="grid grid-cols-5 gap-2">
                         <Button
                           onClick={(e) => handleQuickBuy(e, product.id)}
@@ -451,7 +493,7 @@ export default function HomePage() {
                           className="col-span-1 rounded-xl hover:border-primary hover:text-primary"
                         >
                           <Link to={`/products/${product.id}`}>
-                            <ShoppingCart className="h-4 w-4" />
+                            <ArrowUpRight className="h-4 w-4" />
                           </Link>
                         </Button>
                       </div>
@@ -465,37 +507,70 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          CATEGORIES
+          CATEGORIES — bento: 1 large + N small (md+); 2-col equal (< md)
           ═══════════════════════════════════════════════════════ */}
-      {categories.length > 0 && (
+      {activeCategories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
           <div className="flex items-center gap-2.5 mb-8">
             <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
             <h2 className="font-semibold text-xl md:text-2xl">Danh mục hàng đầu</h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {categories.filter((c) => c.is_active !== false).slice(0, 5).map((cat) => {
+          <div
+            className={
+              useCategoryBento
+                ? "grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 md:auto-rows-[minmax(140px,auto)]"
+                : "grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4"
+            }
+          >
+            {activeCategories.map((cat, i) => {
               const img = CATEGORY_IMAGES[cat.slug] || CATEGORY_IMAGES.default;
+              const isFeatured = useCategoryBento && i === 0;
+
               return (
                 <Link
                   key={cat.id}
                   to={`/products?category_id=${cat.id}`}
-                  className="group flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 text-center hover:bg-muted transition-colors"
+                  className={
+                    isFeatured
+                      ? "group relative col-span-2 row-span-1 md:row-span-2 min-h-[180px] overflow-hidden rounded-2xl border border-border/60 bg-card md:min-h-0"
+                      : "group relative overflow-hidden rounded-2xl border border-border/60 bg-card"
+                  }
                 >
-                  {/* Thumbnail đại diện danh mục */}
-                  <div className="aspect-square w-full overflow-hidden rounded-xl bg-muted">
+                  <div
+                    className={
+                      isFeatured
+                        ? "absolute inset-0 bg-muted"
+                        : "aspect-[4/3] w-full bg-muted"
+                    }
+                  >
                     <OptimizedImage
                       src={img}
                       alt={cat.name}
-                      width={300}
-                      height={300}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      width={isFeatured ? 800 : 400}
+                      height={isFeatured ? 600 : 300}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-foreground line-clamp-1">{cat.name}</h3>
-                    <span className="text-[11px] text-muted-foreground flex items-center justify-center gap-1 group-hover:gap-1.5 transition-all">
+
+                  <div
+                    className={
+                      isFeatured
+                        ? "absolute inset-x-0 bottom-0 p-4 md:p-6"
+                        : "absolute inset-x-0 bottom-0 p-3"
+                    }
+                  >
+                    <h3
+                      className={
+                        isFeatured
+                          ? "text-lg md:text-xl font-semibold text-foreground line-clamp-1"
+                          : "text-sm font-semibold text-foreground line-clamp-1"
+                      }
+                    >
+                      {cat.name}
+                    </h3>
+                    <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-all group-hover:gap-1.5 group-hover:text-primary">
                       Khám phá <ArrowRight className="h-3 w-3" />
                     </span>
                   </div>
