@@ -28,10 +28,10 @@
 | 1 | Shared ProductCard tokens | P0 | ✅ | `a4a675f` | 2026-07-13 |
 | 2 | Cart — sale token + Button | P0 | ✅ | `743750d` | 2026-07-13 |
 | 3 | Checkout — empty Button asChild | P0 | ✅ | `63f2df1` | 2026-07-13 |
-| 4 | Sale / success token sweep | P1 | ✅ | (chưa commit) | 2026-07-13 |
-| 5 | Chat product cards + residual | P1 | ✅ | (chưa commit) | 2026-07-13 |
-| 6 | ProductList / Search buttons | P1 | ✅ | (chưa commit) | 2026-07-13 |
-| 7 | ProductDetail residual | P1 | ✅ | (chưa commit) | 2026-07-13 |
+| 4 | Sale / success token sweep | P1 | ✅ | `12db750` | 2026-07-13 |
+| 5 | Chat product cards + residual | P1 | ✅ | `12db750` | 2026-07-13 |
+| 6 | ProductList / Search buttons | P1 | ✅ | `1fa80de` | 2026-07-13 |
+| 7 | ProductDetail residual | P1 | ✅ | `1fa80de` | 2026-07-13 |
 | 8 | Account / OrderDetail tokens | P2 | ⬜ | — | — |
 | 9 | Blog list/detail buttons | P2 | ⬜ | — | — |
 | 10 | Admin status badges | P3 | ⬜ | — | — |
@@ -392,15 +392,17 @@ Checklist:
 | 2026-07-13 | 1 | ProductCard: success stock + muted hết hàng; thêm cách test từng wave | (chưa commit) | build pass |
 | 2026-07-13 | 2 | Cart: text-sale + Button qty/xóa + text-success phí ship | (chưa commit) | build pass |
 | 2026-07-13 | 3 | Checkout error CTAs Button asChild; empty giỏ vẫn redirect /cart | `63f2df1` | build pass |
-| 2026-07-13 | 4–7 | Token sweep + Chat 4/3 + List chips + Gallery Button | (chưa commit) | build pass |
+| 2026-07-13 | 4–5 | Token sale/success + Chat 4/3 | `12db750` | build pass |
+| 2026-07-13 | 6–7 | List chips + Gallery Button | `1fa80de` | build pass |
+| 2026-07-13 | docs | tick P1 | `e842f2c` | — |
 | | | | | |
 
 ---
 
 ## Next action
 
-**P0 committed. P1 Wave 4–7 code done (chưa commit).**  
-Recommend: commit P1 → Wave 8 Account (P2) hoặc dừng.
+**P0 + P1 (Wave 1–7) committed.**  
+Recommend: **Wave 8** Account/OrderDetail (P2) · hoặc push + nghỉ.
 
 Home: **không** mở task UI mới trừ bug (Wave 0).
 
