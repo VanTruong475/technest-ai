@@ -14,8 +14,8 @@ import { ProductGridSkeleton } from "@/components/common/Skeleton";
 import { useCountdown } from "@/hooks/useCountdown";
 import { formatPrice } from "@/utils/format";
 import {
-  Sparkles, Zap, ArrowRight, ShoppingCart, Heart,
-  Smartphone, ShieldCheck, Truck, RotateCcw, CreditCard, Brain,
+  Sparkles, Zap, ArrowRight, ShoppingCart, Heart, MessageCircle,
+  Smartphone, ShieldCheck, Truck, RotateCcw, CreditCard, Star,
 } from "lucide-react";
 import type { Product, Brand, Category } from "@/types";
 
@@ -72,7 +72,7 @@ export default function HomePage() {
     staleTime: 60_000,
   });
 
-  const { data: flashSaleData } = useQuery<{ items: Product[] }>({
+  const { data: flashSaleData } = useQuery<{ items: Product[]; total?: number }>({
     queryKey: ["home-flash-sale"],
     queryFn: async () => {
       const res = await axiosClient.get("/api/products", { params: { page: 1, limit: 20 } });
@@ -94,56 +94,149 @@ export default function HomePage() {
     (p) => p.sale_price && p.sale_price < p.price
   );
 
+  // Tổng sản phẩm thật (bind động từ /api/products) — fallback an toàn khi chưa load.
+  const totalProducts = flashSaleData?.total;
+
+  // Sản phẩm showcase cho hero (B6-a): loại ảnh vỡ + hết hàng, chọn rating cao nhất
+  // (tie-break theo số review). null khi rỗng/lỗi → card tự ẩn, không hiện lỗi.
+  const heroProduct =
+    products
+      .filter((p) => p.image_url && p.stock > 0)
+      .sort(
+        (a, b) =>
+          (b.average_rating ?? 0) - (a.average_rating ?? 0) ||
+          (b.review_count ?? 0) - (a.review_count ?? 0)
+      )[0] ?? null;
+
   return (
     <div className="min-h-screen mt-32">
       {/* ═══════════════════════════════════════════════════════
           HERO SECTION
           ═══════════════════════════════════════════════════════ */}
-      <section className="relative h-[calc(100vh-128px)] flex items-center overflow-hidden">
+      <section className="relative min-h-[calc(100dvh-128px)] flex items-center overflow-hidden">
         {/* Background image — bg-muted giữ chỗ tránh CLS khi ảnh tải chậm,
             aspect-ratio cố định 16/9 khớp khung hero */}
         <div className="absolute inset-0 z-0 bg-muted aspect-[16/9]">
           <OptimizedImage
             src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1920&q=80"
-            alt="Công nghệ"
+            alt="Laptop và thiết bị công nghệ trên bàn làm việc"
             width={1920}
             height={1080}
             className="w-full h-full object-cover"
             priority
           />
-          {/* Overlay 2 lớp: ngang cho desktop + dọc cho mobile → chữ rõ trên cả light/dark */}
+          {/* Overlay legibility 2 lớp: ngang cho desktop + dọc cho mobile → chữ rõ trên cả light/dark */}
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent md:hidden" />
+          {/* Ambient glow tinted primary (B5) — phá gradient tuyến tính đều tay, thêm chiều sâu ở vùng phải trống; không đè lên chữ */}
+          <div className="pointer-events-none absolute right-0 top-0 h-[32rem] w-[32rem] translate-x-1/4 -translate-y-1/4 rounded-full bg-primary/15 blur-[140px]" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 lg:px-8 w-full">
           <div className="max-w-2xl">
-            {/* AI badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
-              <Sparkles className="h-[18px] w-[18px] text-primary fill-primary" />
-              <span className="text-primary text-xs font-bold uppercase tracking-wider">Kỷ nguyên mua sắm AI Precision</span>
+            {/* Nhãn AI (B1) — bỏ pill + Sparkles cliché + uppercase; dùng flag bar accent
+                (đồng bộ motif border-l primary ở section "Sản phẩm nổi bật" bên dưới) */}
+            <div className="inline-flex items-center gap-2.5 mb-6">
+              <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
+              <span className="text-sm font-medium tracking-wide text-foreground/80">
+                Gợi ý cá nhân hoá bằng AI
+              </span>
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.15] mb-6">
-              Công nghệ tối tân.<br />Trải nghiệm thông minh.
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.15] mb-6 text-balance">
+              Laptop, điện thoại và phụ kiện — chọn đúng ngay từ đầu.
             </h1>
 
-            <p className="text-lg text-muted-foreground mb-10 max-w-lg leading-relaxed">
-              Khám phá danh mục thiết bị công nghệ hàng đầu được tuyển chọn bởi AI dành riêng cho nhu cầu của bạn.
+            <p className="text-lg text-muted-foreground mb-10 max-w-lg leading-relaxed text-pretty">
+              Mô tả nhu cầu và ngân sách của bạn, AI sẽ gợi ý sản phẩm phù hợp nhất từ{" "}
+              {totalProducts ? `${totalProducts} sản phẩm` : "hàng trăm sản phẩm"} chính hãng.
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <Link to="/products">
-                <button className="bg-primary text-primary-foreground px-10 py-4 rounded-2xl text-sm font-semibold hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 active:scale-95">
-                  Mua sắm ngay
-                </button>
-              </Link>
-              <Link to="/chat">
-                <button className="bg-card text-primary border border-primary/20 px-10 py-4 rounded-2xl text-sm font-semibold hover:bg-muted transition-all">
-                  Tư vấn AI
-                </button>
-              </Link>
+              <Button
+                asChild
+                className="h-auto rounded-2xl px-10 py-4 text-sm font-semibold shadow-xl shadow-primary/30 transition-all duration-200 active:scale-95"
+              >
+                <Link to="/products">Mua sắm ngay</Link>
+              </Button>
+              <Button
+                asChild
+                variant="ghost"
+                className="h-auto rounded-2xl border border-primary/20 bg-card px-10 py-4 text-sm font-semibold text-primary transition-all duration-200 hover:bg-muted hover:text-primary"
+              >
+                <Link to="/chat">Tư vấn AI</Link>
+              </Button>
             </div>
+          </div>
+
+          {/* HERO PRODUCT SHOWCASE (B6-a) — absolute nên KHÔNG đẩy khối text (zero layout shift
+              dù loading/empty). Chỉ hiện ≥xl; mobile/tablet giữ nguyên. */}
+          <div className="hidden xl:block absolute right-8 top-1/2 w-[300px] -translate-y-1/2">
+            {isLoading ? (
+              /* Skeleton cùng khung → data về swap tại chỗ, không giật */
+              <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-2xl shadow-primary/10">
+                <div className="aspect-square w-full animate-pulse rounded-2xl bg-muted" />
+                <div className="mt-4 space-y-3">
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                  <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                  <div className="h-6 w-28 animate-pulse rounded bg-muted" />
+                </div>
+              </div>
+            ) : heroProduct ? (
+              <Link
+                to={`/products/${heroProduct.id}`}
+                className="group relative block -rotate-1 rounded-3xl border border-border/60 bg-card p-5 shadow-2xl shadow-primary/10 transition-all duration-300 hover:rotate-0 hover:shadow-primary/20"
+              >
+                {/* Badge nổi lệch góc — tạo layering depth + nối mạch value-prop AI */}
+                <div className="absolute -right-3 -top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/30">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Đề xuất bởi AI
+                </div>
+
+                <div className="aspect-square w-full overflow-hidden rounded-2xl bg-muted">
+                  <OptimizedImage
+                    src={heroProduct.image_url!}
+                    alt={heroProduct.name}
+                    width={400}
+                    height={400}
+                    className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <h3 className="line-clamp-1 font-semibold text-foreground">{heroProduct.name}</h3>
+
+                  {heroProduct.average_rating != null && heroProduct.average_rating > 0 && (
+                    <div className="mt-1.5 flex items-center gap-1 text-sm">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <span className="font-medium text-foreground">
+                        {heroProduct.average_rating.toFixed(1)}
+                      </span>
+                      {heroProduct.review_count ? (
+                        <span className="text-muted-foreground">({heroProduct.review_count})</span>
+                      ) : null}
+                    </div>
+                  )}
+
+                  <div className="mt-3 flex items-baseline gap-2">
+                    {heroProduct.sale_price != null && heroProduct.sale_price < heroProduct.price ? (
+                      <>
+                        <span className="text-xl font-bold text-primary">
+                          {formatPrice(heroProduct.sale_price)}
+                        </span>
+                        <span className="text-sm text-muted-foreground line-through">
+                          {formatPrice(heroProduct.price)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xl font-bold text-primary">
+                        {formatPrice(heroProduct.price)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ) : null}
           </div>
         </div>
       </section>
@@ -153,26 +246,26 @@ export default function HomePage() {
           ═══════════════════════════════════════════════════════ */}
       {flashSaleProducts.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
-          <div className="bg-[#ba1a1a] rounded-[2rem] p-6 md:p-8 shadow-2xl">
+          <div className="bg-sale rounded-[2rem] p-6 md:p-8 shadow-2xl">
             {/* Header */}
             <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
               <div className="flex items-center gap-4 flex-wrap justify-center md:justify-start">
-                <h2 className="text-white text-3xl md:text-4xl font-bold italic flex items-center gap-3 uppercase">
+                <h2 className="text-sale-foreground text-3xl md:text-4xl font-bold italic flex items-center gap-3 uppercase">
                   <Zap className="h-8 w-8 fill-current" />
                   Flash Sale
                 </h2>
                 <div className="flex items-center gap-2 ml-4">
-                  <span className="text-white/80 text-xs uppercase">Kết thúc sau:</span>
+                  <span className="text-sale-foreground/80 text-xs uppercase">Kết thúc sau:</span>
                   <div className="flex gap-1.5">
                     {countdown.display.split(":").map((part, i) => (
-                      <span key={i} className="bg-red-900/60 text-white px-2 py-1 rounded font-bold text-sm tabular-nums">
+                      <span key={i} className="bg-black/20 text-sale-foreground px-2 py-1 rounded font-bold text-sm tabular-nums">
                         {part}
                       </span>
                     ))}
                   </div>
                 </div>
               </div>
-              <Link to="/products" className="text-white font-bold text-xs flex items-center gap-2 hover:underline">
+              <Link to="/products" className="text-sale-foreground font-bold text-xs flex items-center gap-2 hover:underline">
                 Xem tất cả <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -183,13 +276,12 @@ export default function HomePage() {
                 const discount = product.sale_price
                   ? Math.round((1 - product.sale_price / product.price) * 100)
                   : 0;
-                const soldPercent = product.stock > 0 ? Math.max(10, Math.min(95, 100 - (product.stock * 2))) : 100;
 
                 return (
                   <Link key={product.id} to={`/products/${product.id}`}>
-                    <div className="bg-white dark:bg-card rounded-2xl p-4 relative group cursor-pointer hover:shadow-lg transition-all h-full">
+                    <div className="bg-card rounded-2xl p-4 relative group cursor-pointer hover:shadow-lg transition-all h-full">
                       {/* Discount badge */}
-                      <div className="absolute top-2 left-2 bg-red-600 text-white text-[11px] font-bold px-2 py-1 rounded">
+                      <div className="absolute top-2 left-2 bg-sale text-sale-foreground text-[11px] font-bold px-2 py-1 rounded">
                         Giảm {discount}%
                       </div>
 
@@ -215,7 +307,7 @@ export default function HomePage() {
 
                       {/* Price */}
                       <div className="flex flex-col">
-                        <span className="text-red-600 font-bold text-xl">
+                        <span className="text-sale font-bold text-xl">
                           {formatPrice(product.sale_price!)}
                         </span>
                         <span className="text-muted-foreground text-xs line-through">
@@ -223,16 +315,12 @@ export default function HomePage() {
                         </span>
                       </div>
 
-                      {/* Progress bar */}
-                      <div className="mt-3 bg-muted h-3 rounded-full overflow-hidden relative">
-                        <div
-                          className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500"
-                          style={{ width: `${soldPercent}%` }}
-                        />
-                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-muted-foreground italic">
-                          {product.stock <= 3 ? "Sắp cháy hàng!" : `Đã bán ${Math.floor(soldPercent / 5)}/20`}
-                        </span>
-                      </div>
+                      {/* Tồn kho thật — chỉ báo khi sắp hết (stock <= 5), còn lại không hiện */}
+                      {product.stock > 0 && product.stock <= 5 && (
+                        <p className="mt-3 text-xs font-semibold text-sale">
+                          Chỉ còn {product.stock} sản phẩm
+                        </p>
+                      )}
                     </div>
                   </Link>
                 );
@@ -243,71 +331,12 @@ export default function HomePage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════
-          AI SHOP ASSISTANT
-          ═══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
-        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl p-8 md:p-12 relative overflow-hidden border border-primary/10">
-          {/* Decorative icon */}
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <Brain className="h-60 w-60 text-primary" />
-          </div>
-
-          <div className="relative z-10 max-w-2xl">
-            <div className="flex items-center gap-3 text-primary mb-4">
-              <Sparkles className="h-5 w-5" />
-              <span className="text-xs uppercase tracking-widest font-bold">Trợ lý mua sắm AI</span>
-            </div>
-
-            <h2 className="text-foreground text-2xl md:text-3xl font-bold mb-4">
-              Bạn chưa biết chọn sản phẩm nào?
-            </h2>
-
-            <p className="text-muted-foreground text-base mb-8 leading-relaxed">
-              Mô tả nhu cầu của bạn, AI sẽ phân tích hàng ngàn đánh giá và cấu hình để tìm ra thiết bị hoàn hảo nhất.
-            </p>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                navigate("/chat");
-              }}
-              className="flex flex-col sm:flex-row gap-3"
-            >
-              <input
-                type="text"
-                placeholder='Gõ nhu cầu: "Laptop code game dưới 30tr"...'
-                className="flex-1 bg-card border border-border text-foreground placeholder:text-muted-foreground rounded-xl px-5 py-3.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm"
-              />
-              <Link to="/chat">
-                <Button className="px-7 py-3.5 rounded-xl font-semibold shadow-lg shadow-primary/10 w-full sm:w-auto">
-                  Tìm cho tôi
-                </Button>
-              </Link>
-            </form>
-
-            <div className="mt-5 flex flex-wrap gap-2 items-center">
-              <span className="text-muted-foreground text-xs font-bold uppercase">Gợi ý:</span>
-              {["Màn hình đồ họa tốt nhất", "Tai nghe chống ồn", "Laptop văn phòng"].map((s) => (
-                <Link
-                  key={s}
-                  to={`/chat?q=${encodeURIComponent(s)}`}
-                  className="text-primary text-xs hover:underline"
-                >
-                  {s}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
           PRODUCT RECOMMENDATIONS
           ═══════════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-6 w-6 text-primary" />
+          <div className="flex items-center gap-2.5">
+            <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
             <h2 className="font-semibold text-xl md:text-2xl">Gợi ý riêng cho bạn</h2>
           </div>
           <Link to="/products" className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
@@ -361,16 +390,21 @@ export default function HomePage() {
                     <div className="absolute top-3 left-3 flex flex-col gap-2">
                       {hasSale && <SaleBadge price={product.price} salePrice={product.sale_price!} />}
                       {product.stock <= 5 && product.stock > 0 && (
-                        <span className="bg-amber-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                        <span className="bg-sale text-sale-foreground px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
                           Sắp hết
                         </span>
                       )}
                     </div>
 
                     {/* Wishlist */}
-                    <button className="absolute bottom-3 right-3 bg-card/90 backdrop-blur text-primary p-2.5 rounded-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all shadow-lg">
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      aria-label="Thêm vào danh sách yêu thích"
+                      className="absolute bottom-3 right-3 bg-card/90 backdrop-blur text-primary rounded-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all shadow-lg hover:bg-card"
+                    >
                       <Heart className="h-4 w-4" />
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Content */}
@@ -402,18 +436,24 @@ export default function HomePage() {
 
                       {/* Action buttons */}
                       <div className="grid grid-cols-5 gap-2">
-                        <button
+                        <Button
                           onClick={(e) => handleQuickBuy(e, product.id)}
-                          className="col-span-4 bg-primary text-primary-foreground py-2.5 rounded-xl font-bold text-xs uppercase text-center hover:bg-primary/90 transition-colors shadow-lg shadow-primary/10"
+                          disabled={quickBuyMutation.isPending && quickBuyMutation.variables === product.id}
+                          className="col-span-4 rounded-xl font-bold text-xs uppercase shadow-lg shadow-primary/10"
                         >
                           Mua ngay
-                        </button>
-                        <Link
-                          to={`/products/${product.id}`}
-                          className="col-span-1 border border-border hover:border-primary hover:text-primary rounded-xl flex items-center justify-center transition-all"
+                        </Button>
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          aria-label="Xem chi tiết sản phẩm"
+                          className="col-span-1 rounded-xl hover:border-primary hover:text-primary"
                         >
-                          <ShoppingCart className="h-4 w-4" />
-                        </Link>
+                          <Link to={`/products/${product.id}`}>
+                            <ShoppingCart className="h-4 w-4" />
+                          </Link>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -429,9 +469,10 @@ export default function HomePage() {
           ═══════════════════════════════════════════════════════ */}
       {categories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
-          <h2 className="font-semibold text-xl md:text-2xl mb-8 text-center">
-            Danh mục hàng đầu
-          </h2>
+          <div className="flex items-center gap-2.5 mb-8">
+            <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
+            <h2 className="font-semibold text-xl md:text-2xl">Danh mục hàng đầu</h2>
+          </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {categories.filter((c) => c.is_active !== false).slice(0, 5).map((cat) => {
@@ -470,9 +511,10 @@ export default function HomePage() {
           ═══════════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16 border-t border-border/30">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="font-semibold text-xl md:text-2xl border-l-4 border-primary pl-4">
-            Sản phẩm nổi bật
-          </h2>
+          <div className="flex items-center gap-2.5">
+            <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
+            <h2 className="font-semibold text-xl md:text-2xl">Sản phẩm nổi bật</h2>
+          </div>
           <Link to="/products" className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
             Xem tất cả <ArrowRight className="h-4 w-4" />
           </Link>
@@ -522,7 +564,7 @@ export default function HomePage() {
                           <span className="text-base font-bold text-primary">{formatPrice(product.price)}</span>
                         )}
                       </div>
-                      <p className={`text-xs font-medium ${product.stock > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}>
+                      <p className={`text-xs font-medium ${product.stock > 0 ? "text-success" : "text-destructive"}`}>
                         {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
                       </p>
                     </CardContent>
@@ -564,13 +606,16 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════
           AI FAB BUTTON
           ═══════════════════════════════════════════════════════ */}
-      <Link
-        to="/chat"
-        className="fixed bottom-6 right-6 bg-primary text-primary-foreground px-5 py-3.5 rounded-full shadow-2xl shadow-primary/40 active:scale-95 transition-transform z-50 flex items-center gap-2 group hover:shadow-primary/50"
+      <Button
+        asChild
+        className="fixed bottom-6 right-6 rounded-full px-5 py-3.5 h-auto shadow-2xl shadow-primary/40 z-50 gap-2 group hover:shadow-primary/50"
+        aria-label="Mở trợ lý AI"
       >
-        <Sparkles className="h-5 w-5" />
-        <span className="font-bold text-sm whitespace-nowrap">Trợ lý AI</span>
-      </Link>
+        <Link to="/chat">
+          <MessageCircle className="h-5 w-5" />
+          <span className="font-bold text-sm whitespace-nowrap">Trợ lý AI</span>
+        </Link>
+      </Button>
     </div>
   );
 }
