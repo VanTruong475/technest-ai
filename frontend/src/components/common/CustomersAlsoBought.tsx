@@ -5,26 +5,7 @@ import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { Card, CardContent } from "@/components/ui/card";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import { formatPrice } from "@/utils/format";
-
-interface RecommendProduct {
-  id: number;
-  name: string;
-  image_url: string | null;
-  price: number;
-  sale_price: number | null;
-}
-
-interface RecommendResult {
-  product: RecommendProduct;
-  score: number;
-  reason: string;
-}
-
-interface RecommendResponse {
-  strategy: string;
-  results: RecommendResult[];
-  total: number;
-}
+import type { RecommendResponse } from "@/types";
 
 interface Props {
   productId: number;
@@ -94,7 +75,7 @@ export default function CustomersAlsoBought({ productId, limit = 4 }: Props) {
                 <div className="flex items-center gap-2">
                   {p.sale_price ? (
                     <>
-                      <span className="text-base font-bold text-destructive">
+                      <span className="text-base font-bold text-sale">
                         {formatPrice(p.sale_price)}
                       </span>
                       <span className="text-xs text-muted-foreground line-through">

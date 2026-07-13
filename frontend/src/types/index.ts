@@ -134,6 +134,12 @@ export interface AISearchResult {
   reason: string;
 }
 
+export interface RecommendResponse {
+  strategy: string;
+  results: AISearchResult[];
+  total: number;
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;

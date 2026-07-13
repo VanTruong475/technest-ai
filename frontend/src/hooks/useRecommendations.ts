@@ -1,13 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { useAuthStore } from "@/store/authStore";
-import type { AISearchResult } from "@/types";
-
-interface RecommendResponse {
-  strategy: string;
-  results: AISearchResult[];
-  total: number;
-}
+import type { RecommendResponse } from "@/types";
 
 /**
  * Gợi ý sản phẩm cá nhân hoá từ /api/ai/recommend (có sẵn `reason` server-side).
