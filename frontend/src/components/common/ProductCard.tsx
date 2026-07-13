@@ -89,7 +89,7 @@ export default function ProductCard({
 
         {/* Badge tồn kho — absolute top-2 right-2 (màu theo UI_PATTERNS.md) */}
         {outOfStock && (
-          <span className="absolute top-2 right-2 z-10 text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+          <span className="absolute top-2 right-2 z-10 text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
             Hết hàng
           </span>
         )}
@@ -166,9 +166,7 @@ export default function ProductCard({
           {/* Stock status */}
           <p
             className={`text-xs font-medium ${
-              product.stock > 0
-                ? "text-emerald-600 dark:text-emerald-400"
-                : "text-destructive"
+              product.stock > 0 ? "text-success" : "text-destructive"
             }`}
           >
             {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
