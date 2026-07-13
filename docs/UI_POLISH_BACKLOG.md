@@ -35,7 +35,7 @@
 | 8 | Account / OrderDetail tokens | P2 | ✅ | `52505b3` | 2026-07-13 |
 | 9 | Blog list/detail buttons | P2 | ✅ | `ec44978` | 2026-07-13 |
 | 10 | Admin status badges | P3 | ✅ | `a5a37f0` | 2026-07-13 |
-| 11 | Shared micro-controls (optional) | P3 | ✅ | (chưa commit) | 2026-07-13 |
+| 11 | Shared micro-controls (optional) | P3 | ✅ | `01391a3` | 2026-07-13 |
 
 ---
 
