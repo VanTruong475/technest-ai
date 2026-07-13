@@ -2,8 +2,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
+import { Button } from "@/components/ui/button";
 import { Calendar, Eye, ArrowRight, BookOpen } from "lucide-react";
 import { formatDateShort } from "@/utils/format";
+import { cn } from "@/lib/utils";
 import type { PaginatedResponse } from "@/types";
 
 interface BlogPostSummary {
@@ -60,25 +62,31 @@ export default function BlogListPage() {
 
       {/* Category tabs */}
       {categories.length > 0 && (
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          <button
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-2" role="tablist" aria-label="Danh mục blog">
+          <Button
+            type="button"
+            role="tab"
+            aria-selected={!category}
+            variant={!category ? "default" : "secondary"}
+            size="sm"
             onClick={() => setSearchParams({})}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              !category ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
-            }`}
+            className="rounded-full whitespace-nowrap"
           >
             Tất cả
-          </button>
+          </Button>
           {categories.map((cat) => (
-            <button
+            <Button
               key={cat}
+              type="button"
+              role="tab"
+              aria-selected={category === cat}
+              variant={category === cat ? "default" : "secondary"}
+              size="sm"
               onClick={() => setSearchParams({ category: cat })}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                category === cat ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
-              }`}
+              className="rounded-full whitespace-nowrap"
             >
               {CATEGORY_LABELS[cat] || cat}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -99,12 +107,19 @@ export default function BlogListPage() {
         </div>
       )}
 
-      {/* Empty */}
+      {/* Empty — UI_PATTERNS empty state */}
       {!isLoading && posts.length === 0 && (
-        <div className="text-center py-20">
-          <BookOpen className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-          <p className="text-lg font-semibold mb-2">Chưa có bài viết nào</p>
-          <p className="text-muted-foreground text-sm">Quay lại sau nhé!</p>
+        <div className="flex flex-col items-center py-16 text-muted-foreground">
+          <BookOpen className="h-12 w-12" aria-hidden="true" />
+          <p className="mt-4 text-lg font-medium text-foreground">Chưa có bài viết nào</p>
+          <p className="mt-1 text-sm">
+            {category ? "Thử danh mục khác hoặc xem tất cả." : "Quay lại sau nhé."}
+          </p>
+          {category && (
+            <Button type="button" variant="outline" className="mt-6 rounded-xl" onClick={() => setSearchParams({})}>
+              Xem tất cả
+            </Button>
+          )}
         </div>
       )}
 
@@ -170,24 +185,27 @@ export default function BlogListPage() {
 
       {/* Pagination */}
       {!isLoading && totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-10">
+        <nav className="mt-10 flex justify-center gap-2" aria-label="Phân trang blog">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
+            <Button
               key={p}
+              type="button"
+              variant={p === page ? "default" : "secondary"}
+              size="icon"
+              aria-label={`Trang ${p}`}
+              aria-current={p === page ? "page" : undefined}
+              className={cn("h-9 w-9 rounded-lg text-sm font-medium")}
               onClick={() => {
                 const params = new URLSearchParams(searchParams);
                 params.set("page", String(p));
                 setSearchParams(params);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                p === page ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
-              }`}
             >
               {p}
-            </button>
+            </Button>
           ))}
-        </div>
+        </nav>
       )}
     </div>
   );

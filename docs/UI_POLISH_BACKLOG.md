@@ -33,7 +33,7 @@
 | 6 | ProductList / Search buttons | P1 | ✅ | `1fa80de` | 2026-07-13 |
 | 7 | ProductDetail residual | P1 | ✅ | `1fa80de` | 2026-07-13 |
 | 8 | Account / OrderDetail tokens | P2 | ✅ | `52505b3` | 2026-07-13 |
-| 9 | Blog list/detail buttons | P2 | ⬜ | — | — |
+| 9 | Blog list/detail buttons | P2 | ✅ | (chưa commit) | 2026-07-13 |
 | 10 | Admin status badges | P3 | ⬜ | — | — |
 | 11 | Shared micro-controls (optional) | P3 | ⬜ | — | — |
 
@@ -296,11 +296,11 @@ Checklist:
 
 **Files:** `BlogListPage.tsx`, `BlogDetailPage.tsx`, (admin blog optional riêng)
 
-- [ ] BlogList: raw `<button>` pagination/filter → Button
-- [ ] Empty/loading skeleton nếu thiếu
-- [ ] Detail: typography/spacing nhẹ (không full redesign)
-- [ ] `formatDateShort/Long` đã dùng — giữ
-- [ ] `npm run build` pass
+- [x] BlogList: raw `<button>` pagination/filter → Button
+- [x] Empty/loading skeleton nếu thiếu (empty chuẩn + CTA xóa filter category)
+- [x] Detail: typography/spacing nhẹ (không full redesign)
+- [x] `formatDateShort/Long` đã dùng — giữ
+- [x] `npm run build` pass
 
 **Done khi:** blog storefront không raw button chính; đọc ổn mobile.
 
@@ -395,14 +395,15 @@ Checklist:
 | 2026-07-13 | 4–5 | Token sale/success + Chat 4/3 | `12db750` | build pass |
 | 2026-07-13 | 6–7 | List chips + Gallery Button | `1fa80de` | build pass |
 | 2026-07-13 | docs | tick P1 | `e842f2c` | — |
-| 2026-07-13 | 8 | orderStatus badges UI_PATTERNS + fallback muted | (chưa commit) | tests 6/6 |
+| 2026-07-13 | 8 | orderStatus badges UI_PATTERNS + fallback muted | `52505b3` | tests 6/6 |
+| 2026-07-13 | 9 | Blog list Button tabs/pagination + detail empty/back | (chưa commit) | build pass |
 | | | | | |
 
 ---
 
 ## Next action
 
-**Wave 8 code done (chưa commit).** Recommend: commit Wave 8 → **Wave 9** Blog (P2) hoặc push.
+**Wave 9 code done (chưa commit).** Recommend: commit Wave 9 → **Wave 10** Admin badges (P3) hoặc push.
 
 Home: **không** mở task UI mới trừ bug (Wave 0).
 
