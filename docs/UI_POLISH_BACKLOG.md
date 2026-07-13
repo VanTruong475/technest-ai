@@ -32,7 +32,7 @@
 | 5 | Chat product cards + residual | P1 | ✅ | `12db750` | 2026-07-13 |
 | 6 | ProductList / Search buttons | P1 | ✅ | `1fa80de` | 2026-07-13 |
 | 7 | ProductDetail residual | P1 | ✅ | `1fa80de` | 2026-07-13 |
-| 8 | Account / OrderDetail tokens | P2 | ⬜ | — | — |
+| 8 | Account / OrderDetail tokens | P2 | ✅ | (chưa commit) | 2026-07-13 |
 | 9 | Blog list/detail buttons | P2 | ⬜ | — | — |
 | 10 | Admin status badges | P3 | ⬜ | — | — |
 | 11 | Shared micro-controls (optional) | P3 | ⬜ | — | — |
@@ -272,11 +272,11 @@ Checklist:
 
 **Files:** `ProfilePage`, `components/account/*`, `OrderDetailPage.tsx`
 
-- [ ] OrdersTab: emerald success → `text-success` / `bg-success/10`
-- [ ] OrderDetail: status badge map UI_PATTERNS (pending/processing/completed/cancelled)
-- [ ] WishlistTab: verify text-sale (đã)
-- [ ] Reorder / Mua lại: không regression
-- [ ] `npm run build` pass
+- [x] OrdersTab: emerald success → `text-success` / `bg-success/10` (đã Wave 4 “Đã đánh giá”)
+- [x] OrderDetail: status badge map UI_PATTERNS (pending/processing/completed/cancelled) — `orderStatus.ts`
+- [x] WishlistTab: verify text-sale (đã)
+- [x] Reorder / Mua lại: không regression (không đụng logic)
+- [x] `npm run build` pass (+ `orderStatus.test.ts` 6/6)
 
 **Done khi:** account semantic colors token; status badge nhất quán.
 
@@ -395,14 +395,14 @@ Checklist:
 | 2026-07-13 | 4–5 | Token sale/success + Chat 4/3 | `12db750` | build pass |
 | 2026-07-13 | 6–7 | List chips + Gallery Button | `1fa80de` | build pass |
 | 2026-07-13 | docs | tick P1 | `e842f2c` | — |
+| 2026-07-13 | 8 | orderStatus badges UI_PATTERNS + fallback muted | (chưa commit) | tests 6/6 |
 | | | | | |
 
 ---
 
 ## Next action
 
-**P0 + P1 (Wave 1–7) committed.**  
-Recommend: **Wave 8** Account/OrderDetail (P2) · hoặc push + nghỉ.
+**Wave 8 code done (chưa commit).** Recommend: commit Wave 8 → **Wave 9** Blog (P2) hoặc push.
 
 Home: **không** mở task UI mới trừ bug (Wave 0).
 

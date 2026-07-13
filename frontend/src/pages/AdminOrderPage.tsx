@@ -186,7 +186,10 @@ export default function AdminOrderPage() {
                   </thead>
                   <tbody>
                     {orders.map((order) => {
-                      const statusInfo = ORDER_STATUS_MAP[order.status] || { label: order.status, color: "text-gray-600 bg-gray-50" };
+                      const statusInfo = ORDER_STATUS_MAP[order.status] || {
+                        label: order.status,
+                        color: "text-muted-foreground bg-muted",
+                      };
                       return (
                         <tr key={order.id} className="border-b hover:bg-muted/30">
                           <td className="p-3">#{order.id}</td>

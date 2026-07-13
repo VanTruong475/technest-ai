@@ -172,8 +172,14 @@ export default function OrderDetailPage() {
     );
   }
 
-  const statusInfo = ORDER_STATUS_MAP[order.status] || { label: order.status, color: "text-gray-600 bg-gray-50" };
-  const paymentStatusInfo = PAYMENT_STATUS_MAP[order.payment_status] || { label: order.payment_status, color: "text-gray-600 bg-gray-50" };
+  const statusInfo = ORDER_STATUS_MAP[order.status] || {
+    label: order.status,
+    color: "text-muted-foreground bg-muted",
+  };
+  const paymentStatusInfo = PAYMENT_STATUS_MAP[order.payment_status] || {
+    label: order.payment_status,
+    color: "text-muted-foreground bg-muted",
+  };
   const paymentMethodLabel = PAYMENT_METHOD_MAP[order.payment_method] || order.payment_method;
   const isCompleted = order.status === "COMPLETED";
 
