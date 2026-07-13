@@ -176,11 +176,16 @@ export default function CheckoutPage() {
   if (cartError) {
     return (
       <div className="max-w-7xl mx-auto px-6 text-center py-20">
-        <ShoppingCart className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
+        <ShoppingCart className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" aria-hidden="true" />
         <p className="text-lg font-semibold mb-2">Không thể tải giỏ hàng</p>
-        <div className="flex gap-2 justify-center mt-4">
-          <Link to="/cart"><button className="px-4 py-2 border rounded-lg text-sm">Quay lại giỏ hàng</button></Link>
-          <Link to="/products"><button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm">Xem sản phẩm</button></Link>
+        <p className="text-sm text-muted-foreground">Vui lòng thử lại hoặc quay lại giỏ hàng.</p>
+        <div className="flex flex-wrap gap-2 justify-center mt-4">
+          <Button asChild variant="outline">
+            <Link to="/cart">Quay lại giỏ hàng</Link>
+          </Button>
+          <Button asChild>
+            <Link to="/products">Xem sản phẩm</Link>
+          </Button>
         </div>
       </div>
     );
