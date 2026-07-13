@@ -100,7 +100,7 @@ export default function WishlistTab() {
               <div className="flex items-center gap-2 mt-1">
                 {item.sale_price && item.sale_price < item.price ? (
                   <>
-                    <span className="font-bold text-destructive">{formatPrice(item.sale_price)}</span>
+                    <span className="font-bold text-sale">{formatPrice(item.sale_price)}</span>
                     <span className="text-sm text-muted-foreground line-through">{formatPrice(item.price)}</span>
                   </>
                 ) : (

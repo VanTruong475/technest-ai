@@ -76,7 +76,7 @@ export default function ProductCard({
         {/* Badge New/Sale — absolute top-2 left-2 (stack dọc) */}
         <div className="absolute top-2 left-2 z-10 flex flex-col items-start gap-1.5">
           {hasSale && (
-            <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="bg-sale text-sale-foreground text-xs font-bold px-2 py-0.5 rounded-full">
               -{salePercent}%
             </span>
           )}
