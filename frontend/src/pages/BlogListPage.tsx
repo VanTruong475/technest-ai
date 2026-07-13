@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { Calendar, Eye, ArrowRight, BookOpen } from "lucide-react";
+import { formatDateShort } from "@/utils/format";
 import type { PaginatedResponse } from "@/types";
 
 interface BlogPostSummary {
@@ -48,15 +49,6 @@ export default function BlogListPage() {
 
   const posts = data?.items || [];
   const totalPages = data?.total_pages || 1;
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-6">
@@ -157,7 +149,7 @@ export default function BlogListPage() {
                       {post.published_at && (
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {formatDate(post.published_at)}
+                          {formatDateShort(post.published_at)}
                         </span>
                       )}
                       <span className="flex items-center gap-1">

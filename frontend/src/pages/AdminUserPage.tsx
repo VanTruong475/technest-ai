@@ -12,6 +12,7 @@ import Pagination from "@/components/common/Pagination";
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
 import { TableSkeleton } from "@/components/common/Skeleton";
 import { getErrorMessage } from "@/utils/api";
+import { formatDateShort } from "@/utils/format";
 import type { User, UsersResponse } from "@/types";
 
 interface UserFormData {
@@ -19,14 +20,6 @@ interface UserFormData {
   phone: string;
   role: string;
   is_active: boolean;
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
 }
 
 export default function AdminUserPage() {
@@ -206,7 +199,7 @@ export default function AdminUserPage() {
                           {user.is_active ? "Hoạt động" : "Vô hiệu"}
                         </span>
                       </td>
-                      <td className="p-3 text-muted-foreground">{formatDate(user.created_at!)}</td>
+                      <td className="p-3 text-muted-foreground">{formatDateShort(user.created_at)}</td>
                       <td className="p-3 text-center">
                         <Button variant="ghost" size="icon" onClick={() => openEditForm(user)} aria-label={`Chỉnh sửa ${user.full_name}`} className="h-8 w-8 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400">
                           <Pencil className="h-4 w-4" />

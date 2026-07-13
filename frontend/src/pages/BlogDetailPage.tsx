@@ -5,6 +5,7 @@ import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { Skeleton } from "@/components/common/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Calendar, Eye, ArrowLeft, BookOpen } from "lucide-react";
+import { formatDateLong } from "@/utils/format";
 
 interface BlogPost {
   id: number;
@@ -37,15 +38,6 @@ export default function BlogDetailPage() {
     },
     enabled: !!slug,
   });
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  };
 
   if (isLoading) {
     return (
@@ -107,7 +99,7 @@ export default function BlogDetailPage() {
         {post.published_at && (
           <span className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" />
-            {formatDate(post.published_at)}
+            {formatDateLong(post.published_at)}
           </span>
         )}
         <span className="flex items-center gap-1">

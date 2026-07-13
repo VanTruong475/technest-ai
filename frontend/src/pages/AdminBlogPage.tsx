@@ -9,6 +9,7 @@ import {
   Plus, Pencil, Trash2, Eye, EyeOff, ChevronLeft, ChevronRight, X,
 } from "lucide-react";
 import { getErrorMessage } from "@/utils/api";
+import { formatDateShort } from "@/utils/format";
 import type { PaginatedResponse } from "@/types";
 
 interface BlogPost {
@@ -131,11 +132,6 @@ export default function AdminBlogPage() {
   const posts = data?.items || [];
   const totalPages = data?.total_pages || 1;
 
-  const formatDate = (d: string | null) => {
-    if (!d) return "—";
-    return new Date(d).toLocaleDateString("vi-VN");
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -240,7 +236,7 @@ export default function AdminBlogPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{post.view_count}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(post.created_at)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDateShort(post.created_at) || "—"}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => togglePublishMutation.mutate(post)} className="p-1.5 rounded hover:bg-muted transition-colors" title={post.published ? "Ẩn bài" : "Xuất bản"}>

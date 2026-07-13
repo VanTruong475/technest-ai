@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { StarRating } from "./StarRating";
 import { getErrorMessage } from "@/utils/api";
+import { formatDateLong } from "@/utils/format";
 import {
   MessageSquare,
   Trash2,
@@ -442,11 +443,7 @@ export function ReviewSection({ productId, mode = "full" }: ReviewSectionProps) 
 
                       {/* Date */}
                       <p className="text-xs text-muted-foreground mt-2">
-                        {new Date(review.created_at).toLocaleDateString("vi-VN", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
+                        {formatDateLong(review.created_at)}
                       </p>
                     </div>
                   </div>

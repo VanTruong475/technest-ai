@@ -19,3 +19,23 @@ export function formatDate(dateStr: string): string {
     minute: "2-digit",
   });
 }
+
+/** Ngày ngắn dd/MM/yyyy (không giờ). Nhận null/undefined → "". */
+export function formatDateShort(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+/** Ngày dài "d tháng M, yyyy" (không giờ). Nhận null/undefined → "". */
+export function formatDateLong(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
