@@ -151,7 +151,7 @@ export default function ProductCard({
           <div className="flex items-baseline gap-2 flex-wrap">
             {hasSale ? (
               <>
-                <span className="text-base font-bold text-primary">
+                <span className="text-base font-bold text-sale">
                   {formatPrice(product.sale_price!)}
                 </span>
                 <span className="text-xs text-muted-foreground line-through">

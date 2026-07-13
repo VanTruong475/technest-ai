@@ -218,7 +218,7 @@ export default function ProductDetailPage() {
           {/* Price */}
           <div>
             <div className="flex items-end gap-2 flex-wrap">
-              <span className="text-3xl font-bold text-primary">
+              <span className={`text-3xl font-bold ${hasSale ? "text-sale" : "text-primary"}`}>
                 {formatPrice(hasSale ? product.sale_price! : product.price)}
               </span>
               {hasSale && (
@@ -226,7 +226,7 @@ export default function ProductDetailPage() {
                   <span className="text-muted-foreground line-through text-lg ml-2">
                     {formatPrice(product.price)}
                   </span>
-                  <span className="bg-destructive/10 text-destructive text-[11px] font-bold px-1.5 py-0.5 rounded">
+                  <span className="bg-sale/10 text-sale text-[11px] font-bold px-1.5 py-0.5 rounded">
                     -{discount}%
                   </span>
                 </>
@@ -234,7 +234,7 @@ export default function ProductDetailPage() {
             </div>
             <p className="text-sm">
               {product.stock > 0 ? (
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="text-success font-medium">
                   Còn {product.stock} sản phẩm
                 </span>
               ) : (
@@ -422,7 +422,7 @@ export default function ProductDetailPage() {
                   <dt className="text-muted-foreground text-sm">Tình trạng</dt>
                   <dd className="font-semibold text-sm">
                     {product.stock > 0 ? (
-                      <span className="text-emerald-600 dark:text-emerald-400">Còn hàng ({product.stock})</span>
+                      <span className="text-success">Còn hàng ({product.stock})</span>
                     ) : (
                       <span className="text-destructive">Hết hàng</span>
                     )}
@@ -435,7 +435,7 @@ export default function ProductDetailPage() {
                 {hasSale && (
                   <div className="flex justify-between py-2.5 border-b border-border/10">
                     <dt className="text-muted-foreground text-sm">Giá khuyến mãi</dt>
-                    <dd className="font-semibold text-sm text-destructive">
+                    <dd className="font-semibold text-sm text-sale">
                       {formatPrice(product.sale_price!)} (-{discount}%)
                     </dd>
                   </div>

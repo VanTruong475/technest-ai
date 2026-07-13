@@ -310,7 +310,7 @@ export default function CheckoutPage() {
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
                     </div>
-                    <span className={`text-sm font-bold ${opt.key === "standard" ? "text-green-600" : ""}`}>
+                    <span className={`text-sm font-bold ${opt.key === "standard" ? "text-success" : ""}`}>
                       {opt.price}
                     </span>
                   </label>
@@ -326,9 +326,9 @@ export default function CheckoutPage() {
                   <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">3</div>
                   <h2 className="text-lg font-semibold">Phương thức thanh toán</h2>
                 </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 rounded-full">
-                  <Lock className="h-3 w-3 text-green-600" />
-                  <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">SSL Encrypted</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-success/10 rounded-full">
+                  <Lock className="h-3 w-3 text-success" />
+                  <span className="text-[10px] font-bold text-success uppercase tracking-wider">SSL Encrypted</span>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -443,7 +443,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between items-center font-medium">
                     <span>Phí vận chuyển</span>
-                    <span className={shippingFee === 0 ? "text-green-600 bg-green-500/10 px-2.5 py-0.5 rounded text-xs font-bold uppercase" : ""}>
+                    <span className={shippingFee === 0 ? "text-success bg-success/10 px-2.5 py-0.5 rounded text-xs font-bold uppercase" : ""}>
                       {shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}
                     </span>
                   </div>

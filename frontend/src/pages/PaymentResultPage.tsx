@@ -44,10 +44,10 @@ export default function PaymentResultPage() {
       <Card className="w-full max-w-md border-border/60 shadow-sm">
         <CardContent className="pt-8 pb-6 space-y-4 text-center">
           <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${
-            isSuccess ? "bg-green-100" : "bg-destructive/10"
+            isSuccess ? "bg-success/10" : "bg-destructive/10"
           }`}>
             {isSuccess ? (
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-success" />
             ) : (
               <XCircle className="h-8 w-8 text-destructive" />
             )}

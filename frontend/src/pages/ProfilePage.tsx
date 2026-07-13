@@ -67,8 +67,8 @@ export default function ProfilePage() {
                 </span>
                 <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
                   user.is_active
-                    ? "text-emerald-700 bg-emerald-500/10 dark:text-emerald-300"
-                    : "text-rose-700 bg-rose-500/10 dark:text-rose-300"
+                    ? "text-success bg-success/10"
+                    : "text-destructive bg-destructive/10"
                 }`}>
                   {user.is_active ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                   {user.is_active ? "Hoạt động" : "Vô hiệu"}

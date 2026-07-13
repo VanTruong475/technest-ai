@@ -45,7 +45,7 @@ export default function RecentlyViewed({ currentProductId }: RecentlyViewedProps
                 <div className="flex items-center gap-2">
                   {p.sale_price ? (
                     <>
-                      <span className="text-base font-bold text-destructive">{formatPrice(p.sale_price)}</span>
+                      <span className="text-base font-bold text-sale">{formatPrice(p.sale_price)}</span>
                       <span className="text-xs text-muted-foreground line-through">{formatPrice(p.price)}</span>
                     </>
                   ) : (

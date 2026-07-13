@@ -507,7 +507,7 @@ export default function AdminProductPage() {
                       <td className="p-3 text-right">
                         {product.sale_price ? (
                           <div>
-                            <span className="text-destructive font-medium">{formatPrice(product.sale_price)}</span>
+                            <span className="text-sale font-medium">{formatPrice(product.sale_price)}</span>
                             <span className="text-xs text-muted-foreground line-through ml-1">{formatPrice(product.price)}</span>
                           </div>
                         ) : (

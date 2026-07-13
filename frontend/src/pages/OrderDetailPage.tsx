@@ -280,7 +280,7 @@ export default function OrderDetailPage() {
                     <div className="flex items-center gap-2 mt-1">
                       {item.sale_price ? (
                         <>
-                          <span className="text-sm text-destructive font-medium">{formatPrice(item.sale_price)}</span>
+                          <span className="text-sm text-sale font-medium">{formatPrice(item.sale_price)}</span>
                           <span className="text-xs text-muted-foreground line-through">{formatPrice(item.price)}</span>
                         </>
                       ) : (
@@ -294,7 +294,7 @@ export default function OrderDetailPage() {
                     {/* Review button for COMPLETED orders */}
                     {isCompleted && canReview && (
                       canReview.has_reviewed ? (
-                        <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-1.5 text-xs text-success bg-success/10 px-2.5 py-1.5 rounded-lg">
                           <CheckCircle2 className="h-3.5 w-3.5" />
                           <span className="font-medium">Đã đánh giá</span>
                         </div>

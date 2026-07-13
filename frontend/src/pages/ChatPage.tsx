@@ -391,10 +391,10 @@ function MessageRow({ msg, onSuggestion }: { msg: ChatMessage; onSuggestion: (s:
                   key={p.id}
                   className="snap-start shrink-0 w-40 overflow-hidden border-border/60 hover:shadow-md transition-all"
                 >
-                  <Link to={`/products/${p.id}`} className="block relative aspect-square bg-muted overflow-hidden">
+                  <Link to={`/products/${p.id}`} className="block relative aspect-[4/3] bg-muted overflow-hidden">
                     {hasSale && <SaleBadge price={p.price} salePrice={p.sale_price!} />}
                     {p.image_url ? (
-                      <OptimizedImage src={p.image_url} alt={p.name} width={160} height={160} className="w-full h-full object-cover" />
+                      <OptimizedImage src={p.image_url} alt={p.name} width={160} height={120} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <MessageSquareText className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
@@ -407,7 +407,7 @@ function MessageRow({ msg, onSuggestion }: { msg: ChatMessage; onSuggestion: (s:
                     </Link>
                     {hasSale ? (
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-destructive">{formatPrice(p.sale_price!)}</span>
+                        <span className="text-sm font-bold text-sale">{formatPrice(p.sale_price!)}</span>
                         <span className="text-[10px] text-muted-foreground line-through">{formatPrice(p.price)}</span>
                       </div>
                     ) : (

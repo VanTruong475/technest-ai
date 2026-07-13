@@ -7,6 +7,7 @@ import {
   Smartphone, Laptop, Tablet, Headphones, Cable, Package,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import axiosClient from "@/api/axiosClient";
 import { formatPrice } from "@/utils/format";
@@ -349,7 +350,7 @@ export default function SearchAutocomplete({
                             <div className="text-right flex-shrink-0">
                               {hasSale ? (
                                 <>
-                                  <p className="text-sm font-bold text-destructive">
+                                  <p className="text-sm font-bold text-sale">
                                     {formatPrice(product.sale_price!)}
                                   </p>
                                   <p className="text-xs text-muted-foreground line-through">
@@ -411,14 +412,16 @@ export default function SearchAutocomplete({
 
               {/* Xóa lịch sử */}
               <div className="px-2 pt-1 mt-1 border-t border-border">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={clearRecent}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-muted/50 transition-colors"
+                  className="w-full h-8 gap-2 text-xs text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Xóa lịch sử
-                </button>
+                </Button>
               </div>
             </>
           )}
