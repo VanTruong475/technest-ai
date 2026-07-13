@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { useAuthStore } from "@/store/authStore";
 import { useRecommendations } from "@/hooks/useRecommendations";
-import { fadeUp, staggerContainer } from "@/lib/motion";
+import { useReducedMotionSafe } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SaleBadge } from "@/components/common/SaleBadge";
@@ -16,7 +16,7 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { formatPrice } from "@/utils/format";
 import {
   Sparkles, Zap, ArrowRight, ArrowUpRight, MessageCircle,
-  Smartphone, ShieldCheck, Truck, RotateCcw, CreditCard, Star,
+  Smartphone, ShieldCheck, Truck, RotateCcw, CreditCard, Star, PackageOpen,
 } from "lucide-react";
 import type { Product, Brand, Category } from "@/types";
 
@@ -36,6 +36,7 @@ export default function HomePage() {
   const countdown = useCountdown();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const queryClient = useQueryClient();
+  const { fadeUp, staggerContainer } = useReducedMotionSafe();
 
   const quickBuyMutation = useMutation({
     mutationFn: async (productId: number) => {
@@ -116,7 +117,7 @@ export default function HomePage() {
   const useCategoryBento = activeCategories.length >= 3;
 
   return (
-    <div className="min-h-screen mt-32">
+    <div className="min-h-screen mt-32 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]">
       {/* ═══════════════════════════════════════════════════════
           HERO SECTION
           ═══════════════════════════════════════════════════════ */}
@@ -299,85 +300,83 @@ export default function HomePage() {
           ═══════════════════════════════════════════════════════ */}
       {flashSaleProducts.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
-          <div className="bg-sale rounded-[2rem] p-6 md:p-8 shadow-2xl">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
-              <div className="flex items-center gap-4 flex-wrap justify-center md:justify-start">
-                <h2 className="text-sale-foreground text-3xl md:text-4xl font-bold italic flex items-center gap-3 uppercase">
-                  <Zap className="h-8 w-8 fill-current" />
+          <div className="bg-sale rounded-[2rem] p-5 md:p-7 shadow-2xl">
+            {/* Header denser — 1 hàng md+, countdown + CTA gọn */}
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <h2 className="flex items-center gap-2 text-2xl font-bold italic uppercase text-sale-foreground md:text-3xl">
+                  <Zap className="h-7 w-7 fill-current" aria-hidden="true" />
                   Flash Sale
                 </h2>
-                <div className="flex items-center gap-2 ml-4">
-                  <span className="text-sale-foreground/80 text-xs uppercase">Kết thúc sau:</span>
-                  <div className="flex gap-1.5">
+                <div className="flex items-center gap-2" aria-label={`Kết thúc sau ${countdown.display}`}>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-sale-foreground/75">
+                    Còn
+                  </span>
+                  <div className="flex gap-1">
                     {countdown.display.split(":").map((part, i) => (
-                      <span key={i} className="bg-black/20 text-sale-foreground px-2 py-1 rounded font-bold text-sm tabular-nums">
+                      <span
+                        key={i}
+                        className="min-w-[1.75rem] rounded-md bg-black/20 px-1.5 py-0.5 text-center text-sm font-bold tabular-nums text-sale-foreground"
+                      >
                         {part}
                       </span>
                     ))}
                   </div>
                 </div>
               </div>
-              <Link to="/products" className="text-sale-foreground font-bold text-xs flex items-center gap-2 hover:underline">
-                Xem tất cả <ArrowRight className="h-4 w-4" />
+              {/* Giữ 1 browse sale + Featured = 2 max “Xem tất cả” / page */}
+              <Link
+                to="/products"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-sale-foreground/90 hover:text-sale-foreground hover:underline"
+              >
+                Xem deal <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
 
-            {/* Products grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {flashSaleProducts.slice(0, 4).map((product) => {
-                const discount = product.sale_price
-                  ? Math.round((1 - product.sale_price / product.price) * 100)
-                  : 0;
-
-                return (
-                  <Link key={product.id} to={`/products/${product.id}`}>
-                    <div className="bg-card rounded-2xl p-4 relative group cursor-pointer hover:shadow-lg transition-all h-full">
-                      {/* Discount badge */}
-                      <div className="absolute top-2 left-2 bg-sale text-sale-foreground text-[11px] font-bold px-2 py-1 rounded">
-                        Giảm {discount}%
+            {/* Products — aspect 4/3, SaleBadge, stock thật ≤5 */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+              {flashSaleProducts.slice(0, 4).map((product) => (
+                <Link
+                  key={product.id}
+                  to={`/products/${product.id}`}
+                  className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-card p-3 transition-all hover:shadow-lg md:p-4"
+                >
+                  <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+                    {product.image_url ? (
+                      <OptimizedImage
+                        src={product.image_url}
+                        alt={product.name}
+                        width={400}
+                        height={300}
+                        className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Smartphone className="h-14 w-14 text-muted-foreground/30" />
                       </div>
+                    )}
+                    <SaleBadge price={product.price} salePrice={product.sale_price!} />
+                  </div>
 
-                      {/* Image */}
-                      <div className="aspect-square mb-4 overflow-hidden rounded-xl bg-muted">
-                        {product.image_url ? (
-                          <OptimizedImage
-                            src={product.image_url}
-                            alt={product.name}
-                            width={300}
-                            height={300}
-                            className="w-full h-full object-contain group-hover:scale-110 transition-transform"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Smartphone className="h-16 w-16 text-muted-foreground/30" />
-                          </div>
-                        )}
-                      </div>
+                  <h3 className="mb-2 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-foreground">
+                    {product.name}
+                  </h3>
 
-                      {/* Name */}
-                      <h3 className="font-bold text-foreground text-base line-clamp-1 mb-2">{product.name}</h3>
-
-                      {/* Price */}
-                      <div className="flex flex-col">
-                        <span className="text-sale font-bold text-xl">
-                          {formatPrice(product.sale_price!)}
-                        </span>
-                        <span className="text-muted-foreground text-xs line-through">
-                          {formatPrice(product.price)}
-                        </span>
-                      </div>
-
-                      {/* Tồn kho thật — chỉ báo khi sắp hết (stock <= 5), còn lại không hiện */}
-                      {product.stock > 0 && product.stock <= 5 && (
-                        <p className="mt-3 text-xs font-semibold text-sale">
-                          Chỉ còn {product.stock} sản phẩm
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
+                  <div className="mt-auto flex flex-col gap-0.5">
+                    <span className="text-lg font-bold text-sale md:text-xl">
+                      {formatPrice(product.sale_price!)}
+                    </span>
+                    <span className="text-xs text-muted-foreground line-through">
+                      {formatPrice(product.price)}
+                    </span>
+                    {product.stock > 0 && product.stock <= 5 && (
+                      <p className="mt-1.5 text-xs font-semibold text-sale">
+                        Chỉ còn {product.stock} sản phẩm
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -386,7 +385,8 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════
           PRODUCT RECOMMENDATIONS
           ═══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
+      <section className="bg-muted/30 border-y border-border/30">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
         {/* Không “Xem tất cả” — primary browse CTA giữ ở Featured (UI_PATTERNS max 1–2) */}
         <div className="flex items-center gap-2.5 mb-8">
           <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
@@ -406,6 +406,15 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : recommendations.length === 0 ? (
+          <div className="flex flex-col items-center py-16 text-muted-foreground">
+            <PackageOpen className="h-12 w-12" aria-hidden="true" />
+            <p className="mt-4 text-lg font-medium text-foreground">Chưa có gợi ý</p>
+            <p className="mt-1 text-sm">Duyệt danh mục hoặc chat với AI để nhận đề xuất.</p>
+            <Button asChild className="mt-6 rounded-xl">
+              <Link to="/products">Xem sản phẩm</Link>
+            </Button>
           </div>
         ) : (
           <motion.div
@@ -504,6 +513,7 @@ export default function HomePage() {
             })}
           </motion.div>
         )}
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
@@ -582,64 +592,87 @@ export default function HomePage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════
-          FEATURED PRODUCTS GRID
+          FEATURED PRODUCTS GRID — primary browse CTA của page
           ═══════════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16 border-t border-border/30">
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <span className="h-4 w-1 rounded-full bg-primary" aria-hidden="true" />
-            <h2 className="font-semibold text-xl md:text-2xl">Sản phẩm nổi bật</h2>
+            <h2 className="text-xl font-semibold md:text-2xl">Sản phẩm nổi bật</h2>
           </div>
-          <Link to="/products" className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
+          <Link
+            to="/products"
+            className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-primary hover:underline"
+          >
             Xem tất cả <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
         {isLoading ? (
           <ProductGridSkeleton count={8} />
+        ) : products.length === 0 ? (
+          <div className="flex flex-col items-center py-16 text-muted-foreground">
+            <PackageOpen className="h-12 w-12" aria-hidden="true" />
+            <p className="mt-4 text-lg font-medium text-foreground">Chưa có sản phẩm nổi bật</p>
+            <p className="mt-1 text-sm">Quay lại sau hoặc xem toàn bộ danh mục.</p>
+            <Button asChild variant="outline" className="mt-6 rounded-xl">
+              <Link to="/products">Xem sản phẩm</Link>
+            </Button>
+          </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
             {products.slice(0, 8).map((product) => {
               const hasSale = product.sale_price != null && product.sale_price < product.price;
               return (
                 <Link key={product.id} to={`/products/${product.id}`} className="group block h-full">
-                  {/* Pattern ProductCard (UI_PATTERNS.md): aspect 4/3, badge top-2 left-2,
-                      hover shadow-md + scale-[1.02], giá font-bold text-primary */}
-                  <Card className="h-full border-border/60 rounded-2xl overflow-hidden hover:shadow-md hover:scale-[1.02] transition-all duration-200">
-                    <div className="relative aspect-[4/3] bg-muted/50 overflow-hidden">
+                  {/* ProductCard pattern: aspect 4/3, SaleBadge, hover, giá primary */}
+                  <Card className="h-full overflow-hidden rounded-2xl border-border/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-md">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-muted/50">
                       {product.image_url ? (
                         <OptimizedImage
                           src={product.image_url}
                           alt={product.name}
                           width={400}
                           height={300}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
+                        <div className="flex h-full w-full items-center justify-center">
                           <Smartphone className="h-16 w-16 text-muted-foreground/20" />
                         </div>
                       )}
                       {hasSale && <SaleBadge price={product.price} salePrice={product.sale_price!} />}
                       {product.stock <= 0 && (
-                        <span className="absolute top-2 right-2 bg-muted text-muted-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span className="absolute top-2 right-2 rounded-full bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
                           Hết hàng
                         </span>
                       )}
                     </div>
-                    <CardContent className="p-4 space-y-2">
-                      <h3 className="font-medium line-clamp-2 text-sm leading-snug min-h-[2.5rem]">{product.name}</h3>
-                      <div className="flex items-baseline gap-2 flex-wrap">
+                    <CardContent className="space-y-2 p-4">
+                      <h3 className="min-h-[2.5rem] text-sm font-medium leading-snug line-clamp-2">
+                        {product.name}
+                      </h3>
+                      <div className="flex flex-wrap items-baseline gap-2">
                         {hasSale ? (
                           <>
-                            <span className="text-base font-bold text-primary">{formatPrice(product.sale_price!)}</span>
-                            <span className="text-xs text-muted-foreground line-through">{formatPrice(product.price)}</span>
+                            <span className="text-base font-bold text-primary">
+                              {formatPrice(product.sale_price!)}
+                            </span>
+                            <span className="text-xs text-muted-foreground line-through">
+                              {formatPrice(product.price)}
+                            </span>
                           </>
                         ) : (
-                          <span className="text-base font-bold text-primary">{formatPrice(product.price)}</span>
+                          <span className="text-base font-bold text-primary">
+                            {formatPrice(product.price)}
+                          </span>
                         )}
                       </div>
-                      <p className={`text-xs font-medium ${product.stock > 0 ? "text-success" : "text-destructive"}`}>
+                      <p
+                        className={`text-xs font-medium ${
+                          product.stock > 0 ? "text-success" : "text-destructive"
+                        }`}
+                      >
                         {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
                       </p>
                     </CardContent>
@@ -652,42 +685,67 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          TRUST STRIP
+          TRUST STRIP — 1 accent, divider row (không rainbow cards)
           ═══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16 border-t border-border/30">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { icon: ShieldCheck, title: "Bảo hành chính hãng", sub: "Đầy đủ giấy tờ · hỗ trợ 24/7", color: "text-emerald-600 bg-emerald-500/10" },
-            { icon: Truck, title: "Giao hàng nhanh", sub: "1-2 ngày tận nơi toàn quốc", color: "text-sky-600 bg-sky-500/10" },
-            { icon: RotateCcw, title: "Đổi trả dễ dàng", sub: "Trong 30 ngày không lý do", color: "text-amber-600 bg-amber-500/10" },
-            { icon: CreditCard, title: "Thanh toán an toàn", sub: "VNPay · COD · bảo mật SSL", color: "text-violet-600 bg-violet-500/10" },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <div key={item.title} className="group flex items-start gap-3 rounded-2xl border border-border/60 bg-card px-4 py-4 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${item.color} group-hover:scale-110 transition-transform`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="font-semibold text-sm leading-tight">{item.title}</div>
-                  <div className="text-xs text-muted-foreground mt-1 leading-snug">{item.sub}</div>
-                </div>
-              </div>
-            );
-          })}
+      <section className="border-t border-border/30">
+        <div className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-12 lg:px-8">
+          <ul className="grid grid-cols-1 divide-y divide-border/60 sm:grid-cols-2 sm:divide-y-0 md:grid-cols-4 md:divide-x">
+            {[
+              {
+                icon: ShieldCheck,
+                title: "Bảo hành chính hãng",
+                sub: "Đầy đủ giấy tờ, hỗ trợ 24/7",
+              },
+              {
+                icon: Truck,
+                title: "Giao hàng nhanh",
+                sub: "1-2 ngày tận nơi toàn quốc",
+              },
+              {
+                icon: RotateCcw,
+                title: "Đổi trả dễ dàng",
+                sub: "Trong 30 ngày không lý do",
+              },
+              {
+                icon: CreditCard,
+                title: "Thanh toán an toàn",
+                sub: "VNPay, COD, bảo mật SSL",
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <li
+                  key={item.title}
+                  className="flex items-start gap-3 px-0 py-4 first:pt-0 last:pb-0 sm:px-4 sm:py-2 md:px-5"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold leading-tight text-foreground">
+                      {item.title}
+                    </div>
+                    <div className="mt-1 text-xs leading-snug text-muted-foreground">
+                      {item.sub}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          AI FAB BUTTON
+          AI FAB — safe-area, không che content (padding page bù)
           ═══════════════════════════════════════════════════════ */}
       <Button
         asChild
-        className="fixed bottom-6 right-6 rounded-full px-5 py-3.5 h-auto shadow-2xl shadow-primary/40 z-50 gap-2 group hover:shadow-primary/50"
+        className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom,0px))] right-[max(1.5rem,env(safe-area-inset-right,0px))] z-50 h-auto gap-2 rounded-full px-5 py-3.5 shadow-2xl shadow-primary/40 group hover:shadow-primary/50"
         aria-label="Mở trợ lý AI"
       >
         <Link to="/chat">
-          <MessageCircle className="h-5 w-5" />
+          <MessageCircle className="h-5 w-5" aria-hidden="true" />
           <span className="font-bold text-sm whitespace-nowrap">Trợ lý AI</span>
         </Link>
       </Button>
