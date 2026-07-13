@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import axiosClient from "@/api/axiosClient";
 import { getErrorMessage } from "@/utils/api";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface HeartButtonProps {
   productId: number;
@@ -86,12 +88,19 @@ export default function HeartButton({ productId, className = "", showLabel = fal
   const isLoading = addMutation.isPending || removeMutation.isPending;
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size={showLabel ? "sm" : "icon"}
       onClick={handleClick}
       disabled={isLoading}
-      className={`flex items-center justify-center rounded-full transition-all ${className}`}
       aria-label={isFavorited ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+      aria-pressed={isFavorited}
+      className={cn(
+        "rounded-full transition-all",
+        showLabel ? "h-9 gap-1.5 px-3" : "h-9 w-9",
+        className
+      )}
     >
       {isLoading ? (
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -103,11 +112,12 @@ export default function HeartButton({ productId, className = "", showLabel = fal
             className="inline-flex"
           >
             <Heart
-              className={`h-5 w-5 transition-colors ${
+              className={cn(
+                "h-5 w-5 transition-colors",
                 isFavorited
-                  ? "fill-red-500 text-red-500"
-                  : "text-muted-foreground hover:text-red-400"
-              }`}
+                  ? "fill-current text-sale"
+                  : "text-muted-foreground hover:text-sale"
+              )}
             />
           </motion.span>
           {/* Burst particles khi vừa thêm vào yêu thích */}
@@ -124,7 +134,7 @@ export default function HeartButton({ productId, className = "", showLabel = fal
                 {[0, 72, 144, 216, 288].map((deg) => (
                   <motion.span
                     key={deg}
-                    className="absolute h-1 w-1 rounded-full bg-red-500"
+                    className="absolute h-1 w-1 rounded-full bg-sale"
                     initial={{ x: 0, y: 0, opacity: 0.9 }}
                     animate={{
                       x: Math.cos((deg * Math.PI) / 180) * 12,
@@ -140,8 +150,8 @@ export default function HeartButton({ productId, className = "", showLabel = fal
         </span>
       )}
       {showLabel && (
-        <span className="ml-1">{isFavorited ? "Đã yêu thích" : "Yêu thích"}</span>
+        <span className="text-sm">{isFavorited ? "Đã yêu thích" : "Yêu thích"}</span>
       )}
-    </button>
+    </Button>
   );
 }

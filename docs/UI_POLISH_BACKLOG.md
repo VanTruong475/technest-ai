@@ -35,7 +35,7 @@
 | 8 | Account / OrderDetail tokens | P2 | ✅ | `52505b3` | 2026-07-13 |
 | 9 | Blog list/detail buttons | P2 | ✅ | `ec44978` | 2026-07-13 |
 | 10 | Admin status badges | P3 | ✅ | `a5a37f0` | 2026-07-13 |
-| 11 | Shared micro-controls (optional) | P3 | ⬜ | — | — |
+| 11 | Shared micro-controls (optional) | P3 | ✅ | (chưa commit) | 2026-07-13 |
 
 ---
 
@@ -344,9 +344,9 @@ Checklist:
 
 **Files:** `HeartButton.tsx`, `StarRating.tsx`, `ImageGallery` (nếu sót), v.v.
 
-- [ ] HeartButton: optional bọc styling shadcn; **giữ** API wishlist + motion burst
-- [ ] StarRating: button a11y / Button nếu cần
-- [ ] Không đổi behavior favorited
+- [x] HeartButton: Button ghost + aria-pressed; **giữ** API wishlist + motion burst; fill sale token
+- [x] StarRating: Button + radiogroup a11y; empty star muted; tests 8/8
+- [x] Không đổi behavior favorited
 
 **Done khi:** micro-controls consistent enough; không bắt buộc 100% Button.
 
@@ -397,15 +397,13 @@ Checklist:
 | 2026-07-13 | docs | tick P1 | `e842f2c` | — |
 | 2026-07-13 | 8 | orderStatus badges UI_PATTERNS + fallback muted | `52505b3` | tests 6/6 |
 | 2026-07-13 | 9 | Blog list Button tabs/pagination + detail empty/back | `ec44978` | build pass |
-| 2026-07-13 | 10 | Admin badges dark-safe + trend success/destructive | (chưa commit) | metric identity giữ |
+| 2026-07-13 | 10 | Admin badges dark-safe + trend success/destructive | `a5a37f0` | metric identity giữ |
+| 2026-07-13 | 11 | HeartButton + StarRating Button/a11y | (chưa commit) | StarRating 8/8 |
 | | | | | |
 
 ---
 
 ## Next action
 
-**Wave 10 code done (chưa commit).** Recommend: commit Wave 10 → **Wave 11** optional micro hoặc đóng backlog + push.
-
-Home: **không** mở task UI mới trừ bug (Wave 0).
-
-Khi bắt đầu wave: status → 🔄 · xong → ✅ + hash · cập nhật log.
+**UI polish backlog Wave 0–11 ✅ (Wave 11 chưa commit).**  
+Recommend: commit Wave 11 → **đóng backlog** + push. Home freeze; không mở wave UI mới trừ bug.

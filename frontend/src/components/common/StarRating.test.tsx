@@ -36,23 +36,23 @@ describe("StarRating", () => {
   it("calls onRatingChange when interactive and clicked", () => {
     const onChange = vi.fn()
     render(<StarRating rating={0} interactive onRatingChange={onChange} />)
-    const buttons = screen.getAllByRole("button")
-    fireEvent.click(buttons[2]) // Click 3rd star
+    const stars = screen.getAllByRole("radio")
+    fireEvent.click(stars[2]) // Click 3rd star
     expect(onChange).toHaveBeenCalledWith(3)
   })
 
   it("does not call onRatingChange when not interactive", () => {
     const onChange = vi.fn()
     render(<StarRating rating={3} onRatingChange={onChange} />)
-    const buttons = screen.getAllByRole("button")
-    fireEvent.click(buttons[0])
+    const stars = screen.getAllByRole("button")
+    fireEvent.click(stars[0])
     expect(onChange).not.toHaveBeenCalled()
   })
 
   it("disables buttons when not interactive", () => {
     render(<StarRating rating={3} />)
-    const buttons = screen.getAllByRole("button")
-    buttons.forEach((btn) => {
+    const stars = screen.getAllByRole("button")
+    stars.forEach((btn) => {
       expect(btn).toBeDisabled()
     })
   })
