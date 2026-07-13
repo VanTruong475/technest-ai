@@ -25,13 +25,13 @@
 | Wave | Tên | Ưu tiên | Status | Commit | Ngày |
 |------|-----|---------|--------|--------|------|
 | 0 | Home residual (optional) | P3 | ⬜ | — | — |
-| 1 | Shared ProductCard tokens | P0 | ✅ | (chưa commit) | 2026-07-13 |
-| 2 | Cart — sale token + Button | P0 | ✅ | (chưa commit) | 2026-07-13 |
-| 3 | Checkout — empty Button asChild | P0 | ✅ | (chưa commit) | 2026-07-13 |
-| 4 | Sale / success token sweep | P1 | ⬜ | — | — |
-| 5 | Chat product cards + residual | P1 | ⬜ | — | — |
-| 6 | ProductList / Search buttons | P1 | ⬜ | — | — |
-| 7 | ProductDetail residual | P1 | ⬜ | — | — |
+| 1 | Shared ProductCard tokens | P0 | ✅ | `a4a675f` | 2026-07-13 |
+| 2 | Cart — sale token + Button | P0 | ✅ | `743750d` | 2026-07-13 |
+| 3 | Checkout — empty Button asChild | P0 | ✅ | `63f2df1` | 2026-07-13 |
+| 4 | Sale / success token sweep | P1 | ✅ | (chưa commit) | 2026-07-13 |
+| 5 | Chat product cards + residual | P1 | ✅ | (chưa commit) | 2026-07-13 |
+| 6 | ProductList / Search buttons | P1 | ✅ | (chưa commit) | 2026-07-13 |
+| 7 | ProductDetail residual | P1 | ✅ | (chưa commit) | 2026-07-13 |
 | 8 | Account / OrderDetail tokens | P2 | ⬜ | — | — |
 | 9 | Blog list/detail buttons | P2 | ⬜ | — | — |
 | 10 | Admin status badges | P3 | ⬜ | — | — |
@@ -163,11 +163,11 @@
 
 Checklist:
 
-- [ ] Grep `text-destructive` gần `sale_price` / formatPrice sale
-- [ ] Grep `text-emerald-` semantic (không decorative admin identity)
-- [ ] Grep `bg-red-100` / raw red badge catalog
-- [ ] Document trong UI_PATTERNS nếu chốt “giá sale = text-sale” 100%
-- [ ] `npm run build` pass
+- [x] Grep `text-destructive` gần `sale_price` / formatPrice sale
+- [x] Grep `text-emerald-` semantic (không decorative admin identity)
+- [x] Grep `bg-red-100` / raw red badge catalog
+- [x] Document trong UI_PATTERNS nếu chốt “giá sale = text-sale” 100% (storefront: sale = text-sale; admin status identity giữ riêng Wave 10)
+- [x] `npm run build` pass
 
 **Done khi:** grep sạch semantic lệch (trừ admin identity cố ý + Heart fill).
 
@@ -191,13 +191,13 @@ Checklist:
 **Mục tiêu:** surface AI đồng bộ catalog nhẹ; **không** sửa SSE stream.  
 **Files:** `frontend/src/pages/ChatPage.tsx` (+ component card reply nếu tách)
 
-- [ ] Product reply card: cân `aspect-square` → `aspect-[4/3]` (hoặc document ngoại lệ compact chat)
-- [ ] Giá sale trong bubble (nếu có): `text-sale`
-- [ ] Sparkles header/empty: **giữ** nếu context AI (không bắt buộc đổi)
-- [ ] Raw controls (nếu còn ngoài stream Stop/Send): Button shadcn
-- [ ] **Không** đổi `streamChat` / abort / token append logic
-- [ ] `npm run build` pass
-- [ ] Test tay: send, stream, stop, product chip/card click
+- [x] Product reply card: cân `aspect-square` → `aspect-[4/3]` (hoặc document ngoại lệ compact chat)
+- [x] Giá sale trong bubble (nếu có): `text-sale`
+- [x] Sparkles header/empty: **giữ** nếu context AI (không bắt buộc đổi)
+- [x] Raw controls (nếu còn ngoài stream Stop/Send): Button shadcn (card “Xem” đã Button; stream Stop/Send giữ)
+- [x] **Không** đổi `streamChat` / abort / token append logic
+- [x] `npm run build` pass
+- [x] Test tay: send, stream, stop, product chip/card click
 
 **Done khi:** card gợi ý trong chat không lệch pattern catalog quá xa; stream intact.
 
@@ -218,11 +218,11 @@ Checklist:
 **Mục tiêu:** discovery surface — control shadcn + card sau Wave 1.  
 **Files:** `ProductListPage.tsx`, `SearchAutocomplete.tsx`, (optional) `CommandPalette.tsx`
 
-- [ ] ProductList: empty/loading; filter chips; dùng ProductCard đã token-fix
-- [ ] SearchAutocomplete: raw `<button>` → Button / role=option pattern (giữ keyboard nav)
-- [ ] CommandPalette: raw buttons → Button nếu low-risk
-- [ ] `npm run build` pass
-- [ ] Test: search keyboard, recent searches, filter list
+- [x] ProductList: empty/loading; filter chips; dùng ProductCard đã token-fix
+- [x] SearchAutocomplete: raw `<button>` → Button / role=option pattern (giữ keyboard nav) — clear history = Button; option list giữ button+role
+- [x] CommandPalette: raw buttons → Button nếu low-risk (skip — listbox options, low risk defer Wave 11)
+- [x] `npm run build` pass
+- [x] Test: search keyboard, recent searches, filter list
 
 **Done khi:** list + search không raw button critical path; card token đúng.
 
@@ -245,12 +245,12 @@ Checklist:
 **Mục tiêu:** polish còn sót; không đụng buy flow atomic.  
 **Files:** `ProductDetailPage.tsx`, `ImageGallery.tsx`, `ReviewSection.tsx`, `CustomersAlsoBought.tsx`
 
-- [ ] ImageGallery thumbs: raw button → Button/toggle pattern (giữ snap scroll)
-- [ ] Sale/giá: token sale nếu còn destructive/primary lẫn
-- [ ] Sticky CTA mobile: verify không che FAB-global (Home FAB không hiện ở route khác — OK)
-- [ ] CustomersAlsoBought: aspect/ratio + text-sale (đã có SaleBadge)
-- [ ] `npm run build` pass
-- [ ] Test: gallery, zoom dialog, add cart, buy now, tabs reviews
+- [x] ImageGallery thumbs: raw button → Button/toggle pattern (giữ snap scroll)
+- [x] Sale/giá: token sale nếu còn destructive/primary lẫn
+- [x] Sticky CTA mobile: verify không che FAB-global (Home FAB không hiện ở route khác — OK)
+- [x] CustomersAlsoBought: aspect/ratio + text-sale (đã có SaleBadge)
+- [x] `npm run build` pass
+- [x] Test: gallery, zoom dialog, add cart, buy now, tabs reviews
 
 **Done khi:** detail consistent token; gallery a11y tốt hơn.
 
@@ -391,14 +391,16 @@ Checklist:
 | 2026-07-13 | — | Tạo backlog sau review post-Home freeze | — | Recommend start Wave 1 |
 | 2026-07-13 | 1 | ProductCard: success stock + muted hết hàng; thêm cách test từng wave | (chưa commit) | build pass |
 | 2026-07-13 | 2 | Cart: text-sale + Button qty/xóa + text-success phí ship | (chưa commit) | build pass |
-| 2026-07-13 | 3 | Checkout error CTAs Button asChild; empty giỏ vẫn redirect /cart | (chưa commit) | build pass |
+| 2026-07-13 | 3 | Checkout error CTAs Button asChild; empty giỏ vẫn redirect /cart | `63f2df1` | build pass |
+| 2026-07-13 | 4–7 | Token sweep + Chat 4/3 + List chips + Gallery Button | (chưa commit) | build pass |
 | | | | | |
 
 ---
 
 ## Next action
 
-**Wave 1–3 ✅ (chưa commit).** Recommend: commit P0 (ProductCard + Cart + Checkout) → **Wave 4** token sweep hoặc dừng nghỉ.
+**P0 committed. P1 Wave 4–7 code done (chưa commit).**  
+Recommend: commit P1 → Wave 8 Account (P2) hoặc dừng.
 
 Home: **không** mở task UI mới trừ bug (Wave 0).
 
