@@ -32,7 +32,7 @@
 | 5 | Chat product cards + residual | P1 | ✅ | `12db750` | 2026-07-13 |
 | 6 | ProductList / Search buttons | P1 | ✅ | `1fa80de` | 2026-07-13 |
 | 7 | ProductDetail residual | P1 | ✅ | `1fa80de` | 2026-07-13 |
-| 8 | Account / OrderDetail tokens | P2 | ✅ | (chưa commit) | 2026-07-13 |
+| 8 | Account / OrderDetail tokens | P2 | ✅ | `52505b3` | 2026-07-13 |
 | 9 | Blog list/detail buttons | P2 | ⬜ | — | — |
 | 10 | Admin status badges | P3 | ⬜ | — | — |
 | 11 | Shared micro-controls (optional) | P3 | ⬜ | — | — |
