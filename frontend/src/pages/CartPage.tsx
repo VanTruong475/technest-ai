@@ -257,7 +257,7 @@ export default function CartPage() {
                     <div className="flex items-center gap-2">
                       {item.sale_price ? (
                         <>
-                          <span className="font-bold text-destructive text-sm">{formatPrice(item.sale_price)}</span>
+                          <span className="font-bold text-sale text-sm">{formatPrice(item.sale_price)}</span>
                           <span className="text-xs text-muted-foreground line-through">{formatPrice(item.price)}</span>
                         </>
                       ) : (
@@ -266,17 +266,20 @@ export default function CartPage() {
                     </div>
 
                     {/* Quantity stepper */}
-                    <div className="inline-flex items-center border rounded-lg overflow-hidden">
-                      <button
-                        className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
+                    <div className="inline-flex items-center border border-border rounded-lg overflow-hidden">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 rounded-none"
                         onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                         disabled={item.quantity <= 1 || updatingId === item.id}
                         aria-label="Giảm số lượng"
                       >
                         <Minus className="h-3 w-3" />
-                      </button>
+                      </Button>
                       {updatingId === item.id ? (
-                        <span className="w-12 h-8 flex items-center justify-center border-x">
+                        <span className="w-12 h-8 flex items-center justify-center border-x border-border">
                           <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
                         </span>
                       ) : (
@@ -284,11 +287,14 @@ export default function CartPage() {
                           readOnly
                           value={item.quantity}
                           aria-label="Số lượng"
-                          className="w-12 h-8 text-center text-xs font-medium px-0 border-0 border-x rounded-none focus-visible:ring-0"
+                          className="w-12 h-8 text-center text-xs font-medium px-0 border-0 border-x border-border rounded-none focus-visible:ring-0"
                         />
                       )}
-                      <button
-                        className="w-8 h-8 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 rounded-none"
                         onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                         disabled={
                           updatingId === item.id ||
@@ -297,7 +303,7 @@ export default function CartPage() {
                         aria-label="Tăng số lượng"
                       >
                         <Plus className="h-3 w-3" />
-                      </button>
+                      </Button>
                     </div>
                     {item.stock != null && item.quantity >= item.stock && (
                       <p className="text-xs text-muted-foreground">
@@ -314,9 +320,15 @@ export default function CartPage() {
                         variant="destructive"
                         onConfirm={() => deleteMutation.mutateAsync(item.id)}
                       >
-                        <button className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                          aria-label={`Xóa ${item.product_name} khỏi giỏ`}
+                        >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </ConfirmDialog>
                     </div>
                   </div>
@@ -330,9 +342,15 @@ export default function CartPage() {
                       variant="destructive"
                       onConfirm={() => deleteMutation.mutateAsync(item.id)}
                     >
-                      <button className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        aria-label={`Xóa ${item.product_name} khỏi giỏ`}
+                      >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </Button>
                     </ConfirmDialog>
                   </div>
                 </div>
@@ -363,7 +381,7 @@ export default function CartPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Phí vận chuyển</span>
-                  <span className="font-medium text-green-600 dark:text-green-400">Miễn phí</span>
+                  <span className="font-medium text-success">Miễn phí</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-baseline">
