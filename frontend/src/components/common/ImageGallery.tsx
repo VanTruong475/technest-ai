@@ -2,6 +2,7 @@ import { useState } from "react";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { SaleBadge } from "@/components/common/SaleBadge";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Package, ZoomIn } from "lucide-react";
 
 interface ImageGalleryProps {
@@ -54,10 +55,11 @@ export default function ImageGallery({
       {/* Main image — click để phóng to (Dialog) */}
       <Dialog>
         <DialogTrigger asChild>
-          <button
+          <Button
             type="button"
+            variant="ghost"
             aria-label="Phóng to ảnh sản phẩm"
-            className="block w-full aspect-[4/3] rounded-xl overflow-hidden bg-muted border border-border/20 shadow-sm relative group cursor-zoom-in"
+            className="relative block h-auto w-full aspect-[4/3] overflow-hidden rounded-xl border border-border/20 bg-muted p-0 shadow-sm group cursor-zoom-in hover:bg-muted"
           >
             {displayImage ? (
               <OptimizedImage
@@ -67,11 +69,11 @@ export default function ImageGallery({
                 alt={productName}
                 width={800}
                 height={600}
-                className="w-full h-full object-cover transition-transform group-hover:scale-105 animate-in fade-in-0 duration-150"
+                className="h-full w-full object-cover transition-transform group-hover:scale-105 animate-in fade-in-0 duration-150"
                 priority
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="flex h-full w-full items-center justify-center">
                 <Package className="h-24 w-24 text-muted-foreground/20" />
               </div>
             )}
@@ -80,14 +82,13 @@ export default function ImageGallery({
                 <SaleBadge price={price} salePrice={salePrice} />
               </div>
             )}
-            {/* Gợi ý zoom */}
             {displayImage && (
-              <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-lg bg-background/80 backdrop-blur-sm px-2 py-1 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-lg bg-background/80 px-2 py-1 text-xs text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
                 <ZoomIn className="h-3.5 w-3.5" />
                 Phóng to
               </span>
             )}
-          </button>
+          </Button>
         </DialogTrigger>
         <DialogContent className="max-w-3xl p-2 bg-card">
           <DialogTitle className="sr-only">{productName}</DialogTitle>
@@ -112,12 +113,14 @@ export default function ImageGallery({
       {uniqueThumbnails.length > 1 && (
         <div className="flex gap-3 overflow-x-auto snap-x pb-1 -mx-1 px-1">
           {uniqueThumbnails.slice(0, THUMB_MAX).map((img, idx) => (
-            <button
+            <Button
               key={idx}
               type="button"
+              variant="ghost"
               onClick={() => handleThumbnailClick(idx)}
               aria-label={`Xem ảnh ${idx + 1}`}
-              className={`snap-start shrink-0 w-20 aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${
+              aria-pressed={idx === highlightIndex}
+              className={`h-auto w-20 shrink-0 snap-start overflow-hidden rounded-lg p-0 aspect-square ${
                 idx === highlightIndex
                   ? "ring-2 ring-primary border-primary"
                   : "border border-border/30 hover:border-primary/50"
@@ -128,9 +131,9 @@ export default function ImageGallery({
                 alt={`${productName} - Ảnh ${idx + 1}`}
                 width={150}
                 height={150}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
-            </button>
+            </Button>
           ))}
         </div>
       )}

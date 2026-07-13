@@ -188,39 +188,93 @@ export default function ProductListPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {search && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-xs font-medium">
-                "{search}"
-                <button onClick={() => updateParams({ search: "" })}><X className="h-3 w-3" /></button>
+              <span className="inline-flex items-center gap-0.5 pl-2.5 pr-0.5 py-0.5 rounded-full bg-muted text-xs font-medium">
+                &quot;{search}&quot;
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full"
+                  onClick={() => updateParams({ search: "" })}
+                  aria-label="Xóa bộ lọc tìm kiếm"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </span>
             )}
             {selectedCategoryName && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              <span className="inline-flex items-center gap-0.5 pl-2.5 pr-0.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                 {selectedCategoryName}
-                <button onClick={() => updateParams({ category_id: "" })}><X className="h-3 w-3" /></button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full text-primary"
+                  onClick={() => updateParams({ category_id: "" })}
+                  aria-label="Xóa bộ lọc danh mục"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </span>
             )}
             {selectedBrandName && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+              <span className="inline-flex items-center gap-0.5 pl-2.5 pr-0.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                 {selectedBrandName}
-                <button onClick={() => updateParams({ brand_id: "" })}><X className="h-3 w-3" /></button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full text-primary"
+                  onClick={() => updateParams({ brand_id: "" })}
+                  aria-label="Xóa bộ lọc thương hiệu"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </span>
             )}
             {(minPrice || maxPrice) && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-medium">
+              <span className="inline-flex items-center gap-0.5 pl-2.5 pr-0.5 py-0.5 rounded-full bg-muted text-xs font-medium">
                 {currentPricePreset?.label || `${minPrice ? formatPrice(Number(minPrice)) : "0"} - ${maxPrice ? formatPrice(Number(maxPrice)) : "∞"}`}
-                <button onClick={() => updateParams({ min_price: "", max_price: "" })}><X className="h-3 w-3" /></button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full"
+                  onClick={() => updateParams({ min_price: "", max_price: "" })}
+                  aria-label="Xóa bộ lọc giá"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </span>
             )}
             {minRating && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">
+              <span className="inline-flex items-center gap-0.5 pl-2.5 pr-0.5 py-0.5 rounded-full bg-muted text-xs font-medium">
                 {currentRatingLabel}
-                <button onClick={() => updateParams({ min_rating: "" })}><X className="h-3 w-3" /></button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full"
+                  onClick={() => updateParams({ min_rating: "" })}
+                  aria-label="Xóa bộ lọc đánh giá"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </span>
             )}
             {sort !== "newest" && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+              <span className="inline-flex items-center gap-0.5 pl-2.5 pr-0.5 py-0.5 rounded-full bg-muted text-xs font-medium">
                 {currentSortLabel}
-                <button onClick={() => updateParams({ sort: "" })}><X className="h-3 w-3" /></button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 rounded-full"
+                  onClick={() => updateParams({ sort: "" })}
+                  aria-label="Xóa sắp xếp"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </span>
             )}
           </div>
