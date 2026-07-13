@@ -38,10 +38,10 @@
 | 1 | Hero polish | ✅ done | `a50c92d` | 2026-07-13 |
 | 2 | Categories bento | ✅ done | `a50c92d` | 2026-07-13 |
 | 3 | Recommendations consistency | ✅ done | `a50c92d` | 2026-07-13 |
-| 4 | Flash Sale polish | ⬜ todo | — | — |
-| 5 | Featured + Trust | ⬜ todo | — | — |
-| 6 | Landing glue + a11y | ⬜ todo | — | — |
-| 7 | Docs freeze + portfolio | ⬜ todo | — | — |
+| 4 | Flash Sale polish | ✅ done | `e9cb869` | 2026-07-13 |
+| 5 | Featured + Trust | ✅ done | `e9cb869` | 2026-07-13 |
+| 6 | Landing glue + a11y | ✅ done | `e9cb869` | 2026-07-13 |
+| 7 | Docs freeze + portfolio | ✅ done | (docs commit) | 2026-07-13 |
 
 **Status legend:** ⬜ todo · 🔄 in progress · ✅ done · ⏸ blocked · ❌ cancelled
 
@@ -130,12 +130,12 @@
 **Mục tiêu:** identity sale rõ, không fake urgency (đã có stock thật).  
 **Effort:** ½–1 ngày · **Risk:** thấp · **Files chính:** `HomePage.tsx`
 
-- [ ] Header + countdown denser / căn hàng gọn (giữ Zap + sale identity)
-- [ ] Card trong banner: padding/badge/giá đồng bộ
-- [ ] “Xem tất cả” sale: giữ **hoặc** gộp theo rule max 1–2 / page (chốt ở Phase 0)
-- [ ] Verify token `sale` only (không raw red)
-- [ ] Test 0 flash products (section ẩn) + stock ≤ 5 badge
-- [ ] `npm run build` pass
+- [x] Header + countdown denser / căn hàng gọn (giữ Zap + sale identity)
+- [x] Card trong banner: padding/badge/giá đồng bộ
+- [x] “Xem tất cả” sale: giữ **hoặc** gộp theo rule max 1–2 / page (chốt ở Phase 0)
+- [x] Verify token `sale` only (không raw red)
+- [x] Test 0 flash products (section ẩn) + stock ≤ 5 badge
+- [x] `npm run build` pass
 
 **Done khi:** banner sale gọn, thật, không progress bar giả.
 
@@ -149,17 +149,17 @@
 **Effort:** ~1 ngày · **Risk:** thấp · **Files chính:** `HomePage.tsx`
 
 ### Featured
-- [ ] Đúng ProductCard pattern (`aspect-[4/3]`, badge, hover, giá primary)
-- [ ] Spacing/nhịp section; “Xem tất cả” — **primary browse CTA** của page (nếu chỉ giữ 1)
-- [ ] Stock text dùng `text-success` / `text-destructive` (đã có — verify)
+- [x] Đúng ProductCard pattern (`aspect-[4/3]`, badge, hover, giá primary)
+- [x] Spacing/nhịp section; “Xem tất cả” — **primary browse CTA** của page (nếu chỉ giữ 1)
+- [x] Stock text dùng `text-success` / `text-destructive` (đã có — verify)
 
 ### Trust
-- [ ] 1 accent family (`text-primary bg-primary/10` hoặc muted thống nhất)
-- [ ] Layout divider / inline row (không 4 rainbow equal cards) — chốt visual trước khi code nếu cần mock
-- [ ] Copy trust giữ tiếng Việt cụ thể (BH, giao hàng, đổi trả, VNPay/COD)
+- [x] 1 accent family (`text-primary bg-primary/10` hoặc muted thống nhất)
+- [x] Layout divider / inline row (không 4 rainbow equal cards) — chốt visual trước khi code nếu cần mock
+- [x] Copy trust giữ tiếng Việt cụ thể (BH, giao hàng, đổi trả, VNPay/COD)
 
-- [ ] Test light/dark
-- [ ] `npm run build` pass
+- [x] Test light/dark
+- [x] `npm run build` pass
 
 **Done khi:** Featured = catalog chuẩn; Trust không rainbow; browse CTA không lặp 3 lần.
 
@@ -170,13 +170,13 @@
 **Mục tiêu:** nhịp page + trạng thái + a11y hoàn thiện.  
 **Effort:** 1–2 ngày · **Risk:** thấp · **Files chính:** `HomePage.tsx`, có thể `lib/motion`
 
-- [ ] Section rhythm: `border-t` / `bg-muted/30` có chủ đích (không dark-block giữa light page)
-- [ ] `useReducedMotion` cho stagger Recs (và motion khác nếu có)
-- [ ] Empty/loading mọi block còn sót
-- [ ] Focus-visible CTA; contrast AA; alt images đầy đủ
-- [ ] FAB: không che content quan trọng mobile (safe-area nếu cần)
-- [ ] Rà em-dash / filler copy còn sót
-- [ ] `npm run build` pass
+- [x] Section rhythm: `border-t` / `bg-muted/30` có chủ đích (không dark-block giữa light page)
+- [x] `useReducedMotion` cho stagger Recs (và motion khác nếu có)
+- [x] Empty/loading mọi block còn sót
+- [x] Focus-visible CTA; contrast AA; alt images đầy đủ
+- [x] FAB: không che content quan trọng mobile (safe-area nếu cần)
+- [x] Rà em-dash / filler copy còn sót
+- [x] `npm run build` pass
 
 **Done khi:** scroll full page mượt, a11y cơ bản ổn, motion tôn trọng reduced-motion.
 
@@ -187,12 +187,14 @@
 **Mục tiêu:** khoá Home, sẵn demo.  
 **Effort:** ~½ ngày · **Risk:** thấp
 
-- [ ] `UI_PATTERNS.md`: mục HomePage = **done**; list follow-up còn lại (nếu có) rõ ràng
-- [ ] Cập nhật bảng tiến độ file này = tất cả ✅
-- [ ] (Optional) Screenshot light/dark desktop+mobile cho portfolio/docs
-- [ ] **Freeze Home** — chỉ sửa bug; feature mới sang ProductDetail / Cart / trang khác
+- [x] `UI_PATTERNS.md`: mục HomePage = **done**; list follow-up còn lại (nếu có) rõ ràng
+- [x] Cập nhật bảng tiến độ file này = tất cả ✅
+- [ ] (Optional) Screenshot light/dark desktop+mobile cho portfolio/docs — user tự chụp khi demo
+- [x] **Freeze Home** — chỉ sửa bug; feature mới sang ProductDetail / Cart / trang khác
 
 **Done khi:** docs khớp code; Home không còn “đang redesign”.
+
+> **FREEZE 2026-07-13:** Home redesign Phase 0–7 hoàn tất. Không mở phase UI mới trên Home trừ bugfix.
 
 ---
 
@@ -234,12 +236,14 @@ Không làm lại trừ regression:
 | 2026-07-13 | — | Tạo file task control + audit taste skill | — | — |
 | 2026-07-13 | 0 | Chốt pattern vào UI_PATTERNS + tick Phase 0 | `37f51bd` | Sẵn Phase 1 |
 | 2026-07-13 | 1–3 | Hero + Categories bento + Recs (1 commit code) | `a50c92d` | build pass |
+| 2026-07-13 | 4–6 | Flash Sale + Featured/Trust + glue a11y (1 commit code) | `e9cb869` | build pass |
+| 2026-07-13 | 7 | UI_PATTERNS Home DONE + freeze; task board all ✅ | (docs commit) | optional screenshots |
 | | | | | |
 
 ---
 
 ## Next action
 
-**Recommend:** Phase 4 — Flash Sale polish (hoặc commit Phase 1–3 trước).
-
-Khi bắt đầu phase: đổi status bảng tiến độ → 🔄, tick task con khi xong, ghi commit vào log.
+**Home redesign CLOSED (freeze).**  
+Recommend: commit Phase 4–7 (code + docs), push khi sẵn sàng.  
+Tiếp UI: ProductDetail / Cart / Checkout polish — không mở wave Home mới trừ bug.

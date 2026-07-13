@@ -92,40 +92,25 @@ Cấu trúc chuẩn:
 - Motion Home: intensity thấp (stagger Recs OK); **bắt buộc** tôn trọng `prefers-reduced-motion` / `useReducedMotion` khi có animation vào view
 - KHÔNG: GSAP sticky-stack, marquee, scroll-hijack, liquid glass trên Home (e-com trust + perf)
 
-## Redesign HomePage — tiến độ (cập nhật 2026-07-13)
+## Redesign HomePage — **DONE** (freeze 2026-07-13)
 
-Task control chi tiết: `docs/HOME_REDESIGN_TASKS.md`.
+Task control: `docs/HOME_REDESIGN_TASKS.md` (Phase 0–7 ✅).
+
+**Status: FREEZE.** Chỉ sửa bug trên Home; feature UI mới → ProductDetail / Cart / trang khác.
 
 **Dials (preserve):** VARIANCE 5 · MOTION 4 · DENSITY 5.
 
-### Đã xong (code + docs)
-- Hero base: min-h-dvh, padding token, Button shadcn + focus-ring, flag bar (không pill+Sparkles uppercase), copy thuần Việt, ambient glow, product showcase absolute `xl` zero-shift + skeleton/empty
-- Token `sale` + `success` (index.css light/dark)
-- Flash Sale: token hoá, bỏ fake urgency, badge stock thật ≤ 5
-- Unify sale color: SaleBadge, ProductCard, Wishlist, CustomersAlsoBought
-- Xoá AI Assistant section (form giả; giữ Hero CTA + FAB)
-- Button shadcn: quick-buy, wishlist shell, FAB (`MessageCircle`), hero CTA
-- Giảm Sparkles (chỉ badge AI + reason chip)
-- Flag bar thống nhất Recs / Categories / Featured; Categories left-align
-- Hero alt text cụ thể hơn
+### Đã ship (Phase 0–6)
+- **Hero:** min-h-dvh, product-forward bg, no em-dash, sub ≤ ~20 từ + bind động, type scale, flag bar, Button shadcn, showcase absolute `xl` + mini card mobile, ambient glow
+- **Flash Sale:** token `sale`, header denser, card `aspect-[4/3]` + SaleBadge, stock thật ≤ 5, CTA “Xem deal”
+- **Recs:** `aspect-[4/3]`, HeartButton (API), ArrowUpRight, không “Xem tất cả”, `useReducedMotionSafe`, empty state, `bg-muted/30` rhythm
+- **Categories:** bento 1 large + N small (md+); 2-col mobile; equal grid nếu &lt; 3
+- **Featured:** ProductCard pattern, primary “Xem tất cả”, stock success/destructive, empty state
+- **Trust:** 1 accent `primary`, divider row (không rainbow cards)
+- **FAB:** MessageCircle + safe-area; page padding bù
+- **Tokens:** `sale` + `success` (index.css); Button shadcn toàn Home interactive
+- **Docs Phase 0:** pattern chốt trong file này + task control
 
-### Phase 0 docs (chốt pattern — 2026-07-13)
-- Hero: no em-dash; sub ≤ ~20 từ; product-forward bg; mobile mini product dưới CTA; type scale gợi ý
-- Product card Home: luôn `aspect-[4/3]`
-- Categories: bento, không equal 5-col
-- Trust: 1 accent; ưu tiên non-card layout
-- “Xem tất cả”: max 1–2 / page
-- Section header + motion/reduced-motion + cấm Awwards motion trên Home
-
-### Chờ implement (theo HOME_REDESIGN_TASKS)
-- Phase 1: Hero polish (copy, scale, asset, mobile card)
-- Phase 2: Categories bento
-- Phase 3: Recs ratio 4/3, wishlist wire|remove, icon semantics, bớt “Xem tất cả”
-- Phase 4: Flash Sale polish identity
-- Phase 5: Featured + Trust 1 accent
-- Phase 6: glue + a11y + reduced-motion
-- Phase 7: freeze docs + portfolio shots
-
-### Cân nhắc sau (không block Home)
-- Giá sale toàn app: `text-primary` vs `text-sale` — chưa thống nhất 100%
-- Wishlist button trên Recs: dead control → wire hoặc xoá (Phase 3)
+### Follow-up ngoài Home (không block freeze)
+- Giá sale toàn app: `text-primary` vs `text-sale` — chưa thống nhất 100% ngoài Home
+- (Optional) Screenshot light/dark desktop+mobile cho portfolio
