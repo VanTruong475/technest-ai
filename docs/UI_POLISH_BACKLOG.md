@@ -34,7 +34,7 @@
 | 7 | ProductDetail residual | P1 | ✅ | `1fa80de` | 2026-07-13 |
 | 8 | Account / OrderDetail tokens | P2 | ✅ | `52505b3` | 2026-07-13 |
 | 9 | Blog list/detail buttons | P2 | ✅ | `ec44978` | 2026-07-13 |
-| 10 | Admin status badges | P3 | ⬜ | — | — |
+| 10 | Admin status badges | P3 | ✅ | (chưa commit) | 2026-07-13 |
 | 11 | Shared micro-controls (optional) | P3 | ⬜ | — | — |
 
 ---
@@ -321,11 +321,11 @@ Checklist:
 
 **Files:** `AdminUserPage`, `AdminAuditPage`, `AdminOrderPage`, `AdminDashboardPage` (chỉ chỗ raw status)
 
-- [ ] Map status → UI_PATTERNS Status Badge (pending/processing/completed/cancelled)
-- [ ] User active/inactive: tránh `bg-red-50` raw nếu có token/muted
-- [ ] **Giữ** Dashboard metric color identity (user đã chốt)
-- [ ] Empty/error states: verify
-- [ ] `npm run build` pass
+- [x] Map status → UI_PATTERNS Status Badge (orders đã Wave 8; audit/product/user/blog dark-safe)
+- [x] User active/inactive: green/red UI_PATTERNS + dark; role USER blue / ADMIN muted
+- [x] **Giữ** Dashboard metric icon color identity (user đã chốt)
+- [x] Empty/error states: verify (không regression)
+- [x] `npm run build` pass
 
 **Done khi:** admin tables status đọc dark mode ổn; không ép landing aesthetic.
 
@@ -396,14 +396,15 @@ Checklist:
 | 2026-07-13 | 6–7 | List chips + Gallery Button | `1fa80de` | build pass |
 | 2026-07-13 | docs | tick P1 | `e842f2c` | — |
 | 2026-07-13 | 8 | orderStatus badges UI_PATTERNS + fallback muted | `52505b3` | tests 6/6 |
-| 2026-07-13 | 9 | Blog list Button tabs/pagination + detail empty/back | (chưa commit) | build pass |
+| 2026-07-13 | 9 | Blog list Button tabs/pagination + detail empty/back | `ec44978` | build pass |
+| 2026-07-13 | 10 | Admin badges dark-safe + trend success/destructive | (chưa commit) | metric identity giữ |
 | | | | | |
 
 ---
 
 ## Next action
 
-**Wave 9 code done (chưa commit).** Recommend: commit Wave 9 → **Wave 10** Admin badges (P3) hoặc push.
+**Wave 10 code done (chưa commit).** Recommend: commit Wave 10 → **Wave 11** optional micro hoặc đóng backlog + push.
 
 Home: **không** mở task UI mới trừ bug (Wave 0).
 

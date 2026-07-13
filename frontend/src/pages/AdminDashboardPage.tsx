@@ -273,9 +273,7 @@ export default function AdminDashboardPage() {
                     {typeof card.trend === "number" ? (
                       <p
                         className={`text-xs font-medium mt-1 truncate ${
-                          card.trend >= 0
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-red-600 dark:text-red-400"
+                          card.trend >= 0 ? "text-success" : "text-destructive"
                         }`}
                       >
                         {card.trend >= 0 ? "↑" : "↓"} {Math.abs(card.trend)}% so tháng trước

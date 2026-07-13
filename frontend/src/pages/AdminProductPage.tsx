@@ -528,9 +528,13 @@ export default function AdminProductPage() {
                         )}
                       </td>
                       <td className="p-3 text-center">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          product.status === "ACTIVE" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-600"
-                        }`}>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            product.status === "ACTIVE"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
                           {PRODUCT_STATUS_LABELS[product.status] || product.status}
                         </span>
                       </td>

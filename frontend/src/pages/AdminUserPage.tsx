@@ -187,15 +187,22 @@ export default function AdminUserPage() {
                       <td className="p-3 text-muted-foreground">{user.phone || "—"}</td>
                       <td className="p-3 text-center">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          user.role === "ADMIN" ? "text-purple-600 bg-purple-50" : "text-blue-600 bg-blue-50"
-                        }`}>
+                          user.role === "ADMIN"
+                            ? "bg-muted text-foreground"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                        }`}
+                        >
                           {user.role}
                         </span>
                       </td>
                       <td className="p-3 text-center">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          user.is_active ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"
-                        }`}>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            user.is_active
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                          }`}
+                        >
                           {user.is_active ? "Hoạt động" : "Vô hiệu"}
                         </span>
                       </td>

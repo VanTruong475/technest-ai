@@ -231,7 +231,13 @@ export default function AdminBlogPage() {
                     <td className="px-4 py-3 font-medium line-clamp-1 max-w-xs">{post.title}</td>
                     <td className="px-4 py-3 text-muted-foreground">{post.category || "—"}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${post.published ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+                      <span
+                        className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          post.published
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
                         {post.published ? "Đã xuất bản" : "Nháp"}
                       </span>
                     </td>

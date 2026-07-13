@@ -29,11 +29,12 @@ interface AuditLogsResponse {
   total_pages: number;
 }
 
+/** Audit action badges — dark-safe, cùng họ UI_PATTERNS Status Badge */
 const ACTION_COLORS: Record<string, string> = {
-  CREATE: "text-green-600 bg-green-50",
-  UPDATE: "text-blue-600 bg-blue-50",
-  DELETE: "text-red-600 bg-red-50",
-  EXPORT: "text-purple-600 bg-purple-50",
+  CREATE: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  UPDATE: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  DELETE: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  EXPORT: "bg-muted text-muted-foreground",
 };
 
 export default function AdminAuditPage() {
@@ -174,7 +175,7 @@ export default function AdminAuditPage() {
                         </td>
                         <td className="p-3 font-medium">{log.user_name}</td>
                         <td className="p-3 text-center">
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ACTION_COLORS[log.action] || "text-gray-600 bg-gray-50"}`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ACTION_COLORS[log.action] || "text-muted-foreground bg-muted"}`}>
                             {log.action}
                           </span>
                         </td>
