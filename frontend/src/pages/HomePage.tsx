@@ -685,11 +685,15 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          TRUST STRIP — 1 accent, divider row (không rainbow cards)
+          TRUST STRIP — 1 accent, divider row, tone gần footer
+          (không feature-card / không rainbow — UI_PATTERNS)
           ═══════════════════════════════════════════════════════ */}
-      <section className="border-t border-border/30">
-        <div className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-12 lg:px-8">
-          <ul className="grid grid-cols-1 divide-y divide-border/60 sm:grid-cols-2 sm:divide-y-0 md:grid-cols-4 md:divide-x">
+      <section
+        className="border-t border-border/40 bg-muted/30"
+        aria-label="Cam kết dịch vụ"
+      >
+        <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-9 lg:px-8">
+          <ul className="grid grid-cols-1 divide-y divide-border/50 sm:grid-cols-2 sm:divide-y-0 md:grid-cols-4 md:divide-x md:divide-border/50">
             {[
               {
                 icon: ShieldCheck,
@@ -716,18 +720,21 @@ export default function HomePage() {
               return (
                 <li
                   key={item.title}
-                  className="flex items-start gap-3 px-0 py-4 first:pt-0 last:pb-0 sm:px-4 sm:py-2 md:px-5"
+                  className="flex items-center gap-3 px-0 py-3.5 first:pt-0 last:pb-0 sm:px-4 sm:py-1 md:px-6"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </div>
+                  {/* Icon line-weight, không box rounded-xl (tránh cảm giác 4 feature card) */}
+                  <Icon
+                    className="h-5 w-5 shrink-0 text-primary"
+                    strokeWidth={1.75}
+                    aria-hidden="true"
+                  />
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold leading-tight text-foreground">
+                    <p className="text-sm font-medium leading-tight text-foreground">
                       {item.title}
-                    </div>
-                    <div className="mt-1 text-xs leading-snug text-muted-foreground">
+                    </p>
+                    <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
                       {item.sub}
-                    </div>
+                    </p>
                   </div>
                 </li>
               );

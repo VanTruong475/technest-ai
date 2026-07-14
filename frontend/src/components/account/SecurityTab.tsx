@@ -127,7 +127,7 @@ export default function SecurityTab() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Không copy được — hãy chọn secret thủ công");
+      toast.error("Không copy được. Hãy chọn secret thủ công");
     }
   };
 
@@ -137,18 +137,18 @@ export default function SecurityTab() {
     : null;
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      {/* Soft-enforce banner for admin without 2FA */}
+    <div className="space-y-5 max-w-2xl">
+      {/* Soft-enforce banner — primary family (không amber raw) */}
       {isAdmin && !user?.is_2fa_enabled && (
         <div
           role="status"
-          className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+          className="rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-sm text-foreground"
         >
           <p className="font-medium flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
             Nên bật xác thực 2 lớp (2FA)
           </p>
-          <p className="text-muted-foreground mt-1 text-xs">
+          <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
             Tài khoản Admin chỉ bảo vệ bằng mật khẩu. Bật TOTP (Google Authenticator / Authy) bên dưới để tăng bảo mật.
           </p>
         </div>
@@ -156,8 +156,8 @@ export default function SecurityTab() {
 
       <Card className="border-border/60">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Lock className="h-4 w-4 text-primary" />
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <span className="h-4 w-1 rounded-full bg-primary shrink-0" aria-hidden="true" />
             Đổi mật khẩu
           </CardTitle>
         </CardHeader>
@@ -222,15 +222,15 @@ export default function SecurityTab() {
       {isAdmin && (
         <Card className="border-border/60">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-primary" />
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <span className="h-4 w-1 rounded-full bg-primary shrink-0" aria-hidden="true" />
               Xác thực 2 lớp (TOTP)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {user?.is_2fa_enabled ? (
               <>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   2FA đang <span className="text-success font-medium">bật</span>. Đăng nhập admin sẽ yêu cầu mã 6 số.
                 </p>
                 <div className="space-y-2">
@@ -272,13 +272,15 @@ export default function SecurityTab() {
                   Quét QR bằng Google Authenticator / Authy, hoặc nhập secret thủ công:
                 </p>
                 {qrUrl && (
-                  <img
-                    src={qrUrl}
-                    alt="QR code 2FA"
-                    width={180}
-                    height={180}
-                    className="rounded-md border border-border bg-white p-2"
-                  />
+                  <div className="inline-flex rounded-xl border border-border bg-card p-3">
+                    <img
+                      src={qrUrl}
+                      alt="QR code thiết lập 2FA"
+                      width={180}
+                      height={180}
+                      className="rounded-md bg-white"
+                    />
+                  </div>
                 )}
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-xs bg-muted px-3 py-2 rounded-md break-all font-mono">

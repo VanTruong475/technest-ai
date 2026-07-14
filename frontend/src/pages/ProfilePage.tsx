@@ -13,7 +13,7 @@ import WishlistTab from "@/components/account/WishlistTab";
 const VALID_TABS = ["profile", "orders", "wishlist", "security"] as const;
 type TabKey = (typeof VALID_TABS)[number];
 
-/** Initials 2 ký tự đầu họ tên cho AvatarFallback (fallback "?" khi rỗng). */
+/** Initials 2 ký tự cuối họ tên cho AvatarFallback. */
 function getInitials(name: string): string {
   return (
     (name || "?")
@@ -43,34 +43,47 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Identity header */}
-      <Card className="overflow-hidden border-border/60">
-        <div className="h-20 bg-gradient-to-r from-primary/80 via-violet-600/80 to-primary/80 dark:from-primary/40 dark:via-violet-600/40 dark:to-primary/40" aria-hidden="true" />
-        <CardContent className="pt-0 pb-5 px-5 -mt-10">
-          <div className="flex items-end gap-4 flex-wrap">
-            <Avatar className="h-20 w-20 rounded-2xl shadow-lg ring-4 ring-background shrink-0">
-              <AvatarFallback className="rounded-2xl bg-gradient-to-br from-primary to-violet-600 text-primary-foreground text-2xl font-bold">
+      {/* Identity — flag bar + card phẳng (không gradient banner) */}
+      <Card className="border-border/60">
+        <CardContent className="p-5 sm:p-6">
+          <div className="flex items-center gap-4 flex-wrap">
+            <Avatar className="h-16 w-16 rounded-2xl ring-2 ring-border shrink-0">
+              <AvatarFallback className="rounded-2xl bg-primary/10 text-primary text-xl font-bold">
                 {getInitials(user.full_name)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0 pb-1">
-              <h1 className="text-xl font-bold truncate">{user.full_name || "Chưa cập nhật"}</h1>
-              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-                  isAdmin
-                    ? "text-violet-700 bg-violet-500/10 dark:text-violet-300"
-                    : "text-sky-700 bg-sky-500/10 dark:text-sky-300"
-                }`}>
-                  <Shield className="h-3 w-3" />
-                  {user.role}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2.5 mb-1">
+                <span className="h-4 w-1 rounded-full bg-primary shrink-0" aria-hidden="true" />
+                <p className="text-xs font-medium tracking-wide text-muted-foreground">Tài khoản</p>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">
+                {user.full_name || "Chưa cập nhật"}
+              </h1>
+              <p className="text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>
+              <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                <span
+                  className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
+                    isAdmin
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground bg-muted"
+                  }`}
+                >
+                  <Shield className="h-3 w-3" aria-hidden="true" />
+                  {isAdmin ? "Admin" : "Khách hàng"}
                 </span>
-                <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-                  user.is_active
-                    ? "text-success bg-success/10"
-                    : "text-destructive bg-destructive/10"
-                }`}>
-                  {user.is_active ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                <span
+                  className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
+                    user.is_active
+                      ? "text-success bg-success/10"
+                      : "text-destructive bg-destructive/10"
+                  }`}
+                >
+                  {user.is_active ? (
+                    <CheckCircle className="h-3 w-3" aria-hidden="true" />
+                  ) : (
+                    <XCircle className="h-3 w-3" aria-hidden="true" />
+                  )}
                   {user.is_active ? "Hoạt động" : "Vô hiệu"}
                 </span>
               </div>
@@ -79,28 +92,40 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setTab}>
-        {/* Sticky dưới header trên mobile, tĩnh trên desktop */}
-        <div className="sticky top-16 z-30 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:static md:mx-0 md:px-0 md:py-0 md:bg-transparent md:backdrop-blur-none">
-          <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap sm:flex-nowrap">
-            <TabsTrigger value="profile" className="gap-1.5"><User className="h-4 w-4" /> Hồ sơ</TabsTrigger>
-            <TabsTrigger value="orders" className="gap-1.5"><ShoppingBag className="h-4 w-4" /> Đơn hàng</TabsTrigger>
-            <TabsTrigger value="wishlist" className="gap-1.5"><Heart className="h-4 w-4" /> Wishlist</TabsTrigger>
-            <TabsTrigger value="security" className="gap-1.5"><Lock className="h-4 w-4" /> Bảo mật</TabsTrigger>
+        {/* Sticky dưới fixed header (~128px = h-20 + h-12) */}
+        {/* Mobile: sticky dưới header h-20; desktop: tĩnh (category nav chỉ md+) */}
+        <div className="sticky top-20 z-30 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border/40 md:static md:mx-0 md:px-0 md:py-0 md:bg-transparent md:backdrop-blur-none md:border-0">
+          <TabsList className="w-full justify-start overflow-x-auto h-auto gap-1 bg-muted/50 p-1">
+            <TabsTrigger value="profile" className="gap-1.5 data-[state=active]:shadow-sm">
+              <User className="h-4 w-4" aria-hidden="true" />
+              Hồ sơ
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="gap-1.5 data-[state=active]:shadow-sm">
+              <ShoppingBag className="h-4 w-4" aria-hidden="true" />
+              Đơn hàng
+            </TabsTrigger>
+            <TabsTrigger value="wishlist" className="gap-1.5 data-[state=active]:shadow-sm">
+              <Heart className="h-4 w-4" aria-hidden="true" />
+              Yêu thích
+            </TabsTrigger>
+            <TabsTrigger value="security" className="gap-1.5 data-[state=active]:shadow-sm">
+              <Lock className="h-4 w-4" aria-hidden="true" />
+              Bảo mật
+            </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="profile" className="mt-6">
+        <TabsContent value="profile" className="mt-6 focus-visible:outline-none">
           <ProfileInfoTab user={user} />
         </TabsContent>
-        <TabsContent value="orders" className="mt-6">
+        <TabsContent value="orders" className="mt-6 focus-visible:outline-none">
           <OrdersTab />
         </TabsContent>
-        <TabsContent value="wishlist" className="mt-6">
+        <TabsContent value="wishlist" className="mt-6 focus-visible:outline-none">
           <WishlistTab />
         </TabsContent>
-        <TabsContent value="security" className="mt-6">
+        <TabsContent value="security" className="mt-6 focus-visible:outline-none">
           <SecurityTab />
         </TabsContent>
       </Tabs>

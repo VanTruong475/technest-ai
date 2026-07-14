@@ -21,7 +21,7 @@ const STATUS_TABS = [
 
 function OrderCardSkeleton() {
   return (
-    <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5 space-y-3">
+    <div className="bg-card rounded-xl border border-border/60 p-5 space-y-3">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <Skeleton className="h-5 w-32" />
@@ -82,19 +82,34 @@ export default function OrdersTab() {
 
   return (
     <div>
-      {/* Filter trạng thái */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {STATUS_TABS.map((tab) => (
-          <Button
-            key={tab.key}
-            variant={statusFilter === tab.key ? "default" : "outline"}
-            size="sm"
-            className="rounded-lg"
-            onClick={() => { setStatusFilter(tab.key); setPage(1); }}
-          >
-            {tab.label}
-          </Button>
-        ))}
+      {/* Filter trạng thái — chip row, semantic tokens */}
+      <div
+        className="flex flex-wrap gap-2 mb-6"
+        role="group"
+        aria-label="Lọc theo trạng thái đơn"
+      >
+        {STATUS_TABS.map((tab) => {
+          const active = statusFilter === tab.key;
+          return (
+            <Button
+              key={tab.key || "all"}
+              variant={active ? "default" : "outline"}
+              size="sm"
+              className={
+                active
+                  ? "rounded-full"
+                  : "rounded-full border-border/60 text-muted-foreground hover:text-foreground"
+              }
+              onClick={() => {
+                setStatusFilter(tab.key);
+                setPage(1);
+              }}
+              aria-pressed={active}
+            >
+              {tab.label}
+            </Button>
+          );
+        })}
       </div>
 
       {isLoading && (
@@ -115,19 +130,19 @@ export default function OrdersTab() {
       {/* Empty state (UI_PATTERNS.md) */}
       {!isLoading && !error && orders.length === 0 && (
         <div className="flex flex-col items-center py-16 text-muted-foreground">
-          <Package className="h-12 w-12" />
+          <Package className="h-12 w-12" aria-hidden="true" />
           <p className="mt-4 text-lg font-medium text-foreground">
             {statusFilter
-              ? `Không có đơn hàng "${STATUS_TABS.find((t) => t.key === statusFilter)?.label || statusFilter}"`
+              ? `Không có đơn "${STATUS_TABS.find((t) => t.key === statusFilter)?.label || statusFilter}"`
               : "Bạn chưa có đơn hàng nào"}
           </p>
           <p className="mt-1 text-sm">
             {statusFilter ? "Thử chọn trạng thái khác." : "Hãy đặt hàng đầu tiên của bạn."}
           </p>
           {!statusFilter && (
-            <Link to="/products">
-              <Button className="mt-5">Mua sắm ngay</Button>
-            </Link>
+            <Button asChild className="mt-5">
+              <Link to="/products">Mua sắm ngay</Link>
+            </Button>
           )}
         </div>
       )}
@@ -142,13 +157,16 @@ export default function OrdersTab() {
             const isReordering = reorderingId === order.id && reorder.isPending;
 
             return (
-              <Card key={order.id} className="border-border/60 shadow-sm rounded-2xl overflow-hidden">
+              <Card key={order.id} className="border-border/60 overflow-hidden">
                 {/* Header: mã đơn + ngày + status */}
-                <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b bg-muted/20">
+                <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-border/50 bg-muted/30">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <Link to={`/orders/${order.id}`} className="font-semibold hover:underline">
-                        Đơn hàng #{order.id}
+                      <Link
+                        to={`/orders/${order.id}`}
+                        className="font-semibold text-foreground hover:text-primary transition-colors"
+                      >
+                        Đơn #{order.id}
                       </Link>
                       <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${statusInfo.color}`}>
                         {statusInfo.label}
@@ -158,9 +176,9 @@ export default function OrdersTab() {
                   </div>
                   <Link
                     to={`/orders/${order.id}`}
-                    className="text-sm text-primary hover:underline inline-flex items-center gap-1 shrink-0"
+                    className="text-sm text-primary hover:underline inline-flex items-center gap-0.5 shrink-0"
                   >
-                    Chi tiết <ChevronRight className="h-4 w-4" />
+                    Chi tiết <ChevronRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </div>
 
@@ -170,25 +188,34 @@ export default function OrdersTab() {
                     const canReview = isCompleted ? canReviewData?.results[item.product_id] : undefined;
                     return (
                       <div key={item.id} className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden shrink-0">
+                        <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden shrink-0 border border-border/40 flex items-center justify-center">
                           {item.image_url ? (
-                            <OptimizedImage src={item.image_url} alt={item.product_name} width={48} height={48} className="w-full h-full object-cover" />
+                            <OptimizedImage
+                              src={item.image_url}
+                              alt={item.product_name}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-sm" aria-hidden="true">📦</div>
+                            <Package className="h-5 w-5 text-muted-foreground/40" aria-hidden="true" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <Link to={`/products/${item.product_id}`} className="text-sm font-medium hover:underline line-clamp-1">
+                          <Link
+                            to={`/products/${item.product_id}`}
+                            className="text-sm font-medium hover:text-primary transition-colors line-clamp-1"
+                          >
                             {item.product_name}
                           </Link>
                           <p className="text-xs text-muted-foreground">
                             {formatPrice(item.sale_price ?? item.price)} × {item.quantity}
                           </p>
                         </div>
-                        {canReview && (
-                          canReview.has_reviewed ? (
+                        {canReview &&
+                          (canReview.has_reviewed ? (
                             <div className="flex items-center gap-1.5 text-xs text-success bg-success/10 px-2.5 py-1.5 rounded-lg shrink-0">
-                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                               <span className="font-medium hidden sm:inline">Đã đánh giá</span>
                             </div>
                           ) : canReview.can_review ? (
@@ -204,11 +231,10 @@ export default function OrdersTab() {
                                 })
                               }
                             >
-                              <Star className="h-3.5 w-3.5" />
+                              <Star className="h-3.5 w-3.5" aria-hidden="true" />
                               <span className="hidden sm:inline">Đánh giá</span>
                             </Button>
-                          ) : null
-                        )}
+                          ) : null)}
                       </div>
                     );
                   })}
@@ -218,10 +244,12 @@ export default function OrdersTab() {
                 </div>
 
                 {/* Footer: tổng tiền + Mua lại */}
-                <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-t">
+                <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-t border-border/50">
                   <div className="text-sm">
                     <span className="text-muted-foreground">Tổng tiền: </span>
-                    <span className="text-lg font-bold">{formatPrice(order.total_amount)}</span>
+                    <span className="text-base sm:text-lg font-bold text-primary">
+                      {formatPrice(order.total_amount)}
+                    </span>
                   </div>
                   <Button
                     variant="outline"
@@ -235,7 +263,11 @@ export default function OrdersTab() {
                       )
                     }
                   >
-                    {isReordering ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                    {isReordering ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
                     Mua lại
                   </Button>
                 </div>

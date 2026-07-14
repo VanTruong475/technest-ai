@@ -25,13 +25,11 @@ export default function LoginPage() {
 
   const finishLogin = () => {
     toast.success("Đăng nhập thành công!");
-    const isAdmin = useAuthStore.getState().isAdmin;
-    const user = useAuthStore.getState().user;
-    // Soft-enforce: admin chưa bật 2FA → banner ở Security tab
+    const { isAdmin, user } = useAuthStore.getState();
+    // Admin luôn vào dashboard (không redirect storefront/home).
+    // 2FA chưa bật: chỉ nhắc, banner vẫn hiện ở /profile?tab=security.
     if (isAdmin && user && !user.is_2fa_enabled) {
-      navigate("/profile?tab=security");
-      toast.message("Nên bật xác thực 2 lớp (2FA) cho tài khoản Admin.");
-      return;
+      toast.message("Nên bật xác thực 2 lớp (2FA) trong Hồ sơ → Bảo mật.");
     }
     navigate(isAdmin ? "/admin/dashboard" : "/");
   };
