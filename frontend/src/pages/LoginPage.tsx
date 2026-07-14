@@ -7,6 +7,7 @@ import {
   Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, ShieldCheck,
   ShoppingCart,
 } from "lucide-react";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -129,12 +130,7 @@ export default function LoginPage() {
         <div className="w-full max-w-[420px]">
           {/* Branding */}
           <div className="mb-8 text-center md:text-left">
-            <Link to="/" className="inline-flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-primary tracking-tight">TechSphere AI</span>
-            </Link>
+            <BrandLogo size="md" className="mb-4" />
             <h2 className="text-2xl font-bold">Chào mừng trở lại</h2>
             <p className="text-muted-foreground text-sm mt-1">Đăng nhập để tiếp tục mua sắm và theo dõi đơn hàng.</p>
           </div>

@@ -28,6 +28,7 @@ function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
 import ScrollToTop from "@/components/common/ScrollToTop";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import CommandPalette from "@/components/common/CommandPalette";
+import { BrandLogo } from "@/components/common/BrandLogo";
 import { useCategories, getCategoryIdBySlug } from "@/hooks/useCategories";
 
 const CATEGORY_NAV = [
@@ -121,13 +122,7 @@ export default function MainLayout() {
         <div className="max-w-7xl mx-auto px-6">
           {/* Top bar */}
           <div className="flex items-center justify-between h-20 gap-4 md:gap-6">
-            <Link
-              to="/"
-              className="text-2xl font-bold text-primary tracking-tight shrink-0"
-              onClick={closeMobile}
-            >
-              TechSphere AI
-            </Link>
+            <BrandLogo size="lg" onClick={closeMobile} />
 
             {/* Search — one primary field; AI via ⌘K (compact) */}
             <div className="hidden md:flex flex-1 max-w-2xl relative">
@@ -491,12 +486,7 @@ export default function MainLayout() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-14">
               <div className="lg:col-span-2">
-                <Link to="/" className="inline-flex items-center gap-2 mb-5">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-600 text-primary-foreground">
-                    <Sparkles className="h-4 w-4" />
-                  </span>
-                  <span className="text-xl font-bold tracking-tight text-primary">TechSphere AI</span>
-                </Link>
+                <BrandLogo size="md" className="mb-5" />
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-sm">
                   Hệ sinh thái mua sắm công nghệ thông minh, mang tương lai AI đến gần hơn với cuộc sống của bạn tại Việt Nam.
                 </p>
@@ -573,7 +563,7 @@ export default function MainLayout() {
                 <h4 className="font-bold text-xs uppercase tracking-widest mb-5">Hệ thống</h4>
                 <ul className="flex flex-col gap-3 text-sm text-muted-foreground">
                   <li>
-                    <span className="hover:text-primary transition-colors cursor-default">Về TechSphere AI</span>
+                    <span className="hover:text-primary transition-colors cursor-default">Về TechNest</span>
                   </li>
                   <li>
                     <span className="hover:text-primary transition-colors cursor-default">Liên hệ</span>
@@ -596,7 +586,7 @@ export default function MainLayout() {
             </div>
 
             <div className="border-t border-border/40 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
-              <p>© {new Date().getFullYear()} TechSphere AI. Giấy phép kinh doanh số: 0102030405.</p>
+              <p>© {new Date().getFullYear()} TechNest. Giấy phép kinh doanh số: 0102030405.</p>
               <div className="flex gap-6 uppercase font-bold tracking-tight">
                 <span className="hover:text-primary cursor-default transition-colors">Chính sách bảo mật</span>
                 <span className="hover:text-primary cursor-default transition-colors">Điều khoản dịch vụ</span>

@@ -4,9 +4,10 @@ import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Star, FileText,
-  LogOut, Menu, X, ArrowLeft, Sparkles, BookOpen,
+  LogOut, Menu, X, ArrowLeft, BookOpen,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 const ADMIN_LINKS = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -50,10 +51,10 @@ export default function AdminLayout() {
       <aside className="hidden md:flex flex-col w-60 border-r bg-card shrink-0 sticky top-0 h-screen">
         {/* Logo */}
         <div className="h-14 flex items-center gap-2 px-4 border-b">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-600 text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
+          <BrandLogo size="sm" asLink={false} />
+          <span className="font-medium text-xs text-muted-foreground tracking-wide uppercase">
+            Admin
           </span>
-          <span className="font-bold text-sm tracking-tight">Admin Panel</span>
         </div>
 
         {/* Nav links — scrollable */}
@@ -112,11 +113,11 @@ export default function AdminLayout() {
         aria-label="Điều hướng admin di động"
       >
         <div className="h-14 flex items-center justify-between px-4 border-b">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-600 text-primary-foreground">
-              <Sparkles className="h-4 w-4" />
+          <div className="flex items-center gap-2 min-w-0">
+            <BrandLogo size="sm" asLink={false} />
+            <span className="font-medium text-xs text-muted-foreground tracking-wide uppercase shrink-0">
+              Admin
             </span>
-            <span className="font-bold text-sm tracking-tight">Admin Panel</span>
           </div>
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} aria-label="Đóng menu">
             <X className="h-5 w-5" />

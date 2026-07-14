@@ -486,7 +486,7 @@ export default function CheckoutPage() {
                   <p className="text-center text-[11px] text-muted-foreground leading-relaxed">
                     Bằng cách xác nhận đơn hàng, bạn đồng ý tuân thủ{" "}
                     <span className="text-primary font-bold cursor-pointer hover:underline">Điều khoản sử dụng</span>{" "}
-                    và Chính sách bảo mật của TechSphere AI.
+                    và Chính sách bảo mật của TechNest.
                   </p>
                 </div>
               </div>

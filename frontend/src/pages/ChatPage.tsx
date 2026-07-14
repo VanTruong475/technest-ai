@@ -195,15 +195,22 @@ export default function ChatPage() {
       <header className="shrink-0 border-b bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-md">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
+            <div className="relative">
+              <img
+                src="/logo-mark.png"
+                alt=""
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain rounded-xl"
+                draggable={false}
+              />
               <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                 <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 border-2 border-card" />
               </span>
             </div>
             <div>
-              <h1 className="text-base font-semibold leading-tight">TechSphere AI</h1>
+              <h1 className="text-base font-semibold leading-tight">TechNest</h1>
               <p className="text-xs text-muted-foreground leading-tight">Trợ lý mua sắm · Online</p>
             </div>
           </div>
@@ -230,15 +237,20 @@ export default function ChatPage() {
             // Empty state polished
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
               <div className="relative mb-6">
-                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-violet-500/20 blur-2xl rounded-full" />
-                <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-xl">
-                  <Sparkles className="h-10 w-10 text-primary-foreground" />
-                </div>
+                <div className="absolute inset-0 -z-10 bg-primary/15 blur-2xl rounded-full" />
+                <img
+                  src="/logo-mark.png"
+                  alt=""
+                  width={80}
+                  height={80}
+                  className="h-20 w-20 object-contain mx-auto"
+                  draggable={false}
+                />
               </div>
               <h2 className="text-2xl font-bold mb-2">Mình có thể giúp gì cho bạn?</h2>
               <p className="text-muted-foreground mb-8 max-w-md">
-                Hỏi mình về sản phẩm phù hợp nhu cầu, ngân sách, thương hiệu —
-                mình sẽ gợi ý từ kho hàng TechSphere.
+                Hỏi mình về sản phẩm phù hợp nhu cầu, ngân sách, thương hiệu.
+                Mình sẽ gợi ý từ kho hàng TechNest.
               </p>
 
               {/* Quick suggestion chips — outline, rounded-full. Click → điền + gửi luôn. */}

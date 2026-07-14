@@ -7,6 +7,7 @@ import {
   Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, ShieldCheck, User,
   Star, Truck, RotateCcw,
 } from "lucide-react";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
@@ -53,12 +54,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-[420px]">
           {/* Branding */}
           <div className="mb-8 text-center md:text-left">
-            <Link to="/" className="inline-flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-primary tracking-tight">TechSphere AI</span>
-            </Link>
+            <BrandLogo size="md" className="mb-4" />
             <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Tạo tài khoản</h1>
             <p className="text-muted-foreground text-sm mt-1">Mua sắm công nghệ thông minh với AI tư vấn miễn phí.</p>
           </div>

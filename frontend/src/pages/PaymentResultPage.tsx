@@ -59,7 +59,7 @@ export default function PaymentResultPage() {
 
           <p className="text-sm text-muted-foreground">
             {isSuccess
-              ? "Đơn hàng của bạn đã được thanh toán. Cảm ơn bạn đã mua sắm tại TechSphere AI!"
+              ? "Đơn hàng của bạn đã được thanh toán. Cảm ơn bạn đã mua sắm tại TechNest!"
               : "Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại."}
           </p>
 
