@@ -6,15 +6,8 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});
-
-// Request interceptor: attach token
-axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  // HttpOnly cookie session — must send credentials cross-origin (Vercel → Render)
+  withCredentials: true,
 });
 
 // Response interceptor: handle 401
@@ -24,7 +17,8 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Use Zustand store to properly clear state and trigger React re-renders
       const { logout } = useAuthStore.getState();
-      logout();
+      // Fire-and-forget cookie clear; don't await (interceptor must stay sync-ish)
+      void logout();
       // Redirect to login if not already there
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";

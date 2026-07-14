@@ -89,17 +89,33 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 |----------|-------|
 | `VITE_API_URL` | `https://techsphere-ai.onrender.com` |
 
-### SPA Routing
+### SPA Routing + Security Headers
 
-File `frontend/vercel.json` đã cấu hình rewrite cho React Router:
+File `frontend/vercel.json` cấu hình rewrite cho React Router **và** response headers cứng:
 
 ```json
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
+      ]
+    }
   ]
 }
 ```
+
+> **Backend** cũng gắn cùng bộ header (kèm CSP API `default-src 'none'`) qua `SecurityHeadersMiddleware`. HSTS backend chỉ bật khi `ENVIRONMENT=production`.
+>
+> CSP frontend **chưa** hard-enforce (tránh vỡ Vite/Tailwind inline). Hard headers (XFO/XCTO/HSTS) đủ cho phase 1.
 
 ---
 
@@ -203,22 +219,48 @@ SENTRY_TRACES_SAMPLE_RATE=0.1
 
 ---
 
-## 8. Resend setup (Optional)
+## 8. Resend setup (Production email)
 
-Resend gửi email: forgot password, order confirmation.
+Resend gửi: **forgot password**, **order confirmation**, **order status update**.
 
-### Tạo Resend account
+> ⚠️ `onboarding@resend.dev` (default) chỉ gửi được tới email đã **verify** trên Resend dashboard (test mode). User thật **không** nhận mail cho đến khi bạn verify domain riêng.
 
-1. Đăng ký tại [resend.com](https://resend.com)
-2. Get API key
+### Checklist production
 
-### Environment variables
+1. Đăng ký [resend.com](https://resend.com) → tạo API key (`re_...`)
+2. Resend Dashboard → **Domains** → Add domain (vd `yourdomain.com`)
+3. Thêm DNS records Resend cung cấp:
+   - **DKIM** (TXT)
+   - **SPF** (TXT, thường `v=spf1 include:amazonses.com ...`)
+   - Optional **DMARC** (`_dmarc` TXT)
+4. Đợi status domain = **Verified** (có thể vài phút–vài giờ)
+5. Set env trên Render:
 
 ```
 EMAIL_ENABLED=true
 RESEND_API_KEY=re_xxx
 EMAIL_FROM=TechSphere AI <noreply@yourdomain.com>
+FRONTEND_URL=https://techsphere-ai.vercel.app
 ```
+
+6. Smoke test:
+   - Forgot password với email thật → inbox có link reset (15 phút)
+   - Đặt đơn hàng → mail xác nhận
+   - Admin đổi status đơn → mail cập nhật trạng thái
+
+### Local / test mode
+
+```
+EMAIL_ENABLED=true
+RESEND_API_KEY=re_xxx
+EMAIL_FROM=TechSphere AI <onboarding@resend.dev>
+```
+
+Chỉ gửi được tới email đã Add trong Resend → **Audience / Emails** (verified recipients).
+
+### Hành vi khi email fail
+
+Order/status API **không** fail nếu Resend lỗi — email fire-and-forget sau commit (`order_service` bọc try/except). Check log `Email sent to a***@domain` / `Failed to send email`.
 
 ---
 

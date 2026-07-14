@@ -28,7 +28,9 @@ from app.core.config import settings
 from app.core.database import create_db_and_tables
 from app.core.exceptions import AppException
 from app.core.logging_middleware import LoggingMiddleware
+from app.core.origin_check import OriginCheckMiddleware
 from app.core.rate_limit import limiter
+from app.core.security_headers import SecurityHeadersMiddleware
 
 # Import models để SQLModel nhận diện bảng
 from app.models import User, Category, Brand, Product, Cart, CartItem, Order, OrderItem, Review, WishlistItem, AuditLog  # noqa: F401
@@ -57,6 +59,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="TechSphere AI - Backend", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_middleware(LoggingMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(OriginCheckMiddleware)
 app.add_middleware(SlowAPIMiddleware)
 
 

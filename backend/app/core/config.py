@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:4173"
     ENVIRONMENT: str = "development"
+    COOKIE_SECURE: bool = True  # False for local HTTP dev
+    COOKIE_SAMESITE: str = "lax"  # lax for local, none for production cross-site
     ADMIN_EMAIL: str = "admin@techsphere.com"
     ADMIN_PASSWORD: str = _DEFAULT_ADMIN_PASSWORD
     ADMIN_FULL_NAME: str = "Admin Demo"
@@ -78,6 +80,7 @@ class Settings(BaseSettings):
                     "CORS_ORIGINS cannot contain '*' in production "
                     "(incompatible with allow_credentials=True)."
                 )
+            self.COOKIE_SAMESITE = "none"
         else:
             # Non-production: loud warnings
             if self.SECRET_KEY == _DEFAULT_SECRET_KEY:
@@ -92,6 +95,8 @@ class Settings(BaseSettings):
                     "Change it in .env for security.",
                     stacklevel=1,
                 )
+            self.COOKIE_SAMESITE = "lax"
+            self.COOKIE_SECURE = False
 
         return self
 

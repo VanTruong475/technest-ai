@@ -22,11 +22,24 @@ def _is_configured() -> bool:
     return bool(settings.EMAIL_ENABLED and settings.RESEND_API_KEY)
 
 
+def _mask_email(to: str) -> str:
+    """Log-friendly recipient: keep domain, redact local part (a***@domain.com)."""
+    if "@" not in to:
+        return "***"
+    local, _, domain = to.partition("@")
+    if not local:
+        return f"***@{domain}"
+    return f"{local[0]}***@{domain}"
+
+
 def _send(to: str, subject: str, html: str) -> bool:
     if not _is_configured():
-        logger.warning("Email not configured (EMAIL_ENABLED or RESEND_API_KEY missing), skipping")
+        logger.warning(
+            "Email not configured (EMAIL_ENABLED or RESEND_API_KEY missing), skipping"
+        )
         return False
 
+    masked = _mask_email(to)
     try:
         resend.api_key = settings.RESEND_API_KEY
         resend.Emails.send({
@@ -35,10 +48,10 @@ def _send(to: str, subject: str, html: str) -> bool:
             "subject": subject,
             "html": html,
         })
-        logger.info(f"Email sent to {to}: {subject}")
+        logger.info("Email sent to %s: %s", masked, subject)
         return True
     except Exception as e:
-        logger.error(f"Failed to send email to {to}: {e}")
+        logger.error("Failed to send email to %s: %s", masked, e)
         return False
 
 

@@ -18,5 +18,9 @@ class User(SQLModel, table=True):
     reset_token_hash: Optional[str] = Field(default=None, index=True)
     reset_token_expires_at: Optional[datetime] = Field(default=None)
 
+    # 2FA (TOTP)
+    totp_secret: Optional[str] = Field(default=None, max_length=32)
+    is_2fa_enabled: bool = Field(default=False)
+
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

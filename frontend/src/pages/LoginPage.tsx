@@ -12,15 +12,50 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; otp?: string }>({});
   const [loading, setLoading] = useState(false);
+  // 2FA step
+  const [tempToken, setTempToken] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
   const login = useAuthStore((s) => s.login);
+  const verify2FA = useAuthStore((s) => s.verify2FA);
   const navigate = useNavigate();
 
   const clearError = (field: keyof typeof errors) => setErrors((p) => ({ ...p, [field]: undefined }));
 
+  const finishLogin = () => {
+    toast.success("Đăng nhập thành công!");
+    const isAdmin = useAuthStore.getState().isAdmin;
+    const user = useAuthStore.getState().user;
+    // Soft-enforce: admin chưa bật 2FA → banner ở Security tab
+    if (isAdmin && user && !user.is_2fa_enabled) {
+      navigate("/profile?tab=security");
+      toast.message("Nên bật xác thực 2 lớp (2FA) cho tài khoản Admin.");
+      return;
+    }
+    navigate(isAdmin ? "/admin/dashboard" : "/");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (tempToken) {
+      // Step 2: OTP
+      if (!/^\d{6}$/.test(otp.trim())) {
+        setErrors({ otp: "Nhập mã 6 chữ số từ ứng dụng Authenticator" });
+        return;
+      }
+      setLoading(true);
+      try {
+        await verify2FA(tempToken, otp.trim());
+        finishLogin();
+      } catch (err: unknown) {
+        toast.error(getErrorMessage(err, "Mã xác thực không đúng"));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     const newErrors: typeof errors = {};
     if (!email.trim()) newErrors.email = "Vui lòng nhập email";
     if (!password) newErrors.password = "Vui lòng nhập mật khẩu";
@@ -29,11 +64,13 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(email, password);
-      toast.success("Đăng nhập thành công!");
-      // Admin → dashboard, User → trang chủ
-      const isAdmin = useAuthStore.getState().isAdmin;
-      navigate(isAdmin ? "/admin/dashboard" : "/");
+      const result = await login(email, password);
+      if (result.requires_2fa && result.temp_token) {
+        setTempToken(result.temp_token);
+        toast.message("Nhập mã 2FA từ ứng dụng Authenticator");
+        return;
+      }
+      finishLogin();
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Đăng nhập thất bại"));
     } finally {
@@ -106,51 +143,90 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold" htmlFor="login-email">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  id="login-email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); clearError("email"); }}
-                  autoComplete="email"
-                  className={`w-full bg-muted/30 border rounded-lg pl-11 pr-4 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all ${errors.email ? "border-destructive" : "border-border/40"}`}
-                />
-              </div>
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-            </div>
+            {!tempToken ? (
+              <>
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold" htmlFor="login-email">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      id="login-email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); clearError("email"); }}
+                      autoComplete="email"
+                      className={`w-full bg-muted/30 border rounded-lg pl-11 pr-4 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all ${errors.email ? "border-destructive" : "border-border/40"}`}
+                    />
+                  </div>
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                </div>
 
-            {/* Password */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold" htmlFor="login-password">Mật khẩu</label>
-                <Link to="/forgot-password" className="text-xs text-primary hover:underline font-medium">Quên mật khẩu?</Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
-                  autoComplete="current-password"
-                  className={`w-full bg-muted/30 border rounded-lg pl-11 pr-11 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all ${errors.password ? "border-destructive" : "border-border/40"}`}
-                />
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold" htmlFor="login-password">Mật khẩu</label>
+                    <Link to="/forgot-password" className="text-xs text-primary hover:underline font-medium">Quên mật khẩu?</Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      id="login-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); clearError("password"); }}
+                      autoComplete="current-password"
+                      className={`w-full bg-muted/30 border rounded-lg pl-11 pr-11 py-3 text-sm outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all ${errors.password ? "border-destructive" : "border-border/40"}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                </div>
+              </>
+            ) : (
+              /* Step 2: OTP */
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold" htmlFor="login-otp">
+                  Mã xác thực 2FA
+                </label>
+                <div className="relative">
+                  <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    id="login-otp"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={otp}
+                    onChange={(e) => {
+                      setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      clearError("otp");
+                    }}
+                    autoComplete="one-time-code"
+                    autoFocus
+                    className={`w-full bg-muted/30 border rounded-lg pl-11 pr-4 py-3 text-sm tracking-[0.3em] font-mono outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all ${errors.otp ? "border-destructive" : "border-border/40"}`}
+                  />
+                </div>
+                {errors.otp && <p className="text-xs text-destructive">{errors.otp}</p>}
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => { setTempToken(null); setOtp(""); }}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  ← Quay lại đăng nhập
                 </button>
               </div>
-              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-            </div>
+            )}
 
             {/* Submit */}
             <button
@@ -158,7 +234,9 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-primary/90 shadow-sm hover:shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 group disabled:opacity-60"
             >
-              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {loading
+                ? (tempToken ? "Đang xác thực..." : "Đang đăng nhập...")
+                : (tempToken ? "Xác nhận 2FA" : "Đăng nhập")}
               {!loading && <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />}
             </button>
           </form>

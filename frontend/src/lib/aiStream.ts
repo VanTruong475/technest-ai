@@ -59,13 +59,13 @@ export async function streamChat(
   callbacks: StreamChatCallbacks,
   signal?: AbortSignal
 ): Promise<void> {
-  const token = localStorage.getItem("access_token");
+  // Session is HttpOnly cookie — credentials: "include" sends it cross-origin.
   const response = await fetch(`${API_BASE}/api/ai/chat/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+    credentials: "include",
     body: JSON.stringify({ message, limit: 5, history }),
     signal,
   });

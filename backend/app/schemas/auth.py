@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class UserCreate(BaseModel):
@@ -85,6 +85,27 @@ class ResetPasswordRequest(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    requires_2fa: bool = False
+    temp_token: Optional[str] = None
+
+
+class TwoFASetupResponse(BaseModel):
+    secret: str
+    otpauth_uri: str
+
+
+class TwoFAEnableRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=6)
+
+
+class TwoFADisableRequest(BaseModel):
+    password: str
+    code: str = Field(min_length=6, max_length=6)
+
+
+class TwoFAVerifyLoginRequest(BaseModel):
+    temp_token: str
+    code: str = Field(min_length=6, max_length=6)
 
 
 class UserResponse(BaseModel):
@@ -96,5 +117,6 @@ class UserResponse(BaseModel):
     phone: Optional[str] = None
     role: str
     is_active: bool
+    is_2fa_enabled: bool = False
     created_at: datetime
     updated_at: datetime

@@ -4,12 +4,21 @@ Base URL: `http://localhost:8000`
 
 ## Auth
 
+Session: **hybrid** — HttpOnly cookie `access_token` **hoặc** `Authorization: Bearer <jwt>`.  
+FE production dùng cookie (`withCredentials`); tests/Swagger dùng Bearer.  
+Unsafe methods với cookie yêu cầu `Origin` ∈ `CORS_ORIGINS` (CSRF mitigation).
+
 | Method | Endpoint | Auth | Mô tả |
 |--------|----------|------|-------|
 | POST | `/api/auth/register` | Public | Đăng ký tài khoản |
-| POST | `/api/auth/login` | Public | Đăng nhập, trả access_token |
-| GET | `/api/auth/me` | User | Lấy thông tin user hiện tại |
-| POST | `/api/auth/change-password` | User | Đổi mật khẩu |
+| POST | `/api/auth/login` | Public | Đăng nhập → set cookie + body token; nếu admin + 2FA: `{requires_2fa, temp_token}` |
+| POST | `/api/auth/2fa/verify-login` | Public | Xác thực OTP sau login (temp_token + code) → set cookie |
+| POST | `/api/auth/2fa/setup` | Admin | Tạo TOTP secret + otpauth URI (chưa enable) |
+| POST | `/api/auth/2fa/enable` | Admin | Xác nhận code → bật 2FA |
+| POST | `/api/auth/2fa/disable` | Admin | Tắt 2FA (password + code) |
+| POST | `/api/auth/logout` | Public | Xóa cookie session |
+| GET | `/api/auth/me` | User | Lấy thông tin user hiện tại (`is_2fa_enabled`) |
+| PUT | `/api/auth/change-password` | User | Đổi mật khẩu |
 | POST | `/api/auth/forgot-password` | Public | Gửi email đặt lại mật khẩu |
 | POST | `/api/auth/reset-password` | Public | Đặt lại mật khẩu từ token |
 

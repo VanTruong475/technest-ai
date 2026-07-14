@@ -28,6 +28,7 @@ from app.services.ai_service import (
     chat_with_ai,
     stream_chat,
 )
+from app.services.auth_service import AUTH_COOKIE_NAME
 from app.services.llm.metrics import llm_metrics
 
 router = APIRouter(prefix="/api/ai", tags=["AI"])
@@ -36,14 +37,17 @@ security_optional = HTTPBearer(auto_error=False)
 
 
 def _get_optional_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
     session: Session = Depends(get_session),
 ) -> Optional[User]:
-    """Lấy user từ token nếu có, trả None nếu không có token."""
-    if credentials is None:
+    """Lấy user từ cookie hoặc Bearer token nếu có; None nếu không auth."""
+    token: Optional[str] = request.cookies.get(AUTH_COOKIE_NAME)
+    if not token and credentials is not None:
+        token = credentials.credentials
+    if not token:
         return None
 
-    token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id_str: str = payload.get("sub")

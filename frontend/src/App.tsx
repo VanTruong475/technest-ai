@@ -5,14 +5,11 @@ import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { useAuthStore } from "@/store/authStore";
 
 function App() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const fetchCurrentUser = useAuthStore((s) => s.fetchCurrentUser);
 
-  // Verify token is still valid on app startup
+  // Always re-validate HttpOnly session cookie on mount (user in localStorage is non-secret cache only)
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchCurrentUser();
-    }
+    void fetchCurrentUser();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

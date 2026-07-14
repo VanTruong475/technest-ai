@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from sqlmodel import Session
 
 from app.core.database import get_session
@@ -12,6 +12,10 @@ from app.schemas.auth import (
     ForgotPasswordRequest,
     ResetPasswordRequest,
     Token,
+    TwoFADisableRequest,
+    TwoFAEnableRequest,
+    TwoFASetupResponse,
+    TwoFAVerifyLoginRequest,
     UserCreate,
     UserLogin,
     UserResponse,
@@ -19,11 +23,18 @@ from app.schemas.auth import (
 from app.services.auth_service import (
     authenticate_user,
     change_password,
+    clear_auth_cookie,
     create_access_token,
+    create_temp_2fa_token,
+    disable_2fa,
+    enable_2fa,
     get_current_user,
     register_user,
     request_password_reset,
     reset_password,
+    set_auth_cookie,
+    setup_2fa,
+    verify_2fa_login,
 )
 from app.services.email_service import send_password_reset_email
 
@@ -41,10 +52,78 @@ def register(request: Request, user_data: UserCreate, session: Session = Depends
 
 @router.post("/login", response_model=Token)
 @limiter.limit("20/minute")
-def login(request: Request, login_data: UserLogin, session: Session = Depends(get_session)):
+def login(
+    request: Request,
+    response: Response,
+    login_data: UserLogin,
+    session: Session = Depends(get_session),
+):
     user = authenticate_user(login_data.email, login_data.password, session)
+
+    # Admin with 2FA enabled → challenge step (no session cookie yet)
+    if user.role == "ADMIN" and user.is_2fa_enabled:
+        temp = create_temp_2fa_token(user.id)
+        return Token(access_token="", requires_2fa=True, temp_token=temp)
+
     access_token = create_access_token(data={"sub": str(user.id)})
+    set_auth_cookie(response, access_token)
     return Token(access_token=access_token)
+
+
+@router.post("/2fa/verify-login", response_model=Token)
+@limiter.limit("10/minute")
+def verify_login_2fa(
+    request: Request,
+    response: Response,
+    data: TwoFAVerifyLoginRequest,
+    session: Session = Depends(get_session),
+):
+    user = verify_2fa_login(data.temp_token, data.code, session)
+    access_token = create_access_token(data={"sub": str(user.id)})
+    set_auth_cookie(response, access_token)
+    return Token(access_token=access_token)
+
+
+@router.post("/2fa/setup", response_model=TwoFASetupResponse)
+@limiter.limit("5/minute")
+def twofa_setup(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    secret, uri = setup_2fa(current_user, session)
+    return TwoFASetupResponse(secret=secret, otpauth_uri=uri)
+
+
+@router.post("/2fa/enable")
+@limiter.limit("10/minute")
+def twofa_enable(
+    request: Request,
+    data: TwoFAEnableRequest,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    enable_2fa(current_user, data.code, session)
+    return {"message": "2FA enabled successfully"}
+
+
+@router.post("/2fa/disable")
+@limiter.limit("5/minute")
+def twofa_disable(
+    request: Request,
+    data: TwoFADisableRequest,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    disable_2fa(current_user, data.password, data.code, session)
+    return {"message": "2FA disabled successfully"}
+
+
+@router.post("/logout")
+def logout(response: Response):
+    """Clear HttpOnly auth cookie. Idempotent — always 200."""
+    clear_auth_cookie(response)
+    return {"message": "Logged out"}
 
 
 @router.get("/me", response_model=UserResponse)
