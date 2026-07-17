@@ -17,6 +17,7 @@ import {
 import { formatPrice } from "@/utils/format";
 import { getErrorMessage } from "@/utils/api";
 import { cn } from "@/lib/utils";
+import { CART_QUERY_KEY } from "@/hooks/useCart";
 import type { Cart } from "@/types";
 
 /** Progress stepper trình bày — checkout 1 trang nên bước hiện tại cố định. */
@@ -80,7 +81,7 @@ export default function CheckoutPage() {
   const [summaryOpen, setSummaryOpen] = useState(false); // collapsible đơn hàng trên mobile
 
   const { data: cart, isLoading, error: cartError } = useQuery<Cart>({
-    queryKey: ["cart"],
+    queryKey: CART_QUERY_KEY,
     queryFn: async () => {
       const res = await axiosClient.get("/api/cart");
       return res.data;
@@ -102,7 +103,7 @@ export default function CheckoutPage() {
       return res.data;
     },
     onSuccess: async (data) => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
 
       if (paymentMethod === "vnpay") {
         try {

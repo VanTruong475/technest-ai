@@ -30,6 +30,8 @@ import { ThemeToggle } from "@/components/common/ThemeToggle";
 import CommandPalette from "@/components/common/CommandPalette";
 import { BrandLogo } from "@/components/common/BrandLogo";
 import { useCategories, getCategoryIdBySlug } from "@/hooks/useCategories";
+import { CART_QUERY_KEY } from "@/hooks/useCart";
+import type { Cart } from "@/types";
 
 const CATEGORY_NAV = [
   { slug: "laptop", label: "Laptop" },
@@ -49,8 +51,8 @@ export default function MainLayout() {
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
   const { data: categories = [] } = useCategories();
-  const { data: cartData } = useQuery<{ total_items: number }>({
-    queryKey: ["cart"],
+  const { data: cartData } = useQuery<Cart>({
+    queryKey: CART_QUERY_KEY,
     queryFn: async () => {
       const res = await axiosClient.get("/api/cart");
       return res.data;

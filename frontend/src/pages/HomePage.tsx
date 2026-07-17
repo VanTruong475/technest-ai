@@ -1,8 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { useAuthStore } from "@/store/authStore";
 import { useRecommendations } from "@/hooks/useRecommendations";
@@ -14,6 +13,11 @@ import { ProductGridSkeleton } from "@/components/common/Skeleton";
 import HeartButton from "@/components/common/HeartButton";
 import { useCountdown } from "@/hooks/useCountdown";
 import { formatPrice } from "@/utils/format";
+import {
+  useAddToCart,
+  findCartItemId,
+  setCheckoutItemIds,
+} from "@/hooks/useCart";
 import {
   Sparkles, Zap, ArrowRight, ArrowUpRight, MessageCircle,
   Smartphone, ShieldCheck, Truck, RotateCcw, CreditCard, Star, PackageOpen,
@@ -35,30 +39,37 @@ export default function HomePage() {
   const navigate = useNavigate();
   const countdown = useCountdown();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const queryClient = useQueryClient();
   const { fadeUp, staggerContainer } = useReducedMotionSafe();
+  const addToCartMutation = useAddToCart();
 
-  const quickBuyMutation = useMutation({
-    mutationFn: async (productId: number) => {
-      await axiosClient.post("/api/cart/items", { product_id: productId, quantity: 1 });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      navigate("/checkout");
-    },
-    onError: () => {
-      toast.error("Không thể thêm vào giỏ hàng");
-    },
-  });
-
-  const handleQuickBuy = (e: React.MouseEvent, productId: number) => {
+  const handleQuickBuy = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
-    quickBuyMutation.mutate(productId);
+    // 1 round-trip: POST returns cart → filter checkout to this product only
+    addToCartMutation.mutate(
+      {
+        product_id: product.id,
+        quantity: 1,
+        optimistic: {
+          product_name: product.name,
+          image_url: product.image_url,
+          price: product.price,
+          sale_price: product.sale_price,
+          stock: product.stock,
+        },
+      },
+      {
+        onSuccess: (cart) => {
+          const itemId = findCartItemId(cart, product.id);
+          if (itemId != null) setCheckoutItemIds([itemId]);
+          navigate("/checkout");
+        },
+      }
+    );
   };
 
   const { data: homepageData, isLoading } = useQuery<{
@@ -488,8 +499,11 @@ export default function HomePage() {
 
                       <div className="grid grid-cols-5 gap-2">
                         <Button
-                          onClick={(e) => handleQuickBuy(e, product.id)}
-                          disabled={quickBuyMutation.isPending && quickBuyMutation.variables === product.id}
+                          onClick={(e) => handleQuickBuy(e, product)}
+                          disabled={
+                            addToCartMutation.isPending &&
+                            addToCartMutation.variables?.product_id === product.id
+                          }
                           className="col-span-4 rounded-xl font-bold text-xs uppercase shadow-lg shadow-primary/10"
                         >
                           Mua ngay

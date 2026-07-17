@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { toast } from "sonner";
@@ -11,9 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, ShieldCheck, Loader2 } from "lucide-react";
 import { formatPrice } from "@/utils/format";
-import { getErrorMessage } from "@/utils/api";
 import { Skeleton } from "@/components/common/Skeleton";
 import CustomersAlsoBought from "@/components/common/CustomersAlsoBought";
+import {
+  CART_QUERY_KEY,
+  useUpdateCartQuantity,
+  useDeleteCartItem,
+  setCheckoutItemIds,
+} from "@/hooks/useCart";
 import type { Cart } from "@/types";
 
 function CartItemCardSkeleton() {
@@ -36,45 +41,30 @@ function CartItemCardSkeleton() {
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data: cart, isLoading, error, refetch } = useQuery<Cart>({
-    queryKey: ["cart"],
+    queryKey: CART_QUERY_KEY,
     queryFn: async () => {
       const res = await axiosClient.get("/api/cart");
       return res.data;
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ itemId, quantity }: { itemId: number; quantity: number }) => {
-      await axiosClient.put(`/api/cart/items/${itemId}`, { quantity });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
-    onError: (err: unknown) => toast.error(getErrorMessage(err, "Không thể cập nhật số lượng")),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (itemId: number) => {
-      await axiosClient.delete(`/api/cart/items/${itemId}`);
-    },
-    onSuccess: () => {
-      toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-    },
-    onError: (err: unknown) => toast.error(getErrorMessage(err, "Không thể xóa sản phẩm")),
-  });
+  const { updateQuantity, isPending: isUpdatingQty, variables: qtyVars } =
+    useUpdateCartQuantity();
+  const deleteMutation = useDeleteCartItem();
 
   const handleQuantityChange = (itemId: number, newQty: number) => {
     if (newQty < 1) return;
-    updateMutation.mutate({ itemId, quantity: newQty });
+    // Optimistic + debounced — UI instant, network coalesced
+    updateQuantity(itemId, newQty);
   };
 
   const items = cart?.items || [];
   const itemCount = cart?.total_items || 0;
-  // Item đang được cập nhật số lượng (để hiện spinner & disable đúng item đó)
-  const updatingId = updateMutation.isPending ? updateMutation.variables?.itemId : null;
+  // Chỉ hiện subtle pending trên item đang sync server (không block +/-)
+  const syncingId = isUpdatingQty ? qtyVars?.itemId : null;
 
   // Select all on initial load
   useEffect(() => {
@@ -119,8 +109,7 @@ export default function CartPage() {
       toast.error("Vui lòng chọn sản phẩm để thanh toán");
       return;
     }
-    // Store selected IDs for checkout page
-    sessionStorage.setItem("checkout_items", JSON.stringify(selectedItems.map((i) => i.id)));
+    setCheckoutItemIds(selectedItems.map((i) => i.id));
     navigate("/checkout");
   };
 
@@ -265,7 +254,7 @@ export default function CartPage() {
                       )}
                     </div>
 
-                    {/* Quantity stepper */}
+                    {/* Quantity stepper — optimistic: never block +/- while syncing */}
                     <div className="inline-flex items-center border border-border rounded-lg overflow-hidden">
                       <Button
                         type="button"
@@ -273,33 +262,32 @@ export default function CartPage() {
                         size="icon"
                         className="h-8 w-8 shrink-0 rounded-none"
                         onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1 || updatingId === item.id}
+                        disabled={item.quantity <= 1}
                         aria-label="Giảm số lượng"
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      {updatingId === item.id ? (
-                        <span className="w-12 h-8 flex items-center justify-center border-x border-border">
-                          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                        </span>
-                      ) : (
+                      <span className="relative w-12 h-8 flex items-center justify-center border-x border-border">
                         <Input
                           readOnly
                           value={item.quantity}
                           aria-label="Số lượng"
-                          className="w-12 h-8 text-center text-xs font-medium px-0 border-0 border-x border-border rounded-none focus-visible:ring-0"
+                          className="w-full h-8 text-center text-xs font-medium px-0 border-0 rounded-none focus-visible:ring-0 bg-transparent"
                         />
-                      )}
+                        {syncingId === item.id && (
+                          <Loader2
+                            className="absolute right-0.5 h-3 w-3 animate-spin text-muted-foreground"
+                            aria-hidden
+                          />
+                        )}
+                      </span>
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 shrink-0 rounded-none"
                         onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        disabled={
-                          updatingId === item.id ||
-                          (item.stock != null && item.quantity >= item.stock)
-                        }
+                        disabled={item.stock != null && item.quantity >= item.stock}
                         aria-label="Tăng số lượng"
                       >
                         <Plus className="h-3 w-3" />

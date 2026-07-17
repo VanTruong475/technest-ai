@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
+import { CART_QUERY_KEY, setCartCache } from "@/hooks/useCart";
+import type { Cart } from "@/types";
 
 interface ReorderItem {
   product_id: number;
@@ -20,21 +22,24 @@ export function useReorder() {
   return useMutation({
     mutationFn: async (items: ReorderItem[]) => {
       let added = 0;
+      let lastCart: Cart | null = null;
       for (const item of items) {
         try {
-          await axiosClient.post("/api/cart/items", {
+          const res = await axiosClient.post<Cart>("/api/cart/items", {
             product_id: item.product_id,
             quantity: item.quantity,
           });
+          lastCart = res.data;
           added += 1;
         } catch {
           // Bỏ qua item lỗi (hết hàng/INACTIVE) — tiếp tục các item còn lại.
         }
       }
-      return { added, total: items.length };
+      return { added, total: items.length, lastCart };
     },
-    onSuccess: ({ added, total }) => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    onSuccess: ({ added, total, lastCart }) => {
+      if (lastCart) setCartCache(queryClient, lastCart);
+      else queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
       if (added === 0) {
         toast.error("Không thể thêm sản phẩm (có thể đã hết hàng).");
         return;

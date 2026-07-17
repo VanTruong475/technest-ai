@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { flyToCart } from "@/lib/flyToCart";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { useAuthStore } from "@/store/authStore";
@@ -20,7 +20,11 @@ import HeartButton from "@/components/common/HeartButton";
 import RecentlyViewed from "@/components/common/RecentlyViewed";
 import CustomersAlsoBought from "@/components/common/CustomersAlsoBought";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
-import { getErrorMessage } from "@/utils/api";
+import {
+  useAddToCart,
+  findCartItemId,
+  setCheckoutItemIds,
+} from "@/hooks/useCart";
 import type { Product } from "@/types";
 
 const AI_SUGGESTIONS: Record<string, string[]> = {
@@ -66,9 +70,9 @@ export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [buyNowPending, setBuyNowPending] = useState(false);
 
   const { data: product, isLoading, error } = useQuery<Product>({
     queryKey: ["product", id],
@@ -93,41 +97,63 @@ export default function ProductDetailPage() {
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const imageRef = useRef<HTMLDivElement>(null);
+  const addToCartMutation = useAddToCart();
 
-  const addToCartMutation = useMutation({
-    mutationFn: async () => {
-      await axiosClient.post("/api/cart/items", {
-        product_id: Number(id),
+  const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (!product) return;
+    addToCartMutation.mutate(
+      {
+        product_id: product.id,
         quantity,
-      });
-    },
-    onSuccess: () => {
-      toast.success("Đã thêm vào giỏ hàng!");
-      flyToCart(imageRef.current, product?.image_url);
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-    },
-    onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, "Không thể thêm vào giỏ hàng"));
-    },
-  });
+        optimistic: {
+          product_name: product.name,
+          image_url: product.image_url,
+          price: product.price,
+          sale_price: product.sale_price,
+          stock: product.stock,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Đã thêm vào giỏ hàng!");
+          flyToCart(imageRef.current, product.image_url);
+        },
+      }
+    );
+  };
 
   const handleBuyNow = async () => {
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
-    await addToCartMutation.mutateAsync();
-    // Chỉ thanh toán sản phẩm vừa thêm, không lấy toàn bộ giỏ hàng
+    if (!product) return;
+    setBuyNowPending(true);
     try {
-      const res = await axiosClient.get("/api/cart");
-      const cartItem = res.data.items?.find((i: any) => i.product_id === Number(id));
-      if (cartItem) {
-        sessionStorage.setItem("checkout_items", JSON.stringify([cartItem.id]));
-      }
+      // 1 round-trip only: POST returns full cart → pick item id → checkout
+      const cart = await addToCartMutation.mutateAsync({
+        product_id: product.id,
+        quantity,
+        optimistic: {
+          product_name: product.name,
+          image_url: product.image_url,
+          price: product.price,
+          sale_price: product.sale_price,
+          stock: product.stock,
+        },
+      });
+      const itemId = findCartItemId(cart, product.id);
+      if (itemId != null) setCheckoutItemIds([itemId]);
+      navigate("/checkout");
     } catch {
-      // fallback: để trống → CheckoutPage lấy tất cả
+      // toast already shown by useAddToCart
+    } finally {
+      setBuyNowPending(false);
     }
-    navigate("/checkout");
   };
 
   if (isLoading) {
@@ -302,17 +328,19 @@ export default function ProductDetailPage() {
               <div className="flex flex-col gap-2.5">
                 <button
                   onClick={handleBuyNow}
-                  disabled={addToCartMutation.isPending}
-                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all active:scale-[0.98] shadow-md shadow-primary/20"
+                  disabled={buyNowPending || addToCartMutation.isPending}
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all active:scale-[0.98] shadow-md shadow-primary/20 disabled:opacity-60"
                 >
-                  Mua ngay
+                  {buyNowPending ? "Đang chuyển..." : "Mua ngay"}
                 </button>
                 <button
-                  onClick={() => addToCartMutation.mutate()}
-                  disabled={addToCartMutation.isPending}
-                  className="w-full py-3 border border-primary text-primary rounded-lg text-sm font-semibold hover:bg-primary/5 transition-all"
+                  onClick={handleAddToCart}
+                  disabled={addToCartMutation.isPending || buyNowPending}
+                  className="w-full py-3 border border-primary text-primary rounded-lg text-sm font-semibold hover:bg-primary/5 transition-all disabled:opacity-60"
                 >
-                  {addToCartMutation.isPending ? "Đang thêm..." : "Thêm vào giỏ hàng"}
+                  {addToCartMutation.isPending && !buyNowPending
+                    ? "Đang thêm..."
+                    : "Thêm vào giỏ hàng"}
                 </button>
               </div>
 
@@ -485,14 +513,16 @@ export default function ProductDetailPage() {
               productId={product.id}
               className="shrink-0 h-11 w-11 border border-border hover:bg-accent"
             />
-            {/* Thêm vào giỏ — gọi đúng mutation hiện có */}
+            {/* Thêm vào giỏ — optimistic badge, no extra GET */}
             <button
-              onClick={() => addToCartMutation.mutate()}
-              disabled={addToCartMutation.isPending}
+              onClick={handleAddToCart}
+              disabled={addToCartMutation.isPending || buyNowPending}
               className="flex-1 flex items-center justify-center gap-2 h-11 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-60"
             >
               <ShoppingCart className="h-4 w-4" />
-              {addToCartMutation.isPending ? "Đang thêm..." : "Thêm vào giỏ"}
+              {addToCartMutation.isPending && !buyNowPending
+                ? "Đang thêm..."
+                : "Thêm vào giỏ"}
             </button>
           </div>
         </div>
