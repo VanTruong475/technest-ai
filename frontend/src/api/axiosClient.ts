@@ -10,18 +10,41 @@ const axiosClient = axios.create({
   withCredentials: true,
 });
 
+// Public auth pages — 401 here is expected (no session) and must NOT redirect away
+const AUTH_PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
+
+function softClearAuth() {
+  localStorage.removeItem("user");
+  localStorage.removeItem("access_token"); // legacy cleanup
+  useAuthStore.setState({ user: null, isAuthenticated: false, isAdmin: false });
+}
+
 // Response interceptor: handle 401
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Use Zustand store to properly clear state and trigger React re-renders
-      const { logout } = useAuthStore.getState();
-      // Fire-and-forget cookie clear; don't await (interceptor must stay sync-ish)
-      void logout();
-      // Redirect to login if not already there
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      const path = window.location.pathname;
+      const isAuthPublic = AUTH_PUBLIC_PATHS.includes(path);
+      const url: string = error.config?.url || "";
+      const isAuthProbe =
+        url.includes("/api/auth/me") || url.includes("/api/auth/logout");
+
+      // Soft-clear client state. Avoid calling logout() here — that POSTs /auth/logout
+      // and can recurse / race with the same 401 path (esp. on cold load of public pages).
+      softClearAuth();
+
+      // Only hard-redirect when the user was on a protected page.
+      // /reset-password, /forgot-password, /login, /register must stay put.
+      // Also skip redirect for silent session probes (/auth/me) on public pages.
+      if (!isAuthPublic && !isAuthProbe) {
+        // Non-probe 401 on a protected route → session expired mid-action
+        if (path !== "/login") {
+          window.location.href = "/login";
+        }
+      } else if (!isAuthPublic && isAuthProbe) {
+        // Session probe failed on a non-auth page (e.g. Home with stale localStorage).
+        // Soft-clear is enough — no forced redirect to login for public storefront.
       }
     }
     return Promise.reject(error);

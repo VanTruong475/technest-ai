@@ -41,7 +41,7 @@
 | `SECRET_KEY` | `<random 64 chars>` | `openssl rand -hex 32` |
 | `ALGORITHM` | `HS256` | |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | |
-| `CORS_ORIGINS` | `https://techsphere-ai.vercel.app` | URL frontend Vercel |
+| `CORS_ORIGINS` | `https://technest-ai.vercel.app` | URL frontend Vercel |
 | `ENVIRONMENT` | `production` | Tắt SQL echo |
 | `PYTHON_VERSION` | `3.12` | Render cần biết version |
 | `REDIS_URL` | `redis://...` | Optional — app vẫn chạy nếu không có Redis |
@@ -53,7 +53,7 @@
 | `EMAIL_ENABLED` | `true` | Optional — email disabled nếu false |
 | `RESEND_API_KEY` | `re_xxx` | Optional |
 | `EMAIL_FROM` | `TechSphere AI <noreply@domain.com>` | Optional |
-| `FRONTEND_URL` | `https://techsphere-ai.vercel.app` | Dùng cho email links, payment redirect |
+| `FRONTEND_URL` | `https://technest-ai.vercel.app` | Dùng cho email links, payment redirect |
 | `ADMIN_EMAIL` | `admin@techsphere.com` | Seed admin account |
 | `ADMIN_PASSWORD` | `<strong-password>` | Seed admin account |
 | `ADMIN_FULL_NAME` | `Admin` | Seed admin account |
@@ -240,7 +240,7 @@ Resend gửi: **forgot password**, **order confirmation**, **order status update
 EMAIL_ENABLED=true
 RESEND_API_KEY=re_xxx
 EMAIL_FROM=TechSphere AI <noreply@yourdomain.com>
-FRONTEND_URL=https://techsphere-ai.vercel.app
+FRONTEND_URL=https://technest-ai.vercel.app
 ```
 
 6. Smoke test:
@@ -342,7 +342,7 @@ alembic upgrade head
 
 **Cách sửa:** Kiểm tra `CORS_ORIGINS` trên Render phải đúng URL Vercel:
 ```
-CORS_ORIGINS=https://techsphere-ai.vercel.app
+CORS_ORIGINS=https://technest-ai.vercel.app
 ```
 
 Không có trailing slash, không có `http://` (phải là `https://`).
