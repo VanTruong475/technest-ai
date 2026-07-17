@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = _DEFAULT_SECRET_KEY
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:4173"
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:4173,https://technest-ai.vercel.app"
     ENVIRONMENT: str = "development"
     COOKIE_SECURE: bool = True  # False for local HTTP dev
     COOKIE_SAMESITE: str = "lax"  # lax for local, none for production cross-site
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     EMAIL_ENABLED: bool = False
     RESEND_API_KEY: str = ""
     EMAIL_FROM: str = "TechSphere AI <onboarding@resend.dev>"
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "https://technest-ai.vercel.app"
     VNPAY_TMN_CODE: str = ""
     VNPAY_HASH_SECRET: str = ""
     VNPAY_PAYMENT_URL: str = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
