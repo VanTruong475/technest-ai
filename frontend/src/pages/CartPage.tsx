@@ -306,7 +306,9 @@ export default function CartPage() {
                         title="Xóa sản phẩm"
                         description="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?"
                         variant="destructive"
-                        onConfirm={() => deleteMutation.mutateAsync(item.id)}
+                        onConfirm={async () => {
+                          await deleteMutation.mutateAsync(item.id);
+                        }}
                       >
                         <Button
                           type="button"
@@ -328,7 +330,9 @@ export default function CartPage() {
                       title="Xóa sản phẩm"
                       description="Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?"
                       variant="destructive"
-                      onConfirm={() => deleteMutation.mutateAsync(item.id)}
+                      onConfirm={async () => {
+                        await deleteMutation.mutateAsync(item.id);
+                      }}
                     >
                       <Button
                         type="button"
