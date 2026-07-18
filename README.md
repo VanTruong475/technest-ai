@@ -1,4 +1,4 @@
-# TechSphere AI
+# TechNest AI
 
 > **AI-powered e-commerce platform** cho thiết bị công nghệ — full-stack, deployed production, kiểm thử kỹ.
 > Backend FastAPI + PostgreSQL + Redis, Frontend React 19 + TypeScript. AI Search, Recommendation (gồm co-occurrence "khách mua cũng mua"), Chatbot multi-provider LLM (Gemini + Groq) với cache + fallback chain → rule-based.
