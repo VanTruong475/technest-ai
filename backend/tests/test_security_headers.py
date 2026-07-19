@@ -18,6 +18,22 @@ def test_security_headers_on_api(client: TestClient):
     assert response.headers.get("X-Frame-Options") == "DENY"
 
 
+def test_docs_has_relaxed_csp(client: TestClient):
+    """Swagger UI pages must get a permissive CSP so CDN assets load."""
+    response = client.get("/docs")
+    csp = response.headers.get("Content-Security-Policy", "")
+    assert "default-src 'self'" in csp
+    assert "cdn.jsdelivr.net" in csp
+
+
+def test_api_has_strict_csp(client: TestClient):
+    """API endpoints must keep the strict default-src 'none' CSP."""
+    response = client.get("/health")
+    csp = response.headers.get("Content-Security-Policy", "")
+    assert "default-src 'none'" in csp
+    assert "cdn.jsdelivr.net" not in csp
+
+
 def test_hsts_absent_in_non_production(client: TestClient, monkeypatch):
     """Default test env is not production — HSTS must not be forced on HTTP local."""
     monkeypatch.setattr("app.core.config.settings.ENVIRONMENT", "development")
