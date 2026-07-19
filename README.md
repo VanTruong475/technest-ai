@@ -23,7 +23,7 @@
 
 | Dịch vụ | URL |
 |---------|-----|
-| Frontend | https://techsphere-ai.vercel.app |
+| Frontend | https://technest-ai.vercel.app |
 | Backend API | https://techsphere-ai.onrender.com |
 | API Docs (Swagger) | https://techsphere-ai.onrender.com/docs |
 
