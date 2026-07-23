@@ -472,7 +472,7 @@ export default function AdminProductPage() {
                         type="checkbox"
                         checked={products.length > 0 && selectedIds.size === products.length}
                         onChange={toggleSelectAll}
-                        className="h-4 w-4 rounded border-gray-300"
+                        className="h-4 w-4 rounded border-border"
                       />
                     </th>
                     <th className="text-left p-3 font-medium">ID</th>
@@ -497,7 +497,7 @@ export default function AdminProductPage() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelect(product.id)}
-                          className="h-4 w-4 rounded border-gray-300"
+                          className="h-4 w-4 rounded border-border"
                         />
                       </td>
                       <td className="p-3">{product.id}</td>
