@@ -5,9 +5,15 @@ import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Plus, X, Package } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Pencil, Trash2, Plus, Package } from "lucide-react";
 import Pagination from "@/components/common/Pagination";
 
 import ImageUpload from "@/components/common/ImageUpload";
@@ -300,134 +306,131 @@ export default function AdminProductPage() {
         />
       </div>
 
-      {/* Product Form Modal */}
-      {showForm && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={closeForm} aria-label="Đóng form">
-              <X className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Tên sản phẩm *</Label>
-                <Input
-                  id="name"
-                  value={form.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="iPhone 15 Pro Max"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
-                <Input
-                  id="slug"
-                  value={form.slug}
-                  onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
-                  placeholder="iphone-15-pro-max"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Danh mục *</Label>
-                <select
-                  id="category"
-                  className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                  value={form.category_id || ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, category_id: Number(e.target.value) }))}
-                >
-                  <option value="">Chọn danh mục</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="brand">Thương hiệu *</Label>
-                <select
-                  id="brand"
-                  className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                  value={form.brand_id || ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, brand_id: Number(e.target.value) }))}
-                >
-                  <option value="">Chọn thương hiệu</option>
-                  {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>{brand.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Giá *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  min={0}
-                  value={form.price}
-                  onChange={(e) => setForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sale_price">Giá khuyến mãi</Label>
-                <Input
-                  id="sale_price"
-                  type="number"
-                  min={0}
-                  value={form.sale_price ?? ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, sale_price: e.target.value ? Number(e.target.value) : null }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stock">Tồn kho</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min={0}
-                  value={form.stock}
-                  onChange={(e) => setForm((prev) => ({ ...prev, stock: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Trạng thái</Label>
-                <select
-                  id="status"
-                  className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                  value={form.status}
-                  onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
-                >
-                  <option value="ACTIVE">Đang bán</option>
-                  <option value="INACTIVE">Ngừng bán</option>
-                </select>
-              </div>
-              <div className="md:col-span-2 space-y-2">
-                <Label>Hình ảnh sản phẩm</Label>
-                <ImageUpload
-                  value={form.image_url}
-                  onChange={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
-                />
-              </div>
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="description">Mô tả</Label>
-                <textarea
-                  id="description"
-                  className="w-full min-h-[80px] rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm"
-                  value={form.description}
-                  onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                  placeholder="Mô tả sản phẩm..."
-                />
-              </div>
-              <div className="md:col-span-2 flex gap-2">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {editingProduct ? "Cập nhật" : "Tạo mới"}
-                </Button>
-                <Button type="button" variant="outline" onClick={closeForm}>
-                  Hủy
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+      {/* Sheet — Add / Edit Product */}
+      <Sheet open={showForm} onOpenChange={(open) => { if (!open) closeForm(); }}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle>{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-8">
+            <div className="space-y-2">
+              <Label htmlFor="name">Tên sản phẩm *</Label>
+              <Input
+                id="name"
+                value={form.name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="iPhone 15 Pro Max"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug *</Label>
+              <Input
+                id="slug"
+                value={form.slug}
+                onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+                placeholder="iphone-15-pro-max"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Danh mục *</Label>
+              <select
+                id="category"
+                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                value={form.category_id || ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, category_id: Number(e.target.value) }))}
+              >
+                <option value="">Chọn danh mục</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brand">Thương hiệu *</Label>
+              <select
+                id="brand"
+                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                value={form.brand_id || ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, brand_id: Number(e.target.value) }))}
+              >
+                <option value="">Chọn thương hiệu</option>
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>{brand.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="price">Giá *</Label>
+              <Input
+                id="price"
+                type="number"
+                min={0}
+                value={form.price}
+                onChange={(e) => setForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sale_price">Giá khuyến mãi</Label>
+              <Input
+                id="sale_price"
+                type="number"
+                min={0}
+                value={form.sale_price ?? ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, sale_price: e.target.value ? Number(e.target.value) : null }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stock">Tồn kho</Label>
+              <Input
+                id="stock"
+                type="number"
+                min={0}
+                value={form.stock}
+                onChange={(e) => setForm((prev) => ({ ...prev, stock: Number(e.target.value) }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Trạng thái</Label>
+              <select
+                id="status"
+                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                value={form.status}
+                onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
+              >
+                <option value="ACTIVE">Đang bán</option>
+                <option value="INACTIVE">Ngừng bán</option>
+              </select>
+            </div>
+            <div className="md:col-span-2 space-y-2">
+              <Label>Hình ảnh sản phẩm</Label>
+              <ImageUpload
+                value={form.image_url}
+                onChange={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
+              />
+            </div>
+            <div className="md:col-span-2 space-y-2">
+              <Label htmlFor="description">Mô tả</Label>
+              <textarea
+                id="description"
+                className="w-full min-h-[80px] rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm"
+                value={form.description}
+                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                placeholder="Mô tả sản phẩm..."
+              />
+            </div>
+            <div className="md:col-span-2 flex gap-2">
+              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending
+                  ? "Đang lưu..."
+                  : editingProduct ? "Cập nhật" : "Tạo mới"}
+              </Button>
+              <Button type="button" variant="outline" onClick={closeForm}>
+                Hủy
+              </Button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (

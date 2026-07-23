@@ -4,9 +4,15 @@ import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Pencil, X } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Pencil } from "lucide-react";
 import Pagination from "@/components/common/Pagination";
 
 import { useScrollToTopOnChange } from "@/hooks/useScrollToTopOnChange";
@@ -90,69 +96,64 @@ export default function AdminUserPage() {
         <p className="text-sm text-muted-foreground">{data?.total || 0} người dùng</p>
       </div>
 
-      {/* Edit Form */}
-      {editingUser && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Sửa người dùng #{editingUser.id}</CardTitle>
-            <Button variant="ghost" size="icon" onClick={closeForm} aria-label="Đóng form">
-              <X className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Họ tên *</Label>
-                <Input
-                  id="full_name"
-                  value={form.full_name}
-                  onChange={(e) => setForm((prev) => ({ ...prev, full_name: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Số điện thoại</Label>
-                <Input
-                  id="phone"
-                  value={form.phone}
-                  onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Vai trò</Label>
-                <select
-                  id="role"
-                  className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                  value={form.role}
-                  onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))}
-                >
-                  <option value="USER">USER</option>
-                  <option value="ADMIN">ADMIN</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="is_active">Trạng thái</Label>
-                <select
-                  id="is_active"
-                  className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                  value={form.is_active ? "true" : "false"}
-                  onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.value === "true" }))}
-                >
-                  <option value="true">Hoạt động</option>
-                  <option value="false">Vô hiệu</option>
-                </select>
-              </div>
-              <div className="md:col-span-2 flex gap-2">
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? "Đang lưu..." : "Cập nhật"}
-                </Button>
-                <Button type="button" variant="outline" onClick={closeForm}>
-                  Hủy
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+      {/* Sheet — Edit User */}
+      <Sheet open={!!editingUser} onOpenChange={(open) => { if (!open) closeForm(); }}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle>Sửa người dùng #{editingUser?.id}</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 pb-8">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Họ tên *</Label>
+              <Input
+                id="full_name"
+                value={form.full_name}
+                onChange={(e) => setForm((prev) => ({ ...prev, full_name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Số điện thoại</Label>
+              <Input
+                id="phone"
+                value={form.phone}
+                onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Vai trò</Label>
+              <select
+                id="role"
+                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                value={form.role}
+                onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))}
+              >
+                <option value="USER">USER</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="is_active">Trạng thái</Label>
+              <select
+                id="is_active"
+                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                value={form.is_active ? "true" : "false"}
+                onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.value === "true" }))}
+              >
+                <option value="true">Hoạt động</option>
+                <option value="false">Vô hiệu</option>
+              </select>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button type="submit" disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Đang lưu..." : "Cập nhật"}
+              </Button>
+              <Button type="button" variant="outline" onClick={closeForm}>
+                Hủy
+              </Button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       {/* Users Table */}
       {isLoading ? (

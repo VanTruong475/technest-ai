@@ -3,10 +3,18 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axiosClient from "@/api/axiosClient";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/common/Skeleton";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import {
-  Plus, Pencil, Trash2, Eye, EyeOff, ChevronLeft, ChevronRight, X,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Plus, Pencil, Trash2, Eye, EyeOff, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { getErrorMessage } from "@/utils/api";
 import { formatDateShort } from "@/utils/format";
@@ -28,6 +36,22 @@ interface BlogPost {
   created_at: string;
 }
 
+interface BlogFormData {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  imageUrl: string;
+  category: string;
+  tags: string;
+  published: boolean;
+}
+
+const EMPTY_BLOG_FORM: BlogFormData = {
+  title: "", slug: "", excerpt: "", content: "",
+  imageUrl: "", category: "", tags: "", published: false,
+};
+
 const CATEGORY_OPTIONS = ["review", "huong-dan", "tin-tuc"];
 
 export default function AdminBlogPage() {
@@ -35,16 +59,7 @@ export default function AdminBlogPage() {
   const [page, setPage] = useState(1);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [showForm, setShowForm] = useState(false);
-
-  // Form state
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [content, setContent] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [category, setCategory] = useState("");
-  const [tags, setTags] = useState("");
-  const [published, setPublished] = useState(false);
+  const [form, setForm] = useState<BlogFormData>(EMPTY_BLOG_FORM);
 
   const { data, isLoading } = useQuery<PaginatedResponse<BlogPost>>({
     queryKey: ["admin-blogs", page],
@@ -57,9 +72,10 @@ export default function AdminBlogPage() {
   const createMutation = useMutation({
     mutationFn: async () => {
       await axiosClient.post("/api/blog", {
-        title, slug, excerpt: excerpt || undefined, content,
-        image_url: imageUrl || undefined, category: category || undefined,
-        tags: tags || undefined, published,
+        title: form.title, slug: form.slug,
+        excerpt: form.excerpt || undefined, content: form.content,
+        image_url: form.imageUrl || undefined, category: form.category || undefined,
+        tags: form.tags || undefined, published: form.published,
       });
     },
     onSuccess: () => {
@@ -74,9 +90,10 @@ export default function AdminBlogPage() {
     mutationFn: async () => {
       if (!editingPost) return;
       await axiosClient.put(`/api/blog/${editingPost.id}`, {
-        title, slug, excerpt: excerpt || undefined, content,
-        image_url: imageUrl || undefined, category: category || undefined,
-        tags: tags || undefined, published,
+        title: form.title, slug: form.slug,
+        excerpt: form.excerpt || undefined, content: form.content,
+        image_url: form.imageUrl || undefined, category: form.category || undefined,
+        tags: form.tags || undefined, published: form.published,
       });
     },
     onSuccess: () => {
@@ -100,28 +117,30 @@ export default function AdminBlogPage() {
 
   const openCreate = () => {
     setEditingPost(null);
-    setTitle(""); setSlug(""); setExcerpt(""); setContent("");
-    setImageUrl(""); setCategory(""); setTags(""); setPublished(false);
+    setForm(EMPTY_BLOG_FORM);
     setShowForm(true);
   };
 
   const openEdit = (post: BlogPost) => {
     setEditingPost(post);
-    setTitle(post.title); setSlug(post.slug); setExcerpt(post.excerpt || "");
-    setContent(post.content); setImageUrl(post.image_url || "");
-    setCategory(post.category || ""); setTags(post.tags || "");
-    setPublished(post.published);
+    setForm({
+      title: post.title, slug: post.slug, excerpt: post.excerpt || "",
+      content: post.content, imageUrl: post.image_url || "",
+      category: post.category || "", tags: post.tags || "",
+      published: post.published,
+    });
     setShowForm(true);
   };
 
   const closeForm = () => {
     setShowForm(false);
     setEditingPost(null);
+    setForm(EMPTY_BLOG_FORM);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !slug.trim() || !content.trim()) {
+    if (!form.title.trim() || !form.slug.trim() || !form.content.trim()) {
       toast.error("Vui lòng nhập tiêu đề, slug và nội dung");
       return;
     }
@@ -131,6 +150,7 @@ export default function AdminBlogPage() {
 
   const posts = data?.items || [];
   const totalPages = data?.total_pages || 1;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -142,64 +162,104 @@ export default function AdminBlogPage() {
         </Button>
       </div>
 
-      {/* Form modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">{editingPost ? "Sửa bài viết" : "Tạo bài viết mới"}</h2>
-              <button onClick={closeForm} className="p-2 hover:bg-muted rounded-lg"><X className="h-5 w-5" /></button>
+      {/* Sheet — Add / Edit Blog */}
+      <Sheet open={showForm} onOpenChange={(open) => { if (!open) closeForm(); }}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle>{editingPost ? "Sửa bài viết" : "Tạo bài viết mới"}</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleSubmit} className="space-y-4 pb-8">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="blog-title">Tiêu đề *</Label>
+                <Input
+                  id="blog-title"
+                  value={form.title}
+                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder="Tiêu đề bài viết"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="blog-slug">Slug *</Label>
+                <Input
+                  id="blog-slug"
+                  value={form.slug}
+                  onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+                  placeholder="tieu-de-bai-viet"
+                  className="font-mono"
+                />
+              </div>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase text-muted-foreground">Tiêu đề</label>
-                  <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary" placeholder="Tiêu đề bài viết" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase text-muted-foreground">Slug</label>
-                  <input value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary font-mono" placeholder="tieu-de-bai-viet" />
-                </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="blog-excerpt">Tóm tắt</Label>
+              <Input
+                id="blog-excerpt"
+                value={form.excerpt}
+                onChange={(e) => setForm((prev) => ({ ...prev, excerpt: e.target.value }))}
+                placeholder="Mô tả ngắn..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="blog-content">Nội dung *</Label>
+              <textarea
+                id="blog-content"
+                value={form.content}
+                onChange={(e) => setForm((prev) => ({ ...prev, content: e.target.value }))}
+                rows={8}
+                className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary resize-none"
+                placeholder="Nội dung bài viết..."
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="blog-image">Ảnh URL</Label>
+                <Input
+                  id="blog-image"
+                  value={form.imageUrl}
+                  onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                  placeholder="https://..."
+                />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase text-muted-foreground">Tóm tắt</label>
-                <input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary" placeholder="Mô tả ngắn..." />
+                <Label htmlFor="blog-category">Danh mục</Label>
+                <select
+                  id="blog-category"
+                  value={form.category}
+                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                >
+                  <option value="">-- Chọn --</option>
+                  {CATEGORY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase text-muted-foreground">Nội dung</label>
-                <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={8} className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary resize-none" placeholder="Nội dung bài viết..." />
+                <Label htmlFor="blog-tags">Tags</Label>
+                <Input
+                  id="blog-tags"
+                  value={form.tags}
+                  onChange={(e) => setForm((prev) => ({ ...prev, tags: e.target.value }))}
+                  placeholder="tag1,tag2"
+                />
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase text-muted-foreground">Ảnh URL</label>
-                  <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary" placeholder="https://..." />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase text-muted-foreground">Danh mục</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary">
-                    <option value="">-- Chọn --</option>
-                    {CATEGORY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase text-muted-foreground">Tags</label>
-                  <input value={tags} onChange={(e) => setTags(e.target.value)} className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary" placeholder="tag1,tag2" />
-                </div>
-              </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} className="accent-primary" />
-                Xuất bản ngay
-              </label>
-              <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={closeForm}>Hủy</Button>
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {editingPost ? "Cập nhật" : "Tạo"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.published}
+                onChange={(e) => setForm((prev) => ({ ...prev, published: e.target.checked }))}
+                className="accent-primary"
+              />
+              Xuất bản ngay
+            </label>
+            <div className="flex gap-2 pt-2">
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Đang lưu..." : editingPost ? "Cập nhật" : "Tạo"}
+              </Button>
+              <Button type="button" variant="outline" onClick={closeForm}>Hủy</Button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       {/* Table */}
       {isLoading ? (
@@ -245,12 +305,22 @@ export default function AdminBlogPage() {
                     <td className="px-4 py-3 text-muted-foreground">{formatDateShort(post.created_at) || "—"}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => togglePublishMutation.mutate(post)} className="p-1.5 rounded hover:bg-muted transition-colors" title={post.published ? "Ẩn bài" : "Xuất bản"}>
+                        <Button
+                          variant="ghost" size="icon"
+                          onClick={() => togglePublishMutation.mutate(post)}
+                          aria-label={post.published ? "Ẩn bài" : "Xuất bản"}
+                          className="h-8 w-8"
+                        >
                           {post.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                        <button onClick={() => openEdit(post)} className="p-1.5 rounded hover:bg-muted transition-colors" title="Sửa">
+                        </Button>
+                        <Button
+                          variant="ghost" size="icon"
+                          onClick={() => openEdit(post)}
+                          aria-label={`Sửa ${post.title}`}
+                          className="h-8 w-8 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400"
+                        >
                           <Pencil className="h-4 w-4" />
-                        </button>
+                        </Button>
                         <ConfirmDelete post={post} />
                       </div>
                     </td>
@@ -296,9 +366,13 @@ function ConfirmDelete({ post }: { post: BlogPost }) {
       variant="destructive"
       onConfirm={() => deleteMutation.mutateAsync()}
     >
-      <button className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Xóa">
-        <Trash2 className="h-4 w-4" />
-      </button>
+      <Button
+        variant="ghost" size="icon"
+        aria-label={`Xóa ${post.title}`}
+        className="h-8 w-8 hover:bg-destructive/10"
+      >
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
     </ConfirmDialog>
   );
 }
