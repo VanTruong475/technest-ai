@@ -185,7 +185,7 @@ export default function MainLayout() {
                 >
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
-                    <span className="absolute top-0 right-0 bg-destructive text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-card">
+                    <span className="absolute top-0 right-0 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-card">
                       {cartCount > 99 ? "99+" : cartCount}
                     </span>
                   )}
@@ -498,21 +498,21 @@ export default function MainLayout() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="GitHub"
-                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white hover:border-primary transition-all"
+                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
                   >
                     <GithubIcon className="h-4 w-4" />
                   </a>
                   <a
                     href="#"
                     aria-label="Facebook"
-                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white hover:border-primary transition-all"
+                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
                   >
                     <FacebookIcon className="h-4 w-4" />
                   </a>
                   <a
                     href="mailto:support@techsphere.vn"
                     aria-label="Email"
-                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white hover:border-primary transition-all"
+                    className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
                   >
                     <Mail className="h-4 w-4" />
                   </a>
