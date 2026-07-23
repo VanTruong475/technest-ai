@@ -309,117 +309,161 @@ export default function AdminProductPage() {
       {/* Sheet — Add / Edit Product */}
       <Sheet open={showForm} onOpenChange={(open) => { if (!open) closeForm(); }}>
         <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle>{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</SheetTitle>
+          <SheetHeader className="pb-4 border-b border-border mb-6">
+            <SheetTitle className="text-lg font-semibold">
+              {editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
+            </SheetTitle>
+            {editingProduct && (
+              <p className="text-sm text-muted-foreground">ID #{editingProduct.id}</p>
+            )}
           </SheetHeader>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-8">
-            <div className="space-y-2">
-              <Label htmlFor="name">Tên sản phẩm *</Label>
-              <Input
-                id="name"
-                value={form.name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="iPhone 15 Pro Max"
-              />
+
+          <form onSubmit={handleSubmit} className="space-y-6 pb-10">
+
+            {/* Nhóm 1: Thông tin cơ bản */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Thông tin cơ bản
+              </h3>
+              <div className="space-y-2">
+                <Label htmlFor="name" className="font-medium">Tên sản phẩm <span className="text-destructive">*</span></Label>
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="iPhone 15 Pro Max"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slug" className="font-medium">Slug <span className="text-destructive">*</span></Label>
+                <Input
+                  id="slug"
+                  value={form.slug}
+                  onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+                  placeholder="iphone-15-pro-max"
+                  className="h-10 font-mono text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="font-medium">Danh mục <span className="text-destructive">*</span></Label>
+                  <select
+                    id="category"
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={form.category_id || ""}
+                    onChange={(e) => setForm((prev) => ({ ...prev, category_id: Number(e.target.value) }))}
+                  >
+                    <option value="">Chọn danh mục</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="brand" className="font-medium">Thương hiệu <span className="text-destructive">*</span></Label>
+                  <select
+                    id="brand"
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={form.brand_id || ""}
+                    onChange={(e) => setForm((prev) => ({ ...prev, brand_id: Number(e.target.value) }))}
+                  >
+                    <option value="">Chọn thương hiệu</option>
+                    {brands.map((brand) => (
+                      <option key={brand.id} value={brand.id}>{brand.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug *</Label>
-              <Input
-                id="slug"
-                value={form.slug}
-                onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
-                placeholder="iphone-15-pro-max"
-              />
+
+            <div className="border-t border-border" />
+
+            {/* Nhóm 2: Giá & Tồn kho */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Giá & Tồn kho
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="font-medium">Giá gốc <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    min={0}
+                    value={form.price}
+                    onChange={(e) => setForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sale_price" className="font-medium">Giá khuyến mãi</Label>
+                  <Input
+                    id="sale_price"
+                    type="number"
+                    min={0}
+                    value={form.sale_price ?? ""}
+                    onChange={(e) => setForm((prev) => ({ ...prev, sale_price: e.target.value ? Number(e.target.value) : null }))}
+                    className="h-10"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="stock" className="font-medium">Tồn kho</Label>
+                  <Input
+                    id="stock"
+                    type="number"
+                    min={0}
+                    value={form.stock}
+                    onChange={(e) => setForm((prev) => ({ ...prev, stock: Number(e.target.value) }))}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="font-medium">Trạng thái</Label>
+                  <select
+                    id="status"
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={form.status}
+                    onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
+                  >
+                    <option value="ACTIVE">Đang bán</option>
+                    <option value="INACTIVE">Ngừng bán</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">Danh mục *</Label>
-              <select
-                id="category"
-                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                value={form.category_id || ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, category_id: Number(e.target.value) }))}
-              >
-                <option value="">Chọn danh mục</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+
+            <div className="border-t border-border" />
+
+            {/* Nhóm 3: Hình ảnh & Mô tả */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Hình ảnh & Mô tả
+              </h3>
+              <div className="space-y-2">
+                <Label className="font-medium">Hình ảnh sản phẩm</Label>
+                <ImageUpload
+                  value={form.image_url}
+                  onChange={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description" className="font-medium">Mô tả</Label>
+                <textarea
+                  id="description"
+                  className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  value={form.description}
+                  onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Mô tả sản phẩm..."
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="brand">Thương hiệu *</Label>
-              <select
-                id="brand"
-                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                value={form.brand_id || ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, brand_id: Number(e.target.value) }))}
-              >
-                <option value="">Chọn thương hiệu</option>
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>{brand.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="price">Giá *</Label>
-              <Input
-                id="price"
-                type="number"
-                min={0}
-                value={form.price}
-                onChange={(e) => setForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sale_price">Giá khuyến mãi</Label>
-              <Input
-                id="sale_price"
-                type="number"
-                min={0}
-                value={form.sale_price ?? ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, sale_price: e.target.value ? Number(e.target.value) : null }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="stock">Tồn kho</Label>
-              <Input
-                id="stock"
-                type="number"
-                min={0}
-                value={form.stock}
-                onChange={(e) => setForm((prev) => ({ ...prev, stock: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="status">Trạng thái</Label>
-              <select
-                id="status"
-                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                value={form.status}
-                onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
-              >
-                <option value="ACTIVE">Đang bán</option>
-                <option value="INACTIVE">Ngừng bán</option>
-              </select>
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label>Hình ảnh sản phẩm</Label>
-              <ImageUpload
-                value={form.image_url}
-                onChange={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
-              />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="description">Mô tả</Label>
-              <textarea
-                id="description"
-                className="w-full min-h-[80px] rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm"
-                value={form.description}
-                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="Mô tả sản phẩm..."
-              />
-            </div>
-            <div className="md:col-span-2 flex gap-2">
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" className="flex-1" disabled={createMutation.isPending || updateMutation.isPending}>
                 {createMutation.isPending || updateMutation.isPending
                   ? "Đang lưu..."
                   : editingProduct ? "Cập nhật" : "Tạo mới"}

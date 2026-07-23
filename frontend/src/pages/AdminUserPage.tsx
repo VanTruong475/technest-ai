@@ -99,52 +99,77 @@ export default function AdminUserPage() {
       {/* Sheet — Edit User */}
       <Sheet open={!!editingUser} onOpenChange={(open) => { if (!open) closeForm(); }}>
         <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle>Sửa người dùng #{editingUser?.id}</SheetTitle>
+          <SheetHeader className="pb-4 border-b border-border mb-6">
+            <SheetTitle className="text-lg font-semibold">Sửa người dùng</SheetTitle>
+            {editingUser && (
+              <p className="text-sm text-muted-foreground">#{editingUser.id} — {editingUser.email}</p>
+            )}
           </SheetHeader>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 pb-8">
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Họ tên *</Label>
-              <Input
-                id="full_name"
-                value={form.full_name}
-                onChange={(e) => setForm((prev) => ({ ...prev, full_name: e.target.value }))}
-              />
+          <form onSubmit={handleSubmit} className="space-y-6 pb-10">
+
+            {/* Nhóm 1: Thông tin cá nhân */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Thông tin cá nhân
+              </h3>
+              <div className="space-y-2">
+                <Label htmlFor="full_name" className="font-medium">Họ tên <span className="text-destructive">*</span></Label>
+                <Input
+                  id="full_name"
+                  value={form.full_name}
+                  onChange={(e) => setForm((prev) => ({ ...prev, full_name: e.target.value }))}
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="font-medium">Số điện thoại</Label>
+                <Input
+                  id="phone"
+                  value={form.phone}
+                  onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  className="h-10"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Số điện thoại</Label>
-              <Input
-                id="phone"
-                value={form.phone}
-                onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
-              />
+
+            <div className="border-t border-border" />
+
+            {/* Nhóm 2: Quyền & Trạng thái */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Quyền & Trạng thái
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="role" className="font-medium">Vai trò</Label>
+                  <select
+                    id="role"
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={form.role}
+                    onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))}
+                  >
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="is_active" className="font-medium">Trạng thái</Label>
+                  <select
+                    id="is_active"
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={form.is_active ? "true" : "false"}
+                    onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.value === "true" }))}
+                  >
+                    <option value="true">Hoạt động</option>
+                    <option value="false">Vô hiệu</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Vai trò</Label>
-              <select
-                id="role"
-                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                value={form.role}
-                onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))}
-              >
-                <option value="USER">USER</option>
-                <option value="ADMIN">ADMIN</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="is_active">Trạng thái</Label>
-              <select
-                id="is_active"
-                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                value={form.is_active ? "true" : "false"}
-                onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.value === "true" }))}
-              >
-                <option value="true">Hoạt động</option>
-                <option value="false">Vô hiệu</option>
-              </select>
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button type="submit" disabled={updateMutation.isPending}>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" className="flex-1" disabled={updateMutation.isPending}>
                 {updateMutation.isPending ? "Đang lưu..." : "Cập nhật"}
               </Button>
               <Button type="button" variant="outline" onClick={closeForm}>

@@ -165,95 +165,133 @@ export default function AdminBlogPage() {
       {/* Sheet — Add / Edit Blog */}
       <Sheet open={showForm} onOpenChange={(open) => { if (!open) closeForm(); }}>
         <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle>{editingPost ? "Sửa bài viết" : "Tạo bài viết mới"}</SheetTitle>
+          <SheetHeader className="pb-4 border-b border-border mb-6">
+            <SheetTitle className="text-lg font-semibold">
+              {editingPost ? "Sửa bài viết" : "Tạo bài viết mới"}
+            </SheetTitle>
+            {editingPost && (
+              <p className="text-sm text-muted-foreground">ID #{editingPost.id}</p>
+            )}
           </SheetHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 pb-8">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="blog-title">Tiêu đề *</Label>
+
+          <form onSubmit={handleSubmit} className="space-y-6 pb-10">
+
+            {/* Nhóm 1: Thông tin cơ bản */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Thông tin cơ bản
+              </h3>
+              <div className="space-y-2">
+                <Label htmlFor="blog-title" className="font-medium">Tiêu đề <span className="text-destructive">*</span></Label>
                 <Input
                   id="blog-title"
                   value={form.title}
                   onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="Tiêu đề bài viết"
+                  className="h-10"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="blog-slug">Slug *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="blog-slug" className="font-medium">Slug <span className="text-destructive">*</span></Label>
                 <Input
                   id="blog-slug"
                   value={form.slug}
                   onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
                   placeholder="tieu-de-bai-viet"
-                  className="font-mono"
+                  className="h-10 font-mono text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="blog-category" className="font-medium">Danh mục</Label>
+                  <select
+                    id="blog-category"
+                    value={form.category}
+                    onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">-- Chọn --</option>
+                    {CATEGORY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="blog-tags" className="font-medium">Tags</Label>
+                  <Input
+                    id="blog-tags"
+                    value={form.tags}
+                    onChange={(e) => setForm((prev) => ({ ...prev, tags: e.target.value }))}
+                    placeholder="tag1,tag2"
+                    className="h-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="blog-excerpt" className="font-medium">Tóm tắt</Label>
+                <Input
+                  id="blog-excerpt"
+                  value={form.excerpt}
+                  onChange={(e) => setForm((prev) => ({ ...prev, excerpt: e.target.value }))}
+                  placeholder="Mô tả ngắn..."
+                  className="h-10"
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="blog-excerpt">Tóm tắt</Label>
-              <Input
-                id="blog-excerpt"
-                value={form.excerpt}
-                onChange={(e) => setForm((prev) => ({ ...prev, excerpt: e.target.value }))}
-                placeholder="Mô tả ngắn..."
-              />
+
+            <div className="border-t border-border" />
+
+            {/* Nhóm 2: Nội dung */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Nội dung
+              </h3>
+              <div className="space-y-2">
+                <Label htmlFor="blog-content" className="font-medium">Nội dung <span className="text-destructive">*</span></Label>
+                <textarea
+                  id="blog-content"
+                  value={form.content}
+                  onChange={(e) => setForm((prev) => ({ ...prev, content: e.target.value }))}
+                  rows={8}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  placeholder="Nội dung bài viết..."
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="blog-content">Nội dung *</Label>
-              <textarea
-                id="blog-content"
-                value={form.content}
-                onChange={(e) => setForm((prev) => ({ ...prev, content: e.target.value }))}
-                rows={8}
-                className="w-full bg-muted/30 border border-border/40 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary resize-none"
-                placeholder="Nội dung bài viết..."
-              />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="blog-image">Ảnh URL</Label>
+
+            <div className="border-t border-border" />
+
+            {/* Nhóm 3: Hình ảnh & Xuất bản */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Hình ảnh & Xuất bản
+              </h3>
+              <div className="space-y-2">
+                <Label htmlFor="blog-image" className="font-medium">Ảnh URL</Label>
                 <Input
                   id="blog-image"
                   value={form.imageUrl}
                   onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
                   placeholder="https://..."
+                  className="h-10"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="blog-category">Danh mục</Label>
-                <select
-                  id="blog-category"
-                  value={form.category}
-                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-                  className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                >
-                  <option value="">-- Chọn --</option>
-                  {CATEGORY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="blog-tags">Tags</Label>
-                <Input
-                  id="blog-tags"
-                  value={form.tags}
-                  onChange={(e) => setForm((prev) => ({ ...prev, tags: e.target.value }))}
-                  placeholder="tag1,tag2"
+              <label className="flex items-center gap-3 p-3 rounded-md border border-border bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={form.published}
+                  onChange={(e) => setForm((prev) => ({ ...prev, published: e.target.checked }))}
+                  className="accent-primary h-4 w-4"
                 />
-              </div>
+                <div>
+                  <p className="text-sm font-medium">Xuất bản ngay</p>
+                  <p className="text-xs text-muted-foreground">Bài viết sẽ hiển thị công khai</p>
+                </div>
+              </label>
             </div>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm((prev) => ({ ...prev, published: e.target.checked }))}
-                className="accent-primary"
-              />
-              Xuất bản ngay
-            </label>
-            <div className="flex gap-2 pt-2">
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "Đang lưu..." : editingPost ? "Cập nhật" : "Tạo"}
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" className="flex-1" disabled={isPending}>
+                {isPending ? "Đang lưu..." : editingPost ? "Cập nhật" : "Tạo bài viết"}
               </Button>
               <Button type="button" variant="outline" onClick={closeForm}>Hủy</Button>
             </div>
