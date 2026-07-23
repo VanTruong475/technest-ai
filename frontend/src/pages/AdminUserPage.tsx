@@ -98,14 +98,14 @@ export default function AdminUserPage() {
 
       {/* Sheet — Edit User */}
       <Sheet open={!!editingUser} onOpenChange={(open) => { if (!open) closeForm(); }}>
-        <SheetContent side="right" className="w-[400px] max-w-[95vw] overflow-y-auto">
+        <SheetContent side="right" className="w-[400px] max-w-[95vw] overflow-y-auto p-6">
           <SheetHeader className="pb-4 border-b border-border mb-6">
             <SheetTitle className="text-lg font-semibold">Sửa người dùng</SheetTitle>
             {editingUser && (
               <p className="text-sm text-muted-foreground">#{editingUser.id} — {editingUser.email}</p>
             )}
           </SheetHeader>
-          <form onSubmit={handleSubmit} className="space-y-6 pb-10">
+          <form onSubmit={handleSubmit} className="space-y-6 pb-6">
 
             {/* Nhóm 1: Thông tin cá nhân */}
             <div className="space-y-4">
@@ -118,7 +118,7 @@ export default function AdminUserPage() {
                   id="full_name"
                   value={form.full_name}
                   onChange={(e) => setForm((prev) => ({ ...prev, full_name: e.target.value }))}
-                  className="h-10"
+                  className="h-auto min-h-10 px-4 py-2.5"
                 />
               </div>
               <div className="space-y-2">
@@ -127,7 +127,7 @@ export default function AdminUserPage() {
                   id="phone"
                   value={form.phone}
                   onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  className="h-10"
+                  className="h-auto min-h-10 px-4 py-2.5"
                 />
               </div>
             </div>
@@ -144,7 +144,7 @@ export default function AdminUserPage() {
                   <Label htmlFor="role" className="font-medium">Vai trò</Label>
                   <select
                     id="role"
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="min-h-10 w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={form.role}
                     onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))}
                   >
@@ -156,7 +156,7 @@ export default function AdminUserPage() {
                   <Label htmlFor="is_active" className="font-medium">Trạng thái</Label>
                   <select
                     id="is_active"
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="min-h-10 w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={form.is_active ? "true" : "false"}
                     onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.value === "true" }))}
                   >

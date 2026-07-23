@@ -164,7 +164,7 @@ export default function AdminBlogPage() {
 
       {/* Sheet — Add / Edit Blog */}
       <Sheet open={showForm} onOpenChange={(open) => { if (!open) closeForm(); }}>
-        <SheetContent side="right" className="w-[480px] max-w-[95vw] overflow-y-auto">
+        <SheetContent side="right" className="w-[480px] max-w-[95vw] overflow-y-auto p-6">
           <SheetHeader className="pb-4 border-b border-border mb-6">
             <SheetTitle className="text-lg font-semibold">
               {editingPost ? "Sửa bài viết" : "Tạo bài viết mới"}
@@ -174,7 +174,7 @@ export default function AdminBlogPage() {
             )}
           </SheetHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6 pb-10">
+          <form onSubmit={handleSubmit} className="space-y-6 pb-6">
 
             {/* Nhóm 1: Thông tin cơ bản */}
             <div className="space-y-4">
@@ -188,7 +188,7 @@ export default function AdminBlogPage() {
                   value={form.title}
                   onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="Tiêu đề bài viết"
-                  className="h-10"
+                  className="h-auto min-h-10 px-4 py-2.5"
                 />
               </div>
               <div className="space-y-2">
@@ -198,7 +198,7 @@ export default function AdminBlogPage() {
                   value={form.slug}
                   onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
                   placeholder="tieu-de-bai-viet"
-                  className="h-10 font-mono text-sm"
+                  className="h-auto min-h-10 px-4 py-2.5 font-mono text-sm"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -208,7 +208,7 @@ export default function AdminBlogPage() {
                     id="blog-category"
                     value={form.category}
                     onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="min-h-10 w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="">-- Chọn --</option>
                     {CATEGORY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -221,7 +221,7 @@ export default function AdminBlogPage() {
                     value={form.tags}
                     onChange={(e) => setForm((prev) => ({ ...prev, tags: e.target.value }))}
                     placeholder="tag1,tag2"
-                    className="h-10"
+                    className="h-auto min-h-10 px-4 py-2.5"
                   />
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function AdminBlogPage() {
                   value={form.excerpt}
                   onChange={(e) => setForm((prev) => ({ ...prev, excerpt: e.target.value }))}
                   placeholder="Mô tả ngắn..."
-                  className="h-10"
+                  className="h-auto min-h-10 px-4 py-2.5"
                 />
               </div>
             </div>
@@ -251,7 +251,7 @@ export default function AdminBlogPage() {
                   value={form.content}
                   onChange={(e) => setForm((prev) => ({ ...prev, content: e.target.value }))}
                   rows={8}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                   placeholder="Nội dung bài viết..."
                 />
               </div>
@@ -271,7 +271,7 @@ export default function AdminBlogPage() {
                   value={form.imageUrl}
                   onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
                   placeholder="https://..."
-                  className="h-10"
+                  className="h-auto min-h-10 px-4 py-2.5"
                 />
               </div>
               <label className="flex items-center gap-3 p-3 rounded-md border border-border bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">

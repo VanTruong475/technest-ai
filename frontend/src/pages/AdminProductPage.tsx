@@ -308,7 +308,7 @@ export default function AdminProductPage() {
 
       {/* Sheet — Add / Edit Product */}
       <Sheet open={showForm} onOpenChange={(open) => { if (!open) closeForm(); }}>
-        <SheetContent side="right" className="w-[480px] max-w-[95vw] overflow-y-auto">
+        <SheetContent side="right" className="w-[480px] max-w-[95vw] overflow-y-auto p-6">
           <SheetHeader className="pb-4 border-b border-border mb-6">
             <SheetTitle className="text-lg font-semibold">
               {editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}
@@ -318,7 +318,7 @@ export default function AdminProductPage() {
             )}
           </SheetHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6 pb-10">
+          <form onSubmit={handleSubmit} className="space-y-6 pb-6">
 
             {/* Nhóm 1: Thông tin cơ bản */}
             <div className="space-y-4">
@@ -332,7 +332,7 @@ export default function AdminProductPage() {
                   value={form.name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="iPhone 15 Pro Max"
-                  className="h-10"
+                  className="h-auto min-h-10 px-4 py-2.5"
                 />
               </div>
               <div className="space-y-2">
@@ -342,7 +342,7 @@ export default function AdminProductPage() {
                   value={form.slug}
                   onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
                   placeholder="iphone-15-pro-max"
-                  className="h-10 font-mono text-sm"
+                  className="h-auto min-h-10 px-4 py-2.5 font-mono text-sm"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -350,7 +350,7 @@ export default function AdminProductPage() {
                   <Label htmlFor="category" className="font-medium">Danh mục <span className="text-destructive">*</span></Label>
                   <select
                     id="category"
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="min-h-10 w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={form.category_id || ""}
                     onChange={(e) => setForm((prev) => ({ ...prev, category_id: Number(e.target.value) }))}
                   >
@@ -364,7 +364,7 @@ export default function AdminProductPage() {
                   <Label htmlFor="brand" className="font-medium">Thương hiệu <span className="text-destructive">*</span></Label>
                   <select
                     id="brand"
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="min-h-10 w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={form.brand_id || ""}
                     onChange={(e) => setForm((prev) => ({ ...prev, brand_id: Number(e.target.value) }))}
                   >
@@ -393,7 +393,7 @@ export default function AdminProductPage() {
                     min={0}
                     value={form.price}
                     onChange={(e) => setForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
-                    className="h-10"
+                    className="h-auto min-h-10 px-4 py-2.5"
                   />
                 </div>
                 <div className="space-y-2">
@@ -404,7 +404,7 @@ export default function AdminProductPage() {
                     min={0}
                     value={form.sale_price ?? ""}
                     onChange={(e) => setForm((prev) => ({ ...prev, sale_price: e.target.value ? Number(e.target.value) : null }))}
-                    className="h-10"
+                    className="h-auto min-h-10 px-4 py-2.5"
                   />
                 </div>
               </div>
@@ -417,14 +417,14 @@ export default function AdminProductPage() {
                     min={0}
                     value={form.stock}
                     onChange={(e) => setForm((prev) => ({ ...prev, stock: Number(e.target.value) }))}
-                    className="h-10"
+                    className="h-auto min-h-10 px-4 py-2.5"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status" className="font-medium">Trạng thái</Label>
                   <select
                     id="status"
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="min-h-10 w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     value={form.status}
                     onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
                   >
@@ -453,7 +453,7 @@ export default function AdminProductPage() {
                 <Label htmlFor="description" className="font-medium">Mô tả</Label>
                 <textarea
                   id="description"
-                  className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  className="w-full min-h-[100px] rounded-md border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                   value={form.description}
                   onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                   placeholder="Mô tả sản phẩm..."
