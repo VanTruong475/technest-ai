@@ -164,7 +164,7 @@ export default function AdminBlogPage() {
 
       {/* Sheet — Add / Edit Blog */}
       <Sheet open={showForm} onOpenChange={(open) => { if (!open) closeForm(); }}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent side="right" className="w-[480px] max-w-[95vw] overflow-y-auto">
           <SheetHeader className="pb-4 border-b border-border mb-6">
             <SheetTitle className="text-lg font-semibold">
               {editingPost ? "Sửa bài viết" : "Tạo bài viết mới"}
