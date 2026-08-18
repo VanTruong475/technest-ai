@@ -1,7 +1,7 @@
 # TechNest AI
 
-> **AI-powered e-commerce platform** cho thiết bị công nghệ — full-stack, deployed production, kiểm thử kỹ.
-> Backend FastAPI + PostgreSQL + Redis, Frontend React 19 + TypeScript. AI Search, Recommendation (gồm co-occurrence "khách mua cũng mua"), Chatbot multi-provider LLM (Gemini + Groq) với cache + fallback chain → rule-based.
+> **AI-powered e-commerce platform for consumer technology products.**  
+> A production-oriented full-stack app with React 19 + TypeScript, FastAPI, PostgreSQL, Redis, VNPay payments, Cloudinary image optimization, and AI shopping assistance.
 
 ![CI](https://github.com/VanTruong475/techsphere-ai/actions/workflows/ci.yml/badge.svg)
 ![Tests](https://img.shields.io/badge/Tests-449/449-brightgreen)
@@ -15,457 +15,520 @@
 ![Lighthouse Best Practices](https://img.shields.io/badge/Lighthouse_Best_Practices-100-brightgreen)
 ![Lighthouse SEO](https://img.shields.io/badge/Lighthouse_SEO-92-brightgreen)
 
-**🚀 Production highlights:** `387/387` backend tests + `62/62` frontend tests · `87%` backend coverage · atomic stock + transaction wrappers · VNPay replay-protection · multi-provider LLM (Gemini + Groq) với Redis cache + fallback chain · **streaming chatbot (SSE token-by-token)** · co-occurrence recommendation · Cloudinary CDN · N+1 optimization · GZip · Sentry · CI/CD · Light/Dark/System theme · Responsive · A11y ARIA
+**Production highlights:** 387 backend tests + 62 frontend tests · 87% backend coverage · atomic stock updates · transaction-safe checkout · VNPay replay protection · hybrid cookie/Bearer authentication · admin 2FA · multi-provider LLM chatbot with Gemini/Groq fallback · SSE streaming chatbot · Redis caching · Cloudinary CDN · N+1 query optimization · security headers · Sentry · CI/CD · Light/Dark/System theme · responsive UI · accessibility-focused components
 
 ---
 
 ## Live Demo
 
-| Dịch vụ | URL |
-|---------|-----|
+| Service | URL |
+|---|---|
 | Frontend | https://technest-ai.vercel.app |
 | Backend API | https://techsphere-ai.onrender.com |
-| API Docs (Swagger) | https://techsphere-ai.onrender.com/docs |
+| Swagger API Docs | https://techsphere-ai.onrender.com/docs |
 
-> Thông tin tài khoản demo sẽ được cung cấp khi cần.
+> Demo credentials can be provided when needed.
 
 ---
 
-## ✨ Why this project stands out
+## Why This Project Stands Out
 
-| Khía cạnh | Điểm nổi bật |
+| Area | Highlights |
 |---|---|
-| **AI features 3 cấp** | Search (SQL ILIKE pre-filter + cap 200 candidates + Python scoring), Recommendation (cart/history/popular/**co-occurrence** SQL self-join), Chatbot (rule-based + **multi-provider LLM Gemini→Groq fallback chain**). Architecture provider abstraction, mở rộng OpenRouter/Anthropic = 1 file. |
-| **Production engineering LLM** | Redis cache cho LLM response (sha256 key, TTL 1h) → cùng câu hỏi $0 quota · Provider chain Gemini lỗi → Groq → rule-based · Graceful 2 tầng (Redis down vẫn LLM, LLM down vẫn rule-based) · Endpoint chatbot luôn 200 OK · Anti-hallucination prompt (products/giá/tồn kho từ DB, không bịa, brand list pass tường minh) |
-| **Backend hardening** | Config guardrails (production env validate) · atomic transaction wrapper (create_order + cancel rollback) · stock atomicity (conditional UPDATE WHERE stock>=:q anti-oversell) · VNPay hardening (amount verify + replay protection qua UNIQUE txn_ref + CANCELLED state lock) · lifespan context manager (FastAPI best practice) |
-| **Test coverage thật** | 387 tests, 87% coverage — integration tests cho cart/order/payment flow, edge cases SQL injection/XSS, anti-API-call guard cho LLM tests, prompt-structure smoke tests, **streaming SSE tests (token events + done + chain fail-over mid-stream)** |
-| **Hệ thống Audit Log** | Mọi action admin (CRUD product, đổi role, xóa review, export, bulk inventory...) được log có thể truy vết — không phải feature trang trí, có 10 tests |
-| **Security hardening** | XSS-safe image URLs · FK-safe category/brand deletion · JWT token verification on app mount · 401 interceptor sync with Zustand store · bcrypt password verification in seed |
-| **A11y + Dark mode** | ARIA labels đầy đủ, focus management, mobile menu role nav, Light/Dark/System theme toggle với localStorage persistence, scroll reset on route change |
-| **CI/CD ready** | GitHub Actions chạy pytest + frontend build trên mọi PR, deploy auto lên Render + Vercel |
+| **AI shopping experience** | Smart product search, product recommendations, co-occurrence recommendations, and a chatbot that can use real catalog data instead of hallucinated products. |
+| **Streaming chatbot** | `POST /api/ai/chat/stream` streams token-by-token over Server-Sent Events. The UI renders the response live with a typing cursor and keeps product cards/suggestions grounded in database data. |
+| **Production-grade fallback design** | LLM providers are optional. Gemini can fail over to Groq, Redis can fail without breaking chat, and the chatbot falls back to deterministic rule-based replies when external AI services are unavailable. |
+| **Checkout correctness** | Order creation uses transaction wrappers and conditional stock decrement queries to avoid overselling. VNPay callbacks validate amount, order state, and replayed transaction references. |
+| **Security hardening** | Hybrid HttpOnly cookie/Bearer auth, Origin checks for cookie-auth unsafe methods, security headers, XSS-safe image URL validation, admin self-demotion protection, 2FA for admin login, and production config guardrails. |
+| **Admin operations** | Dashboard analytics, product/order/user/blog management, bulk inventory updates, CSV export, review moderation, image upload, and audit logs for critical admin actions. |
+| **Portfolio polish** | Route-level code splitting, lazy-loaded Recharts, semantic Tailwind tokens for dark mode, mobile-first responsive layouts, skeleton loading states, and ARIA labels for icon controls. |
 
 ---
 
-## 🎬 Demo flow
+## Demo Flow
 
-Quy trình trải nghiệm 7 bước trên live demo:
-
-1. **Browse** — Vào trang chủ → xem hero + featured products → filter theo category/brand/price ở `/products`
-2. **AI Search** — Gõ "laptop gaming dưới 30 triệu" trên search bar → SQL ILIKE pre-filter + Python relevance scoring
-3. **Product detail** — Click sản phẩm → xem ảnh optimized (Cloudinary), reviews, section **"Có thể bạn cũng thích"** (co-occurrence "khách mua sản phẩm này cũng mua"), add to wishlist
-4. **Cart → Checkout** — Add to cart → `/cart` (stock validation atomic) → `/checkout` → chọn VNPay sandbox → quay về `/payment/result` (verify amount + replay protection)
-5. **AI Chatbot** — Vào `/chat` → mô tả nhu cầu ("cần laptop làm văn phòng và edit ảnh") → reply **stream chữ chảy dần token-by-token (SSE)**; nếu env có `GEMINI_API_KEY`, LLM rephrase reply tự nhiên với product context thật từ DB; lỗi/quota → tự fallback Groq → rule-based
-6. **Reviews & Wishlist** — Đánh giá đơn hàng đã hoàn thành, quản lý wishlist
-7. **Admin** — Login admin → `/admin/dashboard` (stats, charts) → quản lý products/orders → bulk update tồn kho → export CSV đơn hàng → xem Audit Log
-
-Theme toggle (Sun/Moon/Monitor) ở header — thử Light/Dark/System bất cứ lúc nào.
+1. **Browse products** — Visit the homepage, explore featured products, and filter the catalog by category, brand, price, and sort order.
+2. **Use smart search** — Search phrases such as “gaming laptop under 30 million” and get relevance-ranked results.
+3. **Open product details** — View optimized images, reviews, related products, recently viewed products, and “customers also bought” recommendations.
+4. **Add to cart and checkout** — Add products to cart, validate stock, choose COD or VNPay sandbox, and complete the payment flow.
+5. **Chat with AI** — Ask for product recommendations in natural language. The chatbot streams its answer token-by-token and returns matching product cards.
+6. **Manage account** — Update profile, change password, view orders, and manage wishlist items.
+7. **Use admin panel** — Review dashboard metrics, CRUD products/blogs/users, update inventory in bulk, export CSV, moderate reviews, and inspect audit logs.
 
 ---
 
-## Tính năng chính
+## Features
 
-### Người dùng
-- Đăng ký / Đăng nhập (JWT authentication)
-- Đổi mật khẩu, quên mật khẩu (gửi email qua Resend)
-- Duyệt sản phẩm theo danh mục, thương hiệu (75+ sản phẩm thật, ảnh từ Unsplash CDN)
-- Tìm kiếm sản phẩm thông minh (AI Search) + autocomplete
-- Giỏ hàng + Checkout với stock validation
-- Thanh toán online (VNPay sandbox)
-- Lịch sử đơn hàng, chi tiết đơn hàng
-- Đánh giá sản phẩm (Reviews & Ratings)
-- Yêu thích (Wishlist)
-- Hồ sơ cá nhân
-- Sản phẩm đã xem gần đây (Recently Viewed)
-- **Light/Dark/System theme** với persistence
-- **Responsive UI** mobile-first (375px+)
+### Customer Features
 
-### Tính năng AI
-- **AI Search** — Tìm kiếm sản phẩm theo relevance score, fuzzy matching, synonym dictionary (40+ entries)
-- **AI Recommendation** — Gợi ý dựa trên giỏ hàng, lịch sử, phổ biến, **co-occurrence** ("khách mua sản phẩm này cũng mua")
-  - Co-occurrence: SQL self-join trên `order_items` tính số đơn cùng chứa anchor + co-product. Fallback chain: co-occurrence → cùng category → popular → latest.
-  - Endpoint: `GET /api/ai/recommend?strategy=co_occurrence&product_id=<id>&limit=5` (public)
-- **AI Chatbot** — Tư vấn sản phẩm theo nhu cầu, ngân sách, thương hiệu
-  - Mặc định **rule-based** (intent matching theo category/brand/budget/needs)
-  - **Tùy chọn**: multi-provider LLM (Gemini + Groq) với cache + fallback chain. Set `AI_LLM_ENABLED=true` + `AI_PROVIDERS=gemini,groq` + key tương ứng trong `.env`.
-  - **Production engineering**:
-    - **Redis cache** cho LLM response (TTL 1h mặc định, `AI_LLM_CACHE_TTL_SECONDS=0` để disable) — cùng câu hỏi trong window → hit cache, $0 quota.
-    - **Provider fallback chain** — Gemini lỗi/quota → tự động thử Groq → hết providers → rule-based. No single point of failure.
-    - **Graceful degradation** — Redis down → bỏ cache, vẫn gọi LLM. LLM down → rule-based. Chatbot luôn 200 OK.
-  - Sản phẩm/giá/tồn kho luôn lấy từ DB (không bịa). Brand list pass tường minh để LLM không gợi ý hãng không có trong cửa hàng.
-  - **Streaming token-by-token (SSE)** — `POST /api/ai/chat/stream` phát reply theo từng mảnh qua Server-Sent Events; FE render chữ chảy dần + con trỏ nhấp nháy. `done` event cuối kèm products/suggestions từ DB. Provider stream thật (Gemini `alt=sse`, Groq OpenAI delta); chain chỉ fail-over **trước token đầu** để không lặp text; cache lưu bản ghép full-text. Endpoint `/chat` non-stream vẫn giữ làm fallback cho client cũ.
+- Register, login, logout, and session restore
+- Hybrid authentication: HttpOnly cookie for the frontend, Bearer token support for Swagger/tests
+- Profile management and password change
+- Forgot/reset password email flow via Resend
+- Product catalog with category, brand, price, search, sort, and pagination filters
+- Product details with optimized images, reviews, related products, and recently viewed items
+- Cart management with stock validation
+- Checkout with COD and VNPay sandbox payment
+- Order history and order details
+- Product reviews and ratings
+- Wishlist support
+- Blog listing and blog detail pages
+- Light/Dark/System theme with persistence
+- Mobile-first responsive UI
 
-### Quản trị (Admin)
-- Dashboard thống kê (doanh thu, đơn hàng, sản phẩm, người dùng, biểu đồ)
-- Quản lý sản phẩm (CRUD, upload hình ảnh Cloudinary)
-- Quản lý đơn hàng (cập nhật trạng thái, xuất CSV)
-- Quản lý người dùng (phân quyền, kích hoạt/vô hiệu hóa)
-- Quản lý đánh giá (xem, xóa đánh giá vi phạm)
-- Quản lý kho hàng (bulk update tồn kho)
-- Nhật ký hệ thống (Audit Log)
-- Quản lý danh mục, thương hiệu (CRUD — **FK-safe deletion**, không xóa nếu còn sản phẩm)
+### AI Features
+
+- **AI Search**
+  - Relevance scoring for product search
+  - Synonym expansion for common product terms
+  - Database pre-filtering to avoid scanning the full catalog in Python
+
+- **AI Recommendations**
+  - `cart` strategy: recommends items related to cart contents
+  - `history` strategy: recommends items based on purchase history
+  - `popular` strategy: recommends best-selling products
+  - `co_occurrence` strategy: “customers who bought this also bought” via SQL self-join on order items
+  - Fallback chain: co-occurrence → same category/brand → popular → latest products
+
+- **AI Chatbot**
+  - Rule-based default mode for reliable local/demo behavior
+  - Optional LLM mode with Gemini and Groq providers
+  - Provider abstraction for adding more LLM backends
+  - Redis-backed LLM response cache with configurable TTL
+  - Graceful degradation when Redis or LLM providers are unavailable
+  - Anti-hallucination prompt constraints: product names, prices, stock, and brands come from the database
+  - SSE streaming endpoint for live token-by-token responses
+
+### Admin Features
+
+- Admin dashboard with revenue, orders, users, products, ratings, and chart data
+- Product management with CRUD, soft delete, image upload, and Cloudinary integration
+- Blog management
+- Order management with status updates and CSV export
+- User management with role/status controls and self-demotion protection
+- Review moderation
+- Bulk inventory update
+- Audit logs for create/update/delete/export/inventory actions
+- Category and brand management with FK-safe deletion rules
+- Admin 2FA setup and login verification
+
+### Backend Engineering
+
+- FastAPI lifespan context manager
+- SQLModel repository/service layering
+- Alembic migrations
+- PostgreSQL production database support
+- Redis cache with graceful degradation
+- Atomic stock decrement with conditional SQL update
+- Transaction wrappers for checkout/cancel flows
+- VNPay amount verification and replay protection
+- Rate limiting with SlowAPI
+- Request/response logging middleware
+- Security headers middleware
+- Origin check middleware for cookie-auth unsafe requests
+- Sentry integration
+- GZip compression, disabled for SSE streaming paths
+
+### Frontend Engineering
+
+- React 19 + TypeScript + Vite 8
+- Tailwind CSS 4 with semantic design tokens
+- shadcn/ui components
+- Zustand auth state
+- TanStack Query data fetching
+- Route-level code splitting with `React.lazy`
+- Recharts split into a lazy-loaded admin chunk
+- Optimized image component using Cloudinary URL transforms
+- Skeleton loading states
+- Error boundary
+- Responsive admin and customer layouts
+- Accessibility improvements for icon buttons, menus, form fields, and decorative content
 
 ---
 
-## Công nghệ sử dụng
+## Tech Stack
 
-| Lớp | Công nghệ |
-|-----|-----------|
-| **Backend** | FastAPI 0.136, SQLModel, PostgreSQL 16, Alembic |
-| **Frontend** | React 19, Vite 8, TypeScript 6, Tailwind CSS 4, shadcn/ui |
-| **Quản lý state** | Zustand 5, TanStack Query 5 |
-| **Xác thực** | JWT (python-jose), bcrypt (passlib) |
-| **Cache** | Redis (graceful degradation — app vẫn chạy nếu không có Redis) — dùng cho product list, category/brand, LLM response, homepage batch |
-| **AI / LLM** | Multi-provider abstraction (httpx REST): Gemini API + Groq API (OpenAI-compat). Fallback chain provider → rule-based. Redis cache TTL 1h cho LLM response |
-| **Upload hình ảnh** | Cloudinary (auto WebP/AVIF, resize, CDN) |
-| **Báo lỗi** | Sentry (error tracking + performance monitoring) |
-| **Email** | Resend (transactional email) |
-| **Biểu đồ** | Recharts (admin dashboard, **lazy-loaded separate chunk**) |
-| **Thanh toán** | VNPay (sandbox, HMAC-SHA512 verify, replay protection qua UNIQUE txn_ref) |
-| **Nén truyền** | GZip middleware (Starlette) |
-| **Kiểm thử** | Pytest, httpx, pytest-cov, GitHub Actions |
-| **Triển khai** | Render (Backend + DB + Redis), Vercel (Frontend) |
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 19, TypeScript 6, Vite 8, Tailwind CSS 4, shadcn/ui |
+| **State & Data** | Zustand 5, TanStack Query 5, Axios |
+| **Backend** | FastAPI 0.136, SQLModel, SQLAlchemy 2, Pydantic 2 |
+| **Database** | PostgreSQL 16, Alembic migrations |
+| **Cache** | Redis |
+| **Auth** | JWT, HttpOnly cookies, Bearer tokens, bcrypt, TOTP 2FA |
+| **AI / LLM** | Rule-based engine, Gemini, Groq, provider chain, Redis response cache |
+| **Payments** | VNPay sandbox, HMAC-SHA512 callback verification |
+| **Images** | Cloudinary upload + CDN transforms, optimized frontend image rendering |
+| **Email** | Resend |
+| **Monitoring** | Sentry |
+| **Charts** | Recharts, lazy-loaded |
+| **Testing** | Pytest, httpx, Vitest, React Testing Library |
+| **Deployment** | Vercel frontend, Render backend, Supabase/PostgreSQL-compatible database |
 
 ---
 
-## Kiến trúc hệ thống
+## Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Frontend (Vercel)                      │
-│            React 19 + Vite 8 + TypeScript + Tailwind     │
-│         OptimizedImage (Cloudinary transforms)           │
-│         XSS-safe URL validation · Lazy chunks            │
-└──────────────────────────┬──────────────────────────────┘
-                           │ HTTPS
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                   Backend (Render)                        │
-│              FastAPI + SQLModel + Alembic                 │
-│                                                           │
-│  ┌─────────┐ ┌──────────┐ ┌─────────┐ ┌──────────────┐  │
-│  │  Auth   │ │ Product  │ │  Cart   │ │  AI Engine   │  │
-│  │  User   │ │ Category │ │  Order  │ │ Search/Rec/  │  │
-│  │ Review  │ │  Brand   │ │ VNPay   │ │   Chatbot    │  │
-│  └─────────┘ └──────────┘ └─────────┘ └──────────────┘  │
-│                                                           │
-│  LLM Chain:  CachedProvider → ChainProvider               │
-│              └ Gemini → Groq → rule-based (fallback)      │
-│                                                           │
-│  ┌───────────────────┐  ┌─────────────────────────────┐  │
-│  │   Redis Cache     │  │      Sentry Monitoring      │  │
-│  │ product 5min,     │  │   (error tracking, perf)    │  │
-│  │ category 30min,   │  │                             │  │
-│  │ LLM resp 1h,      │  │                             │  │
-│  │ homepage 1min     │  │                             │  │
-│  └───────────────────┘  └─────────────────────────────┘  │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│            PostgreSQL (Render) + Redis (Render)           │
-└─────────────────────────────────────────────────────────┘
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Frontend                                                     │
+│ React 19 + Vite + TypeScript + Tailwind + shadcn/ui          │
+│ Route chunks · Optimized images · Light/Dark/System theme    │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ HTTPS
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Backend                                                      │
+│ FastAPI + SQLModel + Alembic                                 │
+│                                                             │
+│ Auth · Products · Cart · Orders · Reviews · Wishlist · Blog  │
+│ Admin · Audit Log · VNPay · Upload · Homepage batch API      │
+│                                                             │
+│ AI Engine                                                    │
+│ Rule-based search/recommend/chat                             │
+│ Optional LLM chain: Redis cache → Gemini → Groq → fallback   │
+└──────────────────────┬──────────────────────┬──────────────┘
+                       │                      │
+                       ▼                      ▼
+          ┌──────────────────────┐   ┌──────────────────────┐
+          │ PostgreSQL            │   │ Redis                │
+          │ App data + migrations │   │ API/LLM/cache TTLs   │
+          └──────────────────────┘   └──────────────────────┘
 
-┌─────────────────────────────────────────────────────────┐
-│                   Cloudinary CDN                          │
-│         Image storage + auto format (WebP/AVIF)          │
-│         Resize on-the-fly via URL transforms             │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐
+│ Cloudinary            │   │ Resend               │   │ Sentry               │
+│ Images + CDN          │   │ Transactional email  │   │ Error monitoring     │
+└──────────────────────┘   └──────────────────────┘   └──────────────────────┘
 ```
 
-### Kiến trúc Backend (4-Layer Pattern)
+### Backend Layering
 
-```
-Request → API (router.py) → Service (service.py) → Repository (repository.py) → Database
-                                   ↓
-                              Schema validation (schemas.py)
+```text
+Request → API Router → Service → Repository → Database
+                    ↓
+             Pydantic Schemas
 ```
 
-```
+```text
 backend/app/
-├── api/            # API endpoints (router)
-│   └── homepage.py # Batch endpoint (brands + categories + products)
-├── core/           # Config, database, cache, rate_limit
-│   └── config.py   # Production env validation guardrails
-├── models/         # SQLModel models
-├── repositories/   # Data access layer
-├── schemas/        # Pydantic schemas (request/response)
-├── services/       # Business logic
-│   └── llm/        # LLM provider abstraction
-│       ├── base.py        # BaseLLMProvider + LLMError
-│       ├── gemini.py      # GeminiProvider (REST)
-│       ├── groq.py        # GroqProvider (OpenAI-compat)
-│       ├── chain.py       # ChainProvider (fail-through)
-│       ├── cache.py       # CachedProvider (Redis wrap)
-│       └── factory.py     # get_llm_provider()
-└── main.py         # FastAPI app entry (lifespan, CORS, GZip, routers)
+├── api/             # FastAPI routers
+├── core/            # Config, DB, cache, middleware, security helpers
+├── models/          # SQLModel database models
+├── repositories/    # Data access layer
+├── schemas/         # Request/response schemas
+├── services/        # Business logic
+│   └── llm/         # LLM providers, provider chain, Redis cache wrapper
+└── main.py          # FastAPI application entry point
+```
+
+### Frontend Structure
+
+```text
+frontend/src/
+├── components/ui/      # shadcn/ui components
+├── components/         # Custom reusable components
+├── pages/              # Route pages
+├── layouts/            # Main and admin layouts
+├── routes/             # React Router setup
+├── store/              # Zustand stores
+├── hooks/              # Custom hooks
+├── lib/                # API, streaming, utility libraries
+├── utils/              # Formatting, Cloudinary, API helpers
+└── types/              # Shared TypeScript types
 ```
 
 ---
 
-## Ảnh chụp màn hình
+## Screenshots
 
-> Để README nhẹ, ảnh không commit vào repo. Đặt 6 file dưới đây vào thư mục `docs/screenshots/` để hiển thị (file lớn được khuyến nghị `.gitignore`).
+Screenshots are intentionally not committed to keep the repository lightweight. Place images in `docs/screenshots/` and uncomment the block below if you want them rendered in GitHub.
 
-| Màn hình | Đường dẫn |
+| Screen | Suggested Path |
 |---|---|
-| 🏠 Trang chủ (hero + featured + categories) | `docs/screenshots/homepage.jpg` |
-| 📱 Mobile responsive (375px) | `docs/screenshots/Mobile Homepage.jpeg` |
-| 🛒 Chi tiết sản phẩm | `docs/screenshots/productdetail.jpeg` |
-| 💬 AI Chatbot tư vấn | `docs/screenshots/AI Chat.jpeg` |
-| 💳 Checkout với VNPay | `docs/screenshots/Checkout.jpeg` |
-| 📊 Admin Dashboard (stats + charts) | `docs/screenshots/Admin Dashboard.jpeg` |
+| Homepage | `docs/screenshots/homepage.jpg` |
+| Mobile homepage | `docs/screenshots/mobile-homepage.jpg` |
+| Product detail | `docs/screenshots/product-detail.jpg` |
+| AI chatbot | `docs/screenshots/ai-chat.jpg` |
+| Checkout | `docs/screenshots/checkout.jpg` |
+| Admin dashboard | `docs/screenshots/admin-dashboard.jpg` |
 
 <!--
-Khi đã có ảnh, uncomment khối dưới đây:
-
-![Trang chủ](docs/screenshots/homepage.jpg)
-![Chi tiết sản phẩm](docs/screenshots/productdetail.jpeg)
-![AI Chatbot](docs/screenshots/AI%20Chat.jpeg)
-![Checkout](docs/screenshots/Checkout.jpeg)
-![Admin Dashboard](docs/screenshots/Admin%20Dashboard.jpeg)
-![Mobile](docs/screenshots/Mobile%20Homepage.jpeg)
+![Homepage](docs/screenshots/homepage.jpg)
+![Mobile homepage](docs/screenshots/mobile-homepage.jpg)
+![Product detail](docs/screenshots/product-detail.jpg)
+![AI chatbot](docs/screenshots/ai-chat.jpg)
+![Checkout](docs/screenshots/checkout.jpg)
+![Admin dashboard](docs/screenshots/admin-dashboard.jpg)
 -->
-
-Các màn hình khác (không hiển thị inline để giữ README gọn): Product list/filter, Cart, Order Detail, Wishlist, Login/Register, Admin Products/Orders/Users/Reviews/Audit Log, Payment Result, 404, Search Autocomplete, Forgot/Reset Password.
 
 ---
 
-## Cài đặt local
+## Local Development
 
-### Yêu cầu
+### Requirements
+
 - Python 3.12+
 - Node.js 20+
 - PostgreSQL 16+
-- Redis (tùy chọn — app vẫn chạy bình thường nếu không có Redis)
+- Redis optional; the app runs without Redis using graceful degradation
+- Cloudinary, Resend, VNPay, Gemini, and Groq credentials are optional for local development
 
-### Backend
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/VanTruong475/techsphere-ai.git
+cd techsphere-ai
+```
+
+### 2. Backend Setup
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate       # macOS/Linux
-# .\venv\Scripts\Activate.ps1  # Windows
+source venv/bin/activate
+# Windows PowerShell: .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Tạo file `.env` từ mẫu:
+Create a backend environment file:
 
 ```bash
 cp .env.example .env
-# Chỉnh sửa DATABASE_URL và các biến môi trường khác
 ```
 
-Chạy migration và seed dữ liệu:
+Update at least:
+
+```env
+DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/techsphere_ai
+SECRET_KEY=replace_with_a_long_random_secret
+CORS_ORIGINS=http://localhost:5173,http://localhost:4173
+FRONTEND_URL=http://localhost:5173
+```
+
+Run migrations and seed data:
 
 ```bash
 alembic upgrade head
 python -m app.seed
 ```
 
-Khởi động server:
+Start the API server:
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+Backend URLs:
+
+- API root: http://localhost:8000
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
+- Health check: http://localhost:8000/api/health
 
-### Frontend
+### 3. Frontend Setup
 
 ```bash
 cd frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-Truy cập: http://localhost:5173
+Frontend URL:
+
+- http://localhost:5173
+
+The frontend expects:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
 
 ---
 
-## Kiểm thử
+## Optional Integrations
+
+### Redis
+
+Used for product/category/brand/homepage caching and optional LLM response caching.
+
+```env
+REDIS_URL=redis://localhost:6379
+```
+
+If Redis is not configured or is unavailable, the app continues to run without cache.
+
+### Cloudinary
+
+Used for admin image upload and optimized image delivery.
+
+```env
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+### Resend Email
+
+Used for forgot/reset password and transactional emails.
+
+```env
+EMAIL_ENABLED=true
+RESEND_API_KEY=re_xxx
+EMAIL_FROM=TechNest <noreply@yourdomain.com>
+```
+
+### AI / LLM Chatbot
+
+Rule-based AI works by default. To enable LLM responses:
+
+```env
+AI_LLM_ENABLED=true
+AI_PROVIDERS=gemini,groq
+AI_PROVIDER=gemini
+AI_LLM_TIMEOUT_SECONDS=10.0
+AI_LLM_CACHE_TTL_SECONDS=3600
+GEMINI_API_KEY=your_gemini_key
+GEMINI_MODEL=gemini-2.5-flash-lite
+GROQ_API_KEY=your_groq_key
+GROQ_MODEL=llama-3.1-8b-instant
+```
+
+### VNPay Sandbox
+
+```env
+VNPAY_TMN_CODE=your_tmn_code
+VNPAY_HASH_SECRET=your_hash_secret
+VNPAY_PAYMENT_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNPAY_RETURN_URL=http://localhost:8000/api/payments/vnpay-return
+```
+
+---
+
+## Testing
 
 ### Backend
 
 ```bash
 cd backend
-pytest tests/ -v                    # Chạy tất cả tests
-pytest tests/ -v --cov=app          # Chạy với coverage report
+pytest tests/ -v
+pytest tests/ -v --cov=app --cov-report=term-missing
 ```
 
-**387/387 tests** — 87% coverage, phân bố qua 33 test modules:
+Current backend status:
 
-| Module | Số lượng | Nội dung |
-|--------|----------|----------|
-| test_ai | 26 | Search, recommend (cart/history/popular/**co-occurrence + fallback chain**), chat |
-| test_chat_llm | 22 | Gemini provider, factory, chat fallback paths, **prompt-structure smoke tests** |
-| test_chat_stream | 17 | **SSE endpoint** (token events + done từ DB), fallback (no provider/LLMError/exception), **ChainProvider stream fail-over (trước/sau token đầu)**, CachedProvider stream, Gemini/Groq SSE parsers |
-| test_llm_chain_cache | 29 | Groq provider, **ChainProvider fail-through, CachedProvider hit/miss/Redis-down**, factory chain |
-| test_order | 27 | Create, status update, **atomic rollback, stock atomicity (anti-oversell), cleanup stale items** |
-| test_user_management | 17 | List, get, update, phân quyền, role escalation, **admin self-demote block** |
-| test_cart | 12 | Add, update, delete, stock validation, **GET không mutate DB** |
-| test_payment | 12 | VNPay create, return success/fail, **amount mismatch, replay protection, cancelled order lock** |
-| test_brand | 13 | CRUD, phân quyền, pagination, duplicate slug, **FK-safe deletion** |
-| test_category | 13 | CRUD, phân quyền, pagination, duplicate slug, **FK-safe deletion** |
-| test_cache | 13 | Cache key, get/set, invalidate, no-Redis graceful degradation |
-| test_review | 13 | Create, list, delete, rating stats |
-| test_email | 12 | Resend integration, template render, error handling |
-| test_wishlist | 11 | Add, remove, list, duplicate handling |
-| test_audit_log | 10 | Log creation, list, action types, export |
-| test_admin_reviews | 10 | List reviews, delete review, filter by product |
-| test_forgot_password | 10 | Token generation/expiry/SHA-256 hash, reset flow |
-| test_order_export | 10 | CSV export, date filter, status filter, UTF-8 BOM |
-| test_product_crud | 10 | CRUD, filter, search, soft delete, pagination |
-| test_auth | 10 | Register, login, JWT, get_current_user |
-| test_admin_stats | 9 | Dashboard stats, charts data, recent orders, top products |
-| test_bulk_stock_update | 9 | Bulk inventory update, inline stock editing |
-| test_upload | 9 | Cloudinary upload, file type validation, size limit |
-| test_products | 8 | Product list filter, search, pagination, sort |
-| test_edge_cases | 8 | Inactive user, SQL injection, XSS, invalid params |
-| test_change_password | 7 | Verify old password, update, JWT remains valid |
-| test_config | 6 | Production env validation (SECRET_KEY, ADMIN_PASSWORD, CORS_ORIGINS) |
-| test_logging | 6 | Request/response logging middleware |
-| test_health | 5 | Health check, DB status, Redis status |
-| test_gzip | 2 | GZip compression, response body readable |
+- **387/387 tests passing**
+- **87% coverage**
+- Coverage includes auth, users, products, categories, brands, cart, orders, VNPay, reviews, wishlist, admin, audit logs, email, upload, Redis cache, LLM providers, streaming chatbot, config guardrails, security headers, and edge cases.
 
 ### Frontend
 
 ```bash
 cd frontend
-npm test                # Chạy tất cả tests
-npm run test:watch      # Watch mode
-npm run test:coverage   # Coverage report
-npm run build           # TypeScript check + production build
-npm run lint            # ESLint check
+npm test
+npm run test:watch
+npm run test:coverage
+npm run lint
+npm run build
 ```
 
-**62/62 tests** — Vitest + React Testing Library:
+Current frontend status:
 
-| Test File | Tests | Nội dung |
-|-----------|-------|----------|
-| aiStream.test.ts | 7 | **parseSSEEvent**: token/done event, multi-line `data:`, leading-space strip, malformed/empty → null |
-| format.test.ts | 6 | formatPrice, formatDate |
-| api.test.ts | 7 | getErrorMessage (AxiosError, Error, unknown) |
-| cloudinary.test.ts | 5 | getOptimizedImageUrl (Cloudinary transforms) |
-| orderStatus.test.ts | 6 | ORDER/PAYMENT/PRODUCT status maps |
-| SaleBadge.test.tsx | 4 | Discount percentage rendering |
-| StarRating.test.tsx | 8 | Filled/empty stars, interactive mode |
-| Pagination.test.tsx | 9 | Page numbers, ellipsis, prev/next, onPageChange |
-| useRecentlyViewed.test.ts | 10 | localStorage CRUD, dedup, max items |
+- **62/62 tests passing**
+- Vitest + React Testing Library coverage for formatting utilities, API error helpers, Cloudinary URL transforms, SSE event parsing, status constants, sale badges, star ratings, pagination, and recently viewed products.
 
 ### CI/CD
 
-GitHub Actions tự động chạy khi push hoặc PR vào nhánh `main`:
-- Backend: cài đặt dependencies + `alembic upgrade head` + chạy pytest với coverage
-- Frontend: cài đặt dependencies + TypeScript check + build production
+GitHub Actions runs on pushes and pull requests to `main`:
+
+- Backend job: install Python dependencies, run Alembic migrations, run Pytest with coverage
+- Frontend job: install Node dependencies and run production build
+
+Workflow file: `.github/workflows/ci.yml`
 
 ---
 
-## Triển khai
+## API Overview
 
-Dự án sử dụng kiến trúc:
-- **Frontend**: Vercel (auto-deploy từ GitHub)
-- **Backend**: Render Web Service (auto-deploy từ GitHub)
-- **Database**: Render PostgreSQL
-- **Cache**: Render Redis (tùy chọn)
-- **Image CDN**: Cloudinary
-- **Error Tracking**: Sentry
-- **Email**: Resend
+Base URL locally:
 
-Hướng dẫn deploy chi tiết: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
-API Endpoints: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
+```text
+http://localhost:8000
+```
 
----
+Key API groups:
 
-## Trạng thái dự án
+| Area | Endpoints |
+|---|---|
+| Auth | `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`, `/api/auth/change-password`, `/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/2fa/*` |
+| Products | `/api/products`, `/api/products/{id}`, `/api/products/bulk-update` |
+| Categories | `/api/categories`, `/api/categories/{id}` |
+| Brands | `/api/brands`, `/api/brands/{id}` |
+| Cart | `/api/cart`, `/api/cart/items`, `/api/cart/items/{item_id}` |
+| Orders | `/api/orders`, `/api/orders/{id}`, `/api/orders/{id}/status` |
+| Reviews | `/api/products/{id}/reviews`, `/api/reviews/{id}`, `/api/admin/reviews` |
+| Wishlist | `/api/wishlist`, `/api/wishlist/{product_id}` |
+| Payments | `/api/payments/vnpay-create`, `/api/payments/vnpay-return` |
+| AI | `/api/ai/search`, `/api/ai/recommend`, `/api/ai/chat`, `/api/ai/chat/stream` |
+| Admin | `/api/admin/stats`, `/api/admin/orders`, `/api/admin/orders/export`, `/api/admin/audit-logs` |
+| Blog | `/api/blog`, `/api/blog/{slug}` |
+| Health | `/health`, `/api/health`, `/api/health/db` |
 
-### Đã hoàn thành (Month 1 + 2 + 3 + Hardening Sprint + Security & Performance Review)
-
-**Core Features:**
-- Đăng ký, đăng nhập, phân quyền (JWT)
-- Đổi mật khẩu, quên mật khẩu (Resend email)
-- Quản lý danh mục, thương hiệu, sản phẩm (CRUD)
-- Giỏ hàng, checkout, đơn hàng
-- Thanh toán VNPay (sandbox)
-- Đánh giá sản phẩm (Reviews & Ratings)
-- Yêu thích (Wishlist)
-- Sản phẩm đã xem (Recently Viewed)
-
-**AI Features:**
-- **AI Search** — SQL ILIKE pre-filter (đẩy filter xuống DB) + cap 200 candidates + Python relevance scoring (name=10đ/kw, desc=3đ/kw) + synonym dictionary (40+ entries)
-- **AI Recommendation** — 4 chiến lược:
-  - `cart` (dựa giỏ hàng — cùng category/brand)
-  - `history` (dựa lịch sử mua hàng)
-  - `popular` (đơn hàng nhiều nhất toàn shop)
-  - `co_occurrence` ("khách mua A cũng mua B" — SQL self-join `order_items`, fallback chain: co-occurrence → cùng category → popular → latest)
-- **AI Chatbot** — Multi-provider LLM với fallback:
-  - Rule-based default (intent matching category/brand/budget/needs)
-  - Optional LLM (Gemini, Groq, mở rộng OpenRouter dễ): provider abstraction `BaseLLMProvider`, `ChainProvider` (fail-through), `CachedProvider` (Redis sha256 key TTL 1h)
-  - Anti-hallucination: products/giá/tồn kho luôn từ DB, brand list pass tường minh để LLM không gợi ý hãng không có
-  - Polished prompt: persona "nhân viên tư vấn", anti-clichés explicit, 3-câu cấu trúc, follow-up có điều kiện
-  - Endpoint chatbot LUÔN 200 OK — mọi lỗi LLM (timeout, quota, parse) → fallback rule-based im lặng
-  - **Streaming SSE** — `POST /api/ai/chat/stream` phát token-by-token; `stream_generate()` cho Gemini/Groq, ChainProvider fail-over chỉ trước token đầu, CachedProvider stream, middleware tắt gzip cho path stream
-
-**Admin Features:**
-- Dashboard thống kê (stats, charts, recent orders)
-- Quản lý sản phẩm (CRUD, hình ảnh Cloudinary)
-- Quản lý đơn hàng (cập nhật trạng thái, xuất CSV)
-- Quản lý người dùng (phân quyền, kích hoạt, **chặn admin tự demote**)
-- Quản lý đánh giá (xem, xóa)
-- Bulk update tồn kho
-- Nhật ký hệ thống (Audit Log)
-
-**Backend Hardening:**
-- **Config guardrails** — Production env validate `SECRET_KEY`/`ADMIN_PASSWORD` không phải default, `CORS_ORIGINS != '*'`, gate `create_db_and_tables` chỉ dev
-- **Transaction foundation** — `create_order` + cancel path atomic (session.add/flush/commit + try/rollback)
-- **Stock atomicity** — Conditional `UPDATE products SET stock=stock-:q WHERE id=:id AND stock>=:q` anti-oversell
-- **VNPay hardening** — Verify `int(vnp_Amount) == round(total*100)`, reject nếu `status==CANCELLED` hoặc `payment_status!=PENDING`, lưu `vnp_TxnRef` UNIQUE chống replay
-- **Lifespan context manager** — Migrated from deprecated `@app.on_event` to `asynccontextmanager` lifespan
-
-**Security Review (15 fixes):**
-- XSS-safe image URL validation (`isSafeUrl` protocol check)
-- FK-safe category/brand deletion (check product count before delete)
-- JWT token verification on app startup (`fetchCurrentUser` on mount)
-- 401 interceptor sync with Zustand store (proper state cleanup)
-- `seed.py` password comparison fix (`verify_password` instead of hash comparison)
-- `reset_password` redundant null check cleanup
-- VNPay return endpoint exception handling (graceful redirect on DB errors)
-- Admin search debouncing (300ms delay)
-- localStorage error handling in chat (try/catch for storage full)
-- Checkout empty cart flash fix (early return before redirect)
-- Dynamic Tailwind classes fix (static class strings for JIT)
-- Homepage batch endpoint (4 API calls → 1, cached 60s)
-- Shared frontend types extraction (`CanReviewResult`)
-- Recharts lazy-loaded as separate chunk (381KB out of main bundle)
-
-**Technical:**
-- Redis caching (product 5min, category/brand 30min, LLM response 1h, homepage 1min, graceful degradation)
-- Image optimization (Cloudinary transforms, lazy loading, WebP/AVIF, XSS-safe URL validation)
-- GZip compression
-- N+1 query optimization (batch find_by_ids)
-- Rate limiting (slowapi)
-- Logging middleware
-- Sentry error tracking
-- Seed dữ liệu (75 sản phẩm, 9 thương hiệu, 5 danh mục, ảnh thật từ Unsplash)
-- **387/387 tests**, 87% coverage
-- CI/CD (GitHub Actions)
-- Triển khai production (Render + Vercel)
-
-**UI/UX:**
-- Hero banner hiện đại với gradient, AI badge, social proof, floating product cards
-- Light/Dark/System theme toggle (next-themes + Tailwind class variant)
-- Responsive mobile-first (375px+)
-- Accessibility: aria-label cho icon buttons, role nav cho mobile menu, ARIA cho admin dropdown, id/htmlFor cho form, aria-hidden cho decorative emojis
-- Semantic tokens (bg-card, bg-popover, bg-muted) — dark mode không vỡ giao diện
-- Order/payment status badges có dark variant
-- **Code splitting** 22 routes lazy-loaded + recharts separate chunk, initial bundle 405 KB (gzip 128 KB)
-- **Scroll reset on route change** (`ScrollToTopOnNavigate`) — fix SPA mặc định giữ scrollY khi navigate
-- **"Có thể bạn cũng thích" section** trên product detail dùng co-occurrence recommendation
-- **Search autocomplete** với debounce 300ms
-- **Loading skeletons** cho mọi page type (ProductGrid, ProductDetail, CartItem, Table, Wishlist, Profile, Dashboard)
+Full endpoint documentation: [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
 
 ---
 
-## Giấy phép
+## Deployment
 
-Dự án phục vụ mục đích học tập và portfolio.
+Production deployment uses:
+
+- **Frontend:** Vercel
+- **Backend:** Render Web Service
+- **Database:** Supabase PostgreSQL / PostgreSQL-compatible hosted database
+- **Cache:** Redis, optional but recommended
+- **Images:** Cloudinary
+- **Monitoring:** Sentry
+- **Email:** Resend
+
+See the full deployment guide: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+---
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md) | API endpoint reference |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Deployment guide for Vercel, Render, database, Redis, Cloudinary, Resend, VNPay, and Sentry |
+| [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Database schema reference |
+| [docs/SRS.md](docs/SRS.md) | Software Requirements Specification |
+| [docs/DEMO_CHECKLIST.md](docs/DEMO_CHECKLIST.md) | Demo checklist |
+| [ROADMAP.md](ROADMAP.md) | Project roadmap and sprint history |
+
+---
+
+## Project Status
+
+The project is portfolio-ready and includes the core e-commerce journey, AI features, admin operations, deployment documentation, security hardening, and automated tests.
+
+Completed areas:
+
+- Customer shopping flow
+- Auth and profile management
+- Product catalog and admin CRUD
+- Cart, checkout, order history, and VNPay sandbox
+- Reviews and wishlist
+- Blog pages and admin blog management
+- AI search, recommendations, and chatbot
+- Streaming chatbot via SSE
+- Admin dashboard, CSV export, bulk inventory, audit logs
+- Redis caching and Cloudinary image optimization
+- Sentry, security headers, Origin checks, and production config validation
+- CI/CD and deployment docs
+- Responsive UI, dark mode, loading skeletons, route-level code splitting, and accessibility improvements
+
+---
+
+## License
+
+This project is built for learning, portfolio, and demonstration purposes.
